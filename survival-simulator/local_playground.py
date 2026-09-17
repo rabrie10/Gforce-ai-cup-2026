@@ -1,7 +1,7 @@
 import pygame
 import random
 from src.core import SimulationCore
-from src.utils.controllers.dummy_agent_policy import action_decision
+from src.utils.controllers.heuristic_policy import action_decision
 
 def local_simulation(verbose=True):
     seed = None
@@ -27,13 +27,13 @@ def local_simulation(verbose=True):
     actions = []
 
     while running:
-        if verbose: 
+        if verbose:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT: # Check if user closes window
                     running = False
 
         state = sim.step(actions)
-        
+
         actions = []
         for agent, agent_state in zip(sim.env.agents, state["observations"]):
             action = action_decision(agent_state, action_rng)
