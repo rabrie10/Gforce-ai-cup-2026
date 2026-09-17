@@ -1,7 +1,7 @@
 import random
 from fastapi import FastAPI, Body
 from src.utils.DTOs import StepResponse
-from src.utils.controllers.dummy_agent_policy import action_decision
+from src.utils.controllers.heuristic_policy import action_decision
 
 HOST = "0.0.0.0"
 PORT = 9052
@@ -15,7 +15,7 @@ def predict(step: StepResponse = Body(...)):
     """
     rng = random.Random(1)  # deterministic for testing
     actions = [action_decision(agent.dict(), rng).dict() for agent in step.agent_status]
-    
+
     # Must return {"actions": [...]} format
     return {"actions": actions}
 
