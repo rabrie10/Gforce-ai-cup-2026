@@ -1,8 +1,5 @@
-"""Settings is the only module that reads the environment.
-
-These tests pin both halves of that: an unset environment gives the working
-development defaults, and every value the deployment VM overrides is actually
-reachable from the environment.
+"""Settings is the only module that reads the environment: defaults resolve
+without it, and every value the deployment VM overrides is reachable through it.
 """
 
 import os
@@ -14,7 +11,7 @@ from medapp.config import Settings
 
 
 def _clear_medapp_environment(monkeypatch):
-    """Whatever the developer's shell exports, these tests start from nothing."""
+    """Drops every MEDAPP_ variable the developer's shell may export."""
     for name in list(os.environ):
         if name.startswith("MEDAPP_"):
             monkeypatch.delenv(name)

@@ -1,9 +1,5 @@
-"""The data that moves between components.
-
-All four are frozen: a Chunk handed to the reranker is the same Chunk that is
-returned as an Evidence Span, and nothing downstream may edit the timings it
-will be scored on. Times are seconds from the start of the Conversation, which
-is the unit the wire protocol and the harness both use.
+"""Frozen data passed between components. Times are seconds from the start of
+the Conversation, the unit the wire protocol and the harness both use.
 """
 
 from dataclasses import dataclass
@@ -15,8 +11,11 @@ from utils import Span
 class Word:
     """One transcribed word with the timing the Transcriber aligned it to.
 
-    Word timings, not Segment boundaries, are what Chunks are built from, so
-    this is the finest-grained thing the system carries.
+    Chunks are built from Word timings rather than Segment boundaries, so this
+    is the finest-grained thing the system carries.
+
+    Attributes:
+        probability: The Transcriber's confidence in the token.
     """
 
     text: str
@@ -30,8 +29,7 @@ class Segment:
     """A contiguous stretch of transcribed speech, as the Transcriber emits it.
 
     A unit of transcription, not of evidence: one Evidence Span does not
-    necessarily correspond to one Segment. Segments are never joined into a
-    single string.
+    necessarily correspond to one Segment.
     """
 
     start: float
@@ -44,9 +42,9 @@ class Segment:
 class Chunk:
     """A candidate Evidence Span the Answerer considers.
 
-    Built from timed words rather than Segment boundaries, overlapping its
-    neighbours, and carrying the Words that let its boundaries be returned as
-    an Evidence Span unchanged.
+    Built from timed words rather than Segment boundaries and overlapping its
+    neighbours. Carries the Words that let its boundaries be returned as an
+    Evidence Span unchanged.
     """
 
     text: str
@@ -56,6 +54,7 @@ class Chunk:
 
     @property
     def span(self) -> Span:
+        """The boundaries as an Evidence Span."""
         return (self.start, self.end)
 
 
@@ -63,14 +62,15 @@ class Chunk:
 class Verdict:
     """The Answerer's decision about one Question.
 
-    The answer and the Evidence Span are one decision, not two: the passage
-    that justifies a yes is exactly the span returned. A no has nothing to
-    point at, so ``evidence`` is ``None``.
+    Attributes:
+        evidence: The passage the yes was read from; None for a no, which has
+            nothing to point at.
+        candidates: The ranked Chunks the verdict was chosen from. Component
+            metrics are computed from these rather than by reaching inside the
+            Chunker, so there is no default to omit them by.
 
-    ``candidates`` carries the ranked Chunks the verdict was chosen from, so
-    component metrics — recall@k, oracle tIoU — are computed from this seam's
-    output rather than by reaching inside the Chunker. It has no default:
-    measurement depends on it, and an omitted ranking is silently unmeasurable.
+    Raises:
+        ValueError: If the answer and the evidence disagree.
     """
 
     answer: bool

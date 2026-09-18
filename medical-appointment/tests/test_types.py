@@ -1,4 +1,4 @@
-"""The data types are frozen, and a Chunk carries its own Evidence Span."""
+"""The data types are frozen, and a Verdict's answer and evidence agree."""
 
 import dataclasses
 
