@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "annotation_rows": 259,
+  "motion_rows": 243,
+  "independently_checked_iou_rows": 4669,
+  "unique_gallery_annotations": 259,
+  "authoritative_inputs_unchanged": true,
+  "checks": [
+    "raw annotation reconciliation",
+    "positive geometry and level scale",
+    "future horizon completeness",
+    "independent center/size extrapolation and IoU",
+    "paired summary denominators",
+    "bucket totals",
+    "camera target containment",
+    "gallery coverage",
+    "input SHA-256"
+  ]
+}
