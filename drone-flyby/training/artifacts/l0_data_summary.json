@@ -1,0 +1,453 @@
+{
+  "status": "PASS",
+  "source_geometry": [
+    3840,
+    2160
+  ],
+  "l0_geometry": [
+    960,
+    540
+  ],
+  "resize_interpolation": "cv2.INTER_AREA",
+  "frames": 25,
+  "annotations": 259,
+  "class_mapping": {
+    "0": "hangar",
+    "1": "helicopter",
+    "2": "jet_plane",
+    "3": "large_launcher",
+    "4": "large_tower",
+    "5": "medium_launcher",
+    "6": "medium_plane",
+    "7": "mine_roller",
+    "8": "small_launcher",
+    "9": "small_plane",
+    "10": "small_tower",
+    "11": "ta-ta",
+    "12": "tank",
+    "13": "condor",
+    "14": "jammer",
+    "15": "spacecraft"
+  },
+  "all_boxes": {
+    "width_px_min": 2.25,
+    "width_px_median": 13.25,
+    "width_px_p95": 42.775,
+    "width_px_max": 47.25,
+    "height_px_min": 1.5,
+    "height_px_median": 12.5,
+    "height_px_p95": 28.64999999999999,
+    "height_px_max": 43.75
+  },
+  "class_summary": [
+    {
+      "class_index": 0,
+      "object_id": "hangar",
+      "count": 6,
+      "width_px_min": 45.5,
+      "width_px_median": 46.25,
+      "width_px_p95": 47.1875,
+      "width_px_max": 47.25,
+      "height_px_min": 1.5,
+      "height_px_median": 29.75,
+      "height_px_p95": 32.4375,
+      "height_px_max": 32.5,
+      "area_px2_median": 1376.5
+    },
+    {
+      "class_index": 1,
+      "object_id": "helicopter",
+      "count": 19,
+      "width_px_min": 27.25,
+      "width_px_median": 29.0,
+      "width_px_p95": 31.025,
+      "width_px_max": 31.25,
+      "height_px_min": 9.5,
+      "height_px_median": 23.5,
+      "height_px_p95": 25.5,
+      "height_px_max": 25.5,
+      "area_px2_median": 681.5
+    },
+    {
+      "class_index": 2,
+      "object_id": "jet_plane",
+      "count": 22,
+      "width_px_min": 18.0,
+      "width_px_median": 19.25,
+      "width_px_p95": 20.737499999999997,
+      "width_px_max": 20.75,
+      "height_px_min": 6.75,
+      "height_px_median": 20.25,
+      "height_px_p95": 21.75,
+      "height_px_max": 22.25,
+      "area_px2_median": 389.8125
+    },
+    {
+      "class_index": 3,
+      "object_id": "large_launcher",
+      "count": 25,
+      "width_px_min": 23.75,
+      "width_px_median": 37.25,
+      "width_px_p95": 40.2,
+      "width_px_max": 40.75,
+      "height_px_min": 26.25,
+      "height_px_median": 27.5,
+      "height_px_p95": 28.5,
+      "height_px_max": 28.5,
+      "area_px2_median": 1005.75
+    },
+    {
+      "class_index": 4,
+      "object_id": "large_tower",
+      "count": 19,
+      "width_px_min": 14.0,
+      "width_px_median": 15.5,
+      "width_px_p95": 17.025,
+      "width_px_max": 17.25,
+      "height_px_min": 6.5,
+      "height_px_median": 16.0,
+      "height_px_p95": 17.0,
+      "height_px_max": 17.0,
+      "area_px2_median": 250.125
+    },
+    {
+      "class_index": 5,
+      "object_id": "medium_launcher",
+      "count": 10,
+      "width_px_min": 2.25,
+      "width_px_median": 11.75,
+      "width_px_p95": 12.0,
+      "width_px_max": 12.0,
+      "height_px_min": 4.25,
+      "height_px_median": 11.375,
+      "height_px_p95": 11.5,
+      "height_px_max": 11.5,
+      "area_px2_median": 130.71875
+    },
+    {
+      "class_index": 6,
+      "object_id": "medium_plane",
+      "count": 5,
+      "width_px_min": 13.75,
+      "width_px_median": 14.0,
+      "width_px_p95": 14.2,
+      "width_px_max": 14.25,
+      "height_px_min": 8.0,
+      "height_px_median": 12.25,
+      "height_px_p95": 12.25,
+      "height_px_max": 12.25,
+      "area_px2_median": 171.5
+    },
+    {
+      "class_index": 7,
+      "object_id": "mine_roller",
+      "count": 2,
+      "width_px_min": 13.25,
+      "width_px_median": 13.25,
+      "width_px_p95": 13.25,
+      "width_px_max": 13.25,
+      "height_px_min": 15.0,
+      "height_px_median": 15.0,
+      "height_px_p95": 15.0,
+      "height_px_max": 15.0,
+      "area_px2_median": 198.75
+    },
+    {
+      "class_index": 8,
+      "object_id": "small_launcher",
+      "count": 25,
+      "width_px_min": 5.0,
+      "width_px_median": 5.5,
+      "width_px_p95": 5.75,
+      "width_px_max": 6.0,
+      "height_px_min": 7.25,
+      "height_px_median": 7.5,
+      "height_px_p95": 7.5,
+      "height_px_max": 7.75,
+      "area_px2_median": 41.25
+    },
+    {
+      "class_index": 9,
+      "object_id": "small_plane",
+      "count": 9,
+      "width_px_min": 10.25,
+      "width_px_median": 10.75,
+      "width_px_p95": 10.9,
+      "width_px_max": 11.0,
+      "height_px_min": 12.0,
+      "height_px_median": 12.5,
+      "height_px_p95": 13.0,
+      "height_px_max": 13.0,
+      "area_px2_median": 134.375
+    },
+    {
+      "class_index": 10,
+      "object_id": "small_tower",
+      "count": 20,
+      "width_px_min": 13.25,
+      "width_px_median": 14.375,
+      "width_px_p95": 15.5125,
+      "width_px_max": 15.75,
+      "height_px_min": 5.25,
+      "height_px_median": 14.75,
+      "height_px_p95": 15.0,
+      "height_px_max": 15.0,
+      "area_px2_median": 210.1875
+    },
+    {
+      "class_index": 11,
+      "object_id": "ta-ta",
+      "count": 25,
+      "width_px_min": 7.25,
+      "width_px_median": 8.0,
+      "width_px_p95": 8.95,
+      "width_px_max": 9.0,
+      "height_px_min": 3.5,
+      "height_px_median": 4.25,
+      "height_px_p95": 4.75,
+      "height_px_max": 4.75,
+      "area_px2_median": 34.0
+    },
+    {
+      "class_index": 12,
+      "object_id": "tank",
+      "count": 25,
+      "width_px_min": 11.5,
+      "width_px_median": 12.5,
+      "width_px_p95": 13.5,
+      "width_px_max": 13.5,
+      "height_px_min": 3.25,
+      "height_px_median": 11.75,
+      "height_px_p95": 12.75,
+      "height_px_max": 13.0,
+      "area_px2_median": 146.875
+    },
+    {
+      "class_index": 13,
+      "object_id": "condor",
+      "count": 11,
+      "width_px_min": 41.5,
+      "width_px_median": 43.25,
+      "width_px_p95": 45.0,
+      "width_px_max": 45.25,
+      "height_px_min": 9.75,
+      "height_px_median": 41.5,
+      "height_px_p95": 43.625,
+      "height_px_max": 43.75,
+      "area_px2_median": 1774.125
+    },
+    {
+      "class_index": 14,
+      "object_id": "jammer",
+      "count": 13,
+      "width_px_min": 8.0,
+      "width_px_median": 8.25,
+      "width_px_p95": 8.6,
+      "width_px_max": 8.75,
+      "height_px_min": 7.0,
+      "height_px_median": 10.75,
+      "height_px_p95": 11.0,
+      "height_px_max": 11.0,
+      "area_px2_median": 88.0
+    },
+    {
+      "class_index": 15,
+      "object_id": "spacecraft",
+      "count": 23,
+      "width_px_min": 10.25,
+      "width_px_median": 11.0,
+      "width_px_p95": 12.225,
+      "width_px_max": 12.25,
+      "height_px_min": 2.0,
+      "height_px_median": 12.25,
+      "height_px_p95": 12.5,
+      "height_px_max": 12.5,
+      "area_px2_median": 134.75
+    }
+  ],
+  "frames_detail": [
+    {
+      "frame": 0,
+      "annotations": 11,
+      "source_image_sha256": "b327545afdadf488c543750bb3e8334ffc3b8fe9fcce7c05222062cc0d76d310",
+      "generated_image_sha256": "5bb0f37d13475bbd6643648eb26845323aeb6c3f7b289cf4d56e0f72b7ef0903",
+      "label_sha256": "91796396f8d3f67e161d068600c46d3901d4f4d022462520897e1e9dd81a6770"
+    },
+    {
+      "frame": 1,
+      "annotations": 11,
+      "source_image_sha256": "ce6d5dd9da71c0e3139d0dfc923449142c67cdd17813b60e761fd45667268b05",
+      "generated_image_sha256": "96575269dd07f999b2972789ed63f740b334f1cc1af299e213244dbde853152b",
+      "label_sha256": "b06c7b57f3fb145423981ced3ca2f6324562bf93653dfcc41bdef29003b293a5"
+    },
+    {
+      "frame": 2,
+      "annotations": 10,
+      "source_image_sha256": "1c7420fef17501215e96cb479f0969656fb3c60b751f3b3830c8be82645ffcec",
+      "generated_image_sha256": "ff35033f59d63d1b8d21a4810e9ad3e9c996315457abe8eb8eee5cfd6867f8d0",
+      "label_sha256": "91cddfc8716cfff32e37eb7cee4b20228ae34beb61453ea850480438fc2caa33"
+    },
+    {
+      "frame": 3,
+      "annotations": 11,
+      "source_image_sha256": "5d26c57aa19bd431e088f138220f01d2b51f35fba84b2918341fa7cc5cd75c0a",
+      "generated_image_sha256": "d874399ac90bff808414b8142d2d336e670c3e401cf1c65feff93225dc51832d",
+      "label_sha256": "933e8cbb9ff3bec70da4a46c963e4e1ea764ecc0f81798c5c84508795af1bfa0"
+    },
+    {
+      "frame": 4,
+      "annotations": 11,
+      "source_image_sha256": "3272d144c4a01a17ca30066c80b45e2e24456974c1b283485f8a9030cafb1bf5",
+      "generated_image_sha256": "b787ba5af19578f979d1de6eb5a1bbb4327721c91011ae37585f780b3a66efa0",
+      "label_sha256": "b00ef8f617d9d695c68db5a9724fa0c7aa463713a2c7a247df89cc47099953b5"
+    },
+    {
+      "frame": 5,
+      "annotations": 11,
+      "source_image_sha256": "1d8af03e4c53061acf28c81b5848efde99a0c70f3e0db653d44c6e0936d5e921",
+      "generated_image_sha256": "d62749660b9aebe7b6462d758d35a1c4512e4c8c18bd52be1ffa15079979c8be",
+      "label_sha256": "61d624f53a11456068c085d156c709cb7dc13bc088f81925ef214dd701a6aed7"
+    },
+    {
+      "frame": 6,
+      "annotations": 12,
+      "source_image_sha256": "36e76e1a208279bbb035dfaa1388e5eff90f60ba9bc9b00b5f814292395cfeb0",
+      "generated_image_sha256": "241a251a52df4ca3fb312d5dee161295785ded775fc6c840d4b319524485e45d",
+      "label_sha256": "c04651aefb108c57c287758cfad95f048b9c1d673a6b974a89e010f422d3f62e"
+    },
+    {
+      "frame": 7,
+      "annotations": 12,
+      "source_image_sha256": "3dcf92687aa6265c51afe4412479ba2dcb4c856824e241ce4753c8811c517b22",
+      "generated_image_sha256": "a4626fa49a2c2917c195e804a09bc9dcbc7d24d4b1b818771fb291c8ee1a0c63",
+      "label_sha256": "b283246f63c6bad01124d10e418502f49e7c4da702119e106bf58720ae0862f8"
+    },
+    {
+      "frame": 8,
+      "annotations": 12,
+      "source_image_sha256": "9c9046faa96ee71615402839e28c1d39b16038d8c7567fc24161bcae0827ad83",
+      "generated_image_sha256": "6d94fb7a2193797e755cad295c2a811191e90d85d6be71cdd8a22a16db80825c",
+      "label_sha256": "74992032c850ffff1eeebb08bb8483e60be5d2d8580de8240058d03df7fc0ba6"
+    },
+    {
+      "frame": 9,
+      "annotations": 11,
+      "source_image_sha256": "c149af4fd8156d8ca73315bdbbf49d6bc291d827524a429769dcb2a70dc0f1d2",
+      "generated_image_sha256": "6a22eb616e4f1b022a2fad43e7f4b07285ea8f5a062dd1aaa1ab6e88911b2a16",
+      "label_sha256": "f8fa75ec3a1b67bf330a3b9aa9191821c2d7ace35b22d7f97fd92fdf9fec3760"
+    },
+    {
+      "frame": 10,
+      "annotations": 11,
+      "source_image_sha256": "6e14d0c30da3381a5be32fd5e6b7de54370f759b0df2b3ddc7b7e6f4981dc6f2",
+      "generated_image_sha256": "e4e3992326ca8dca3ca1040284d0032c4fb02062dedec33392320eb2f9a5c5bc",
+      "label_sha256": "a294527b6ab40afdf43b528e7a00f3a89f07df933370536eb98539a301387a8f"
+    },
+    {
+      "frame": 11,
+      "annotations": 10,
+      "source_image_sha256": "4894972e9eefc9c6e2250527a99d9b7d97a28b8d4b11e176f366fe1ddabfcb60",
+      "generated_image_sha256": "e99d6c405c98f6a4ae06a8a66be7e96ce6f03536dfb791c7e49570b3d61480c0",
+      "label_sha256": "43883683186a0414e8db208bf7a7bac942c3e09d8f6fb2aac0d0ac08567c6747"
+    },
+    {
+      "frame": 12,
+      "annotations": 10,
+      "source_image_sha256": "d93907f160df7a715e452625c36f8ed2b7019cca30ad22f246d36e144b488365",
+      "generated_image_sha256": "d388b5bcf6c3353cdc8c8ece3d3d51897f4c33049be2ec0d2a89ac3d459bd6f4",
+      "label_sha256": "47e20fdc59e7c90757c17b58dbee56ba5a7465f7c0857c0a72122616511c863d"
+    },
+    {
+      "frame": 13,
+      "annotations": 9,
+      "source_image_sha256": "b10a9b3bf9613083daa56c4e2d58b99b59d9552d2f104974ba60c89bbc5d3067",
+      "generated_image_sha256": "04085487b69d7df971b6acda1debf86947ff4cd221391f16bf25cbe1353ac393",
+      "label_sha256": "40f30987190f48bc9724d538b5ddff1db0a0ac48810c3ddb73225e276e4b869d"
+    },
+    {
+      "frame": 14,
+      "annotations": 10,
+      "source_image_sha256": "20600a8b0f89e05e92d640c20fcbb86ae06419e060abf503bcc41e8d6cd42448",
+      "generated_image_sha256": "09a2ae27da54c4abaa46e5823d4bd64da71467ec4245c056384dbd8a92ccf5d0",
+      "label_sha256": "089d4230a42e781f5a53b39f8e5df481b5c671298e2dfc5534b8e03bfedbc818"
+    },
+    {
+      "frame": 15,
+      "annotations": 10,
+      "source_image_sha256": "27b77166f46863a1f105a3a8556493be76f28dc5be6ceb11901b499d31f1c061",
+      "generated_image_sha256": "589145a18f2f1c1dc3bd62bd5684d76dcd7bf6f1d0584853da40e94a37236d1a",
+      "label_sha256": "e8ec3cab94a6d3d36dfd400d722552779545bd22883ad0f11a6a78374c4e2a76"
+    },
+    {
+      "frame": 16,
+      "annotations": 10,
+      "source_image_sha256": "a67ab9dce1a9ccbfdd6107e151d5b465334915eb5a89f9d30d94aa665a6ec3fd",
+      "generated_image_sha256": "358ec30e83f25e5bb14234494da56f744f60a155e999746c72f397aa328852ee",
+      "label_sha256": "631b33fdc308350e69f200221ec1b5b4a1ae7b81aa52ce4af76ef1bbd68c214c"
+    },
+    {
+      "frame": 17,
+      "annotations": 10,
+      "source_image_sha256": "47996720ff2f1569a220137b8e96a6310923d1dc6f1e198cd65386493f191842",
+      "generated_image_sha256": "59ae9d9fb5127e9b285a85a93b7596c60ce2ea1c2a341f028657af63202d1d3b",
+      "label_sha256": "224ad25fd7444dcf0c93ace1960adb734e48afe90ff68cdcff5ecce25c901fe2"
+    },
+    {
+      "frame": 18,
+      "annotations": 10,
+      "source_image_sha256": "73015367ecafc5d047b61c8373d4c69d4130826f5e9d0913c3e7e8e745297f40",
+      "generated_image_sha256": "44ec245b502818b5f75b107bbb01dff563fbb6ff5ffc87b1b21762dec7ed29bf",
+      "label_sha256": "72fdc7c4ebca5fe75d5f43e5ec815bb528a9fcf1bbd1bdc62f86aedb9b1bf0e3"
+    },
+    {
+      "frame": 19,
+      "annotations": 10,
+      "source_image_sha256": "058ddf0bd6e3732ff8b9e5a2648a377a01a339a58a532f23ba34713786473038",
+      "generated_image_sha256": "a7951095ca6275d2719653aa02979d06dd0c7d544ae52012c7b1d6bc8906af08",
+      "label_sha256": "11f90da28fc6d22ef573ab54733a29738ea0e36b16a787d4898d7b09365c96a4"
+    },
+    {
+      "frame": 20,
+      "annotations": 10,
+      "source_image_sha256": "81406bec0609c542e0cc1bae6ba274279b8e6fb1524ffd3d5a257d61e2d4a251",
+      "generated_image_sha256": "59c7f79a300d26e50404242906cca3ed438b4e58539aa6b269aa03a895079de1",
+      "label_sha256": "9e78853ae796a223d99b78c27099e287d016e43b30b5c76d9bc8011fb0ebd3fe"
+    },
+    {
+      "frame": 21,
+      "annotations": 10,
+      "source_image_sha256": "6102267bed743232adf541ce61ed9ef549430a5fbcd4f280e6345552cc7254a2",
+      "generated_image_sha256": "d133048e0fe00691a282e4bbbe11895807fdb5d2c26b24e4ed74017b11a3c3fc",
+      "label_sha256": "94cff2099a93f0c422713b86c34f41a0f0c8f91e613aa15180d5391d9267cedf"
+    },
+    {
+      "frame": 22,
+      "annotations": 10,
+      "source_image_sha256": "7dbc98245452a2dd99210b5cdb9bef1e4b8a5744a45e85d6839c436edc598fc5",
+      "generated_image_sha256": "339fe7a047937e6f3ae3dde5dbbc1f08164662269ed4fb8cd9bc78356d661c01",
+      "label_sha256": "95ef474385f4b94ddd9208cfb2348a916b792050d8692d3b50f70004227168b9"
+    },
+    {
+      "frame": 23,
+      "annotations": 9,
+      "source_image_sha256": "70e7bb64ced08dcddec0962ecd3823ae266197e2c05a7fc9eac1d87d43fd3f12",
+      "generated_image_sha256": "1abbe2d93a785502c5b17ab0ffa6144deb49fade8ca9bd32864073f1216bf639",
+      "label_sha256": "98991f2dbaa6afdd35dd5919834c31c0d1ac1483ed90485e58572b102ac7d977"
+    },
+    {
+      "frame": 24,
+      "annotations": 8,
+      "source_image_sha256": "47184ec2757f0b03d001212c8395f7e59a0a91480feef0104f2b0f00675dadfd",
+      "generated_image_sha256": "89f77b390e3586e1b604d1c1e386d3120e419f7a20d0df8fde0330eca16d0db8",
+      "label_sha256": "30726adedd13b6dd49154a61e08d726f52d9300dd26a781bfaa8a114a99c9952"
+    }
+  ],
+  "overlay_frames": [
+    0,
+    12,
+    24
+  ],
+  "training_policy": "all 25 sequential frames; no random adjacent-frame split",
+  "validation_policy": "same-frame fit diagnostic only; hosted evaluation is external",
+  "dataset_yaml": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\training\\generated\\l0_helsinki\\dataset.yaml"
+}

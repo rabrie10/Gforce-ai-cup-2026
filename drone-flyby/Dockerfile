@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Your model and the server. The sample data under src/ is not copied: it is
 # 400 MB and only local_evaluator.py needs it.
-COPY dtos.py utils.py example.py api.py ./
+COPY dtos.py utils.py detector.py example.py api.py ./
+COPY models ./models
 
 EXPOSE 9053
 

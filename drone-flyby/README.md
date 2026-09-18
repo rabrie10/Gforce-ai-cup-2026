@@ -28,15 +28,31 @@ Serve the baseline:
 python api.py
 ```
 
+The service now uses the tracked `models/drone_yolo11n_l0.pt` YOLO11n
+checkpoint. It loads and warms once at startup, runs locally with four Torch
+threads, and keeps the camera at Level 0. Each response contains detections from
+the current frame only.
+
+Rebuild the exact Level-0 training data and train the checkpoint with:
+
+```cmd
+python training/data_prep.py
+python training/train.py --model yolo11n.pt --epochs 60 --batch 4 --imgsz 960 --device cpu
+```
+
+The generated 960x540 images are ignored because they are deterministic copies
+of `src/helsinki`. Reviewable summaries, overlays, training metadata, and local
+evaluation results live under `training/artifacts/`.
+
 Then, in a second terminal, score it against the supplied scene:
 
 ```cmd
 python local_evaluator.py
 ```
 
-You now have a working endpoint and a number to improve. The baseline scores
-about zero — it is edge detection with a fixed label, there to prove the
-plumbing works, not to compete.
+You now have a real 16-class endpoint and a number to improve. The Helsinki
+score is a fit check on the same sequence used for training; it is not evidence
+of generalization. Hosted validation is the first external test.
 
 Check that the harness and the data agree with each other at any time:
 
@@ -52,13 +68,16 @@ does, a low score is your model, not your setup.
 | File | What it is |
 |---|---|
 | `api.py` | The FastAPI server the evaluator calls. You probably will not change it. |
-| `example.py` | The baseline detector and camera policy. **This is the file to replace.** |
+| `detector.py` | One-time YOLO loading, inference, metrics, and safe DTO conversion. |
+| `example.py` | Stateless detector integration and the always-Level-0 policy. |
 | `dtos.py` | The request and response models, plus the protocol constants. |
 | `utils.py` | Decoding, coordinate conversion, response validation, box drawing. |
 | `local_evaluator.py` | Replays a scene through your endpoint and scores it. |
 | `visualize.py` | Draws the ground truth onto the supplied frames. |
-| `requirements.txt` | Dependencies. Loose pins, so they will not fight your detection stack. |
+| `requirements.txt` | API/evaluator dependencies and the pinned detector stack. |
 | `Dockerfile` | If you would rather containerise the server. |
+| `models/drone_yolo11n_l0.pt` | Fine-tuned local YOLO11n checkpoint. |
+| `training/` | Reproducible data preparation, training, evaluation, and evidence. |
 | `src/helsinki/` | 25 reference frames with annotations. |
 
 ## About the challenge

@@ -1,6 +1,11 @@
 # Rendered by visualize.py on demand
 annotated/
 
+# Reproducible training products that are too large/noisy to review.  The
+# selected model and machine-readable summaries remain tracked.
+training/generated/
+training/runs/
+
 # Generic Python files (Source: https://github.com/github/gitignore/blob/main/Python.gitignore)
 __pycache__/
 *.py[cod]
