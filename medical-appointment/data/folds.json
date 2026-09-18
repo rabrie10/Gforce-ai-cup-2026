@@ -1,0 +1,55 @@
+{
+  "seed": 20260918,
+  "sizes": {
+    "train": 8,
+    "dev": 16,
+    "test": 15
+  },
+  "folds": {
+    "train": [
+      "sample_19",
+      "sample_4",
+      "sample_42",
+      "sample_56",
+      "sample_57",
+      "sample_63",
+      "sample_70",
+      "sample_84"
+    ],
+    "dev": [
+      "sample_17",
+      "sample_23",
+      "sample_33",
+      "sample_37",
+      "sample_43",
+      "sample_50",
+      "sample_54",
+      "sample_55",
+      "sample_64",
+      "sample_66",
+      "sample_69",
+      "sample_71",
+      "sample_79",
+      "sample_81",
+      "sample_90",
+      "sample_92"
+    ],
+    "test": [
+      "sample_10",
+      "sample_18",
+      "sample_20",
+      "sample_39",
+      "sample_47",
+      "sample_48",
+      "sample_5",
+      "sample_52",
+      "sample_6",
+      "sample_67",
+      "sample_75",
+      "sample_77",
+      "sample_82",
+      "sample_86",
+      "sample_95"
+    ]
+  }
+}
