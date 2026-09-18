@@ -155,6 +155,10 @@ def words_in_span(transcript: TimedWords, span: Span) -> tuple[int, int]:
     A Word counts as covered when it overlaps the span at all, so a span whose
     boundaries fall mid-word still shows the words it cuts through rather than
     dropping them.
+
+    A span over silence — the Transcriber drops stretches with no speech in
+    them — covers no Words and returns an empty range at the position the span
+    falls, so the words either side of it still bracket the right place.
     """
     start, end = span
 
@@ -165,7 +169,8 @@ def words_in_span(transcript: TimedWords, span: Span) -> tuple[int, int]:
     ]
 
     if not covered:
-        return (0, 0)
+        position = sum(1 for word in transcript.words if word.end <= start)
+        return (position, position)
 
     return (covered[0], covered[-1] + 1)
 
@@ -207,13 +212,16 @@ def content_words(text: str) -> frozenset[str]:
     """The words of a Question that say what it is about.
 
     Lower-cased, stripped of punctuation and of the words every Question
-    carries. Crude on purpose: this is the material the normalizer and the
-    retriever are designed from, not a component of either.
+    carries. Single characters go too: splitting on punctuation leaves the
+    clitic of ``patient's`` and ``don't`` behind, and an ``s`` shared between a
+    Question and a passage says nothing about either. Crude on purpose: this is
+    the material the normalizer and the retriever are designed from, not a
+    component of either.
     """
     return frozenset(
         word
         for word in re.findall(r"[a-z0-9]+", text.lower())
-        if word not in _STOP_WORDS
+        if len(word) > 1 and word not in _STOP_WORDS
     )
 
 

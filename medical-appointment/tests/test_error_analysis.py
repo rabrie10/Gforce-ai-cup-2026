@@ -57,10 +57,30 @@ def test_a_word_the_span_only_clips_still_counts_as_covered():
     assert error_analysis.words_in_span(transcript, (0.4, 0.6)) == (0, 2)
 
 
-def test_a_span_over_silence_covers_no_words():
+def test_a_span_over_silence_covers_no_words_where_it_falls():
     transcript = error_analysis.timed_words(SEGMENTS)
 
-    assert error_analysis.words_in_span(transcript, (1.5, 1.9)) == (0, 0)
+    assert error_analysis.words_in_span(transcript, (1.5, 1.9)) == (3, 3)
+
+
+def test_a_span_over_silence_is_bracketed_by_the_words_either_side():
+    rendering = error_analysis.render_positive(
+        positive_row("1.5", "1.9"), SEGMENTS, neighbouring_words=2
+    )
+
+    assert rendering.words_covered == 0
+    assert rendering.span_text == ""
+    assert rendering.before == "two tablets."
+    assert rendering.after == "Twice daily"
+
+
+def test_a_span_past_the_last_word_shows_the_end_of_the_transcript():
+    rendering = error_analysis.render_positive(
+        positive_row("9.0", "9.5"), SEGMENTS, neighbouring_words=2
+    )
+
+    assert rendering.before == "a week."
+    assert rendering.after == ""
 
 
 def test_a_rendering_shows_the_span_and_the_words_either_side():
@@ -90,6 +110,12 @@ def test_a_question_with_no_annotation_cannot_be_rendered_as_a_positive():
 def test_content_words_drop_the_words_every_question_carries():
     assert error_analysis.content_words("Was the patient given two tablets?") == (
         frozenset({"given", "two", "tablets"})
+    )
+
+
+def test_content_words_drop_the_clitic_left_by_an_apostrophe():
+    assert error_analysis.content_words("Was the patient's dose changed?") == (
+        frozenset({"dose", "changed"})
     )
 
 
