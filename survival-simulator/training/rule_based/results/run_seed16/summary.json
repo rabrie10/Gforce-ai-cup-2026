@@ -1,0 +1,15 @@
+{
+  "seed": 16,
+  "final_score": 637.5908013084634,
+  "extinct": true,
+  "extinction_time": 665.5000000000828,
+  "final_sim_time": 665.5000000000828,
+  "final_num_agents": 0,
+  "wall_seconds": 191.6339566707611,
+  "sim_seconds_per_wall_second": 3.472766578333779,
+  "num_deaths": 291,
+  "num_births": 286,
+  "deaths_predator": 126,
+  "deaths_starvation_old": 42,
+  "deaths_starvation_young": 123
+}

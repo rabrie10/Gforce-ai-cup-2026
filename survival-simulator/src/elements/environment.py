@@ -63,6 +63,9 @@ class Environment:
     
         # Create an offscreen surface the size of the environment
         self.world_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        background_overlay = pygame.Surface(self.world_surface.get_size(), pygame.SRCALPHA)
+        background_overlay.fill((40, 40, 40, 70))
+        self.world_surface.blit(background_overlay, (0, 0))
         # Create vision and leaf surfaces
         self.vision_screen = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.leaf_screen = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
