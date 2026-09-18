@@ -82,6 +82,14 @@ module = ["bm25s.*", "Stemmer.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+# Installed in the project environment but not in the pre-commit hook's, which
+# would otherwise fail on an import it has no way to resolve. Where they are
+# installed their own types are used: this only covers the not-found case. The
+# surface `medapp` depends on is pinned by the Protocols in medapp/reranker.py.
+module = ["sentence_transformers.*", "huggingface_hub.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 # Vendored upstream code is kept diffable against openai/whisper, so it is not
 # held to this project's typing; medapp/normalizer.py is the typed boundary.
 module = ["medapp.vendor.*"]

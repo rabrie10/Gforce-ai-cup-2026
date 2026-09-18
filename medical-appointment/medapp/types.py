@@ -89,3 +89,18 @@ class Verdict:
                 f"carries none: got answer={self.answer!r}, "
                 f"evidence={self.evidence!r}."
             )
+
+
+@dataclass(frozen=True, slots=True)
+class ScoredChunk:
+    """A Chunk with the Relevance the reranker read Question and Chunk into.
+
+    Attributes:
+        relevance: The cross-encoder's score for this Chunk against one
+            Question. Comparable within one ranking and across Conversations —
+            the Relevance threshold is a fixed number, not a per-Conversation
+            quantile — but it is not a probability and is not calibrated.
+    """
+
+    chunk: Chunk
+    relevance: float
