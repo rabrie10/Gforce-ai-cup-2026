@@ -76,6 +76,12 @@ module = ["faster_whisper.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+# Neither ships a py.typed marker. The surface used here is three calls wide
+# (index, retrieve, stemWords) and is exercised by tests/test_retrieval.py.
+module = ["bm25s.*", "Stemmer.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 # Vendored upstream code is kept diffable against openai/whisper, so it is not
 # held to this project's typing; medapp/normalizer.py is the typed boundary.
 module = ["medapp.vendor.*"]

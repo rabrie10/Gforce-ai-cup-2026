@@ -45,6 +45,11 @@ class Chunk:
     Built from timed words rather than Segment boundaries and overlapping its
     neighbours. Carries the Words that let its boundaries be returned as an
     Evidence Span unchanged.
+
+    Attributes:
+        text: The passage in the normalizer's canonical written form, which is
+            the form a Question is reduced to as well — so the two are matched
+            as written, not as spoken.
     """
 
     text: str
