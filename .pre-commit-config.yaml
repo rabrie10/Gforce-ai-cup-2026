@@ -56,9 +56,11 @@ repos:
         args: ["--config-file=medical-appointment/pyproject.toml"]
         additional_dependencies:
           - pydantic>=2.7,<3
+          - pydantic-settings>=2.4
           - fastapi>=0.115
           - uvicorn>=0.30
           - types-requests>=2.31
+          - pytest>=8
 
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0

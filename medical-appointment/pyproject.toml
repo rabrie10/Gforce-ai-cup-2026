@@ -1,5 +1,45 @@
-# Tool configuration for the medical-appointment project. Dependencies stay in
-# requirements.txt (the case ships that); this file is config only.
+# The medical-appointment system. Dependencies and tool configuration live
+# here; `requirements.txt` is kept because the case ships it and the README
+# names it, but `uv sync` against `uv.lock` is what reproduces the environment.
+
+[project]
+name = "medapp"
+version = "0.1.0"
+description = "Yes/no question answering with evidence spans over recorded consultations"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "pydantic>=2.7,<3",
+  "pydantic-settings>=2.4",
+  "faster-whisper>=1.1",
+  "bm25s>=0.2",
+  "PyStemmer>=2.2",
+  "sentence-transformers>=3.0",
+  "torch>=2.4",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# Only if the single-LLM Answerer alternative is measured (ticket 13).
+llm = ["llama-cpp-python>=0.3"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "pandas>=2.2",
+  "requests>=2.31",
+  "pre-commit>=3.8",
+]
+
+[tool.uv]
+# The repository root is not an installable distribution: `api.py`, `dtos.py`
+# and `utils.py` are shipped top-level modules imported from the working
+# directory, and `medapp` sits beside them. uv manages the environment; there
+# is nothing to build.
+package = false
 
 [tool.black]
 line-length = 88
@@ -13,6 +53,9 @@ target-version = "py311"
 # pycodestyle, pyflakes, isort, pyupgrade, bugbear, simplify
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.mypy]
 python_version = "3.11"
