@@ -1,10 +1,5 @@
 {
   "seed": 20260918,
-  "sizes": {
-    "train": 8,
-    "dev": 16,
-    "test": 15
-  },
   "folds": {
     "train": [
       "sample_19",

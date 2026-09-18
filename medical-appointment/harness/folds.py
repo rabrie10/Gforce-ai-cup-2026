@@ -12,7 +12,7 @@ import json
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal, get_args
+from typing import Literal, cast, get_args
 
 from utils import load_sample_questions
 
@@ -38,40 +38,35 @@ class FoldAssignment:
     seed: int
     folds: dict[FoldName, tuple[str, ...]]
 
-    def fold_of(self, transcript_id: str) -> FoldName:
-        """The fold one Conversation belongs to.
-
-        Raises:
-            KeyError: If the transcript id is not one of the supplied
-                Conversations.
-        """
-        for fold, transcript_ids in self.folds.items():
-            if transcript_id in transcript_ids:
-                return fold
-
-        raise KeyError(f"{transcript_id!r} is not in the fold assignment.")
-
     def as_dict(self) -> dict[str, object]:
-        """The on-disk form: seed, sizes and the assignment itself."""
+        """The on-disk form: the seed and the assignment it produced."""
         return {
             "seed": self.seed,
-            "sizes": {fold: len(ids) for fold, ids in self.folds.items()},
             "folds": {fold: list(ids) for fold, ids in self.folds.items()},
         }
 
 
-def _check_fold_name(fold: str) -> FoldName:
+def _checked_fold_name(fold: str) -> FoldName:
+    """The fold name, checked at the boundary where it arrives as free text.
+
+    Raises:
+        KeyError: If it names no fold.
+    """
     if fold not in get_args(FoldName):
         raise KeyError(
             f"{fold!r} is not a fold: the folds are {', '.join(get_args(FoldName))}."
         )
 
-    return fold  # type: ignore[return-value]
+    return cast(FoldName, fold)
 
 
 @lru_cache(maxsize=1)
-def load_fold_assignment() -> FoldAssignment:
+def load_fold_assignment(fold_file: Path | None = None) -> FoldAssignment:
     """The committed assignment.
+
+    Args:
+        fold_file: Where to read it from. Defaults to the committed file; the
+            argument exists so tests can point elsewhere.
 
     Raises:
         FileNotFoundError: If the fold file is missing. It is committed, and a
@@ -80,38 +75,75 @@ def load_fold_assignment() -> FoldAssignment:
         ValueError: If the file on disk does not hold the split ADR-0002
             prescribes.
     """
-    if not FOLD_FILE.exists():
+    fold_file = fold_file or FOLD_FILE
+
+    if not fold_file.exists():
         raise FileNotFoundError(
-            f"No fold assignment at {FOLD_FILE}. It is committed to the "
+            f"No fold assignment at {fold_file}. It is committed to the "
             "repository and is generated once, by scripts/assign_folds.py."
         )
 
-    document = json.loads(FOLD_FILE.read_text(encoding="utf-8"))
+    document = json.loads(fold_file.read_text(encoding="utf-8"))
     folds = {
-        _check_fold_name(fold): tuple(transcript_ids)
+        _checked_fold_name(fold): tuple(transcript_ids)
         for fold, transcript_ids in document["folds"].items()
     }
 
-    sizes = {fold: len(ids) for fold, ids in folds.items()}
-    if sizes != FOLD_SIZES:
-        raise ValueError(
-            f"{FOLD_FILE} holds folds of {sizes}, not the {FOLD_SIZES} "
-            "ADR-0002 prescribes."
-        )
+    _check_the_split_is_the_one_adr_0002_prescribes(folds, fold_file)
 
     return FoldAssignment(seed=int(document["seed"]), folds=folds)
 
 
-def transcript_ids_in_fold(fold: str) -> tuple[str, ...]:
+def _check_the_split_is_the_one_adr_0002_prescribes(
+    folds: dict[FoldName, tuple[str, ...]], fold_file: Path
+) -> None:
+    """Check the file on disk still holds a grouped 20/40/40 split.
+
+    The loader is the last place a hand-edited fold file can be caught: a
+    transcript id in two folds leaks one Conversation's Chunks across the
+    split, and every number measured afterwards would be optimistic with
+    nothing downstream able to see it.
+
+    Raises:
+        ValueError: If the folds are the wrong sizes, overlap, or do not cover
+            the supplied Conversations exactly.
+    """
+    sizes = {fold: len(ids) for fold, ids in folds.items()}
+    if sizes != FOLD_SIZES:
+        raise ValueError(
+            f"{fold_file} holds folds of {sizes}, not the {FOLD_SIZES} "
+            "ADR-0002 prescribes."
+        )
+
+    assigned = [transcript_id for ids in folds.values() for transcript_id in ids]
+    duplicated = {
+        transcript_id for transcript_id in assigned if assigned.count(transcript_id) > 1
+    }
+    if duplicated:
+        raise ValueError(
+            f"{fold_file} puts {sorted(duplicated)} in more than one fold. All "
+            "Questions of a Conversation belong to one fold."
+        )
+
+    supplied = {row["transcript_id"] for row in load_sample_questions()}
+    if set(assigned) != supplied:
+        raise ValueError(
+            f"{fold_file} does not cover the supplied Conversations: "
+            f"{sorted(supplied - set(assigned))} unassigned, "
+            f"{sorted(set(assigned) - supplied)} unknown."
+        )
+
+
+def transcript_ids_in_fold(fold: FoldName) -> tuple[str, ...]:
     """The Conversations of one fold.
 
     Raises:
         KeyError: If ``fold`` is not one of train, dev or test.
     """
-    return load_fold_assignment().folds[_check_fold_name(fold)]
+    return load_fold_assignment().folds[_checked_fold_name(fold)]
 
 
-def questions_in_fold(fold: str) -> list[dict[str, str]]:
+def questions_in_fold(fold: FoldName) -> list[dict[str, str]]:
     """The supplied Question rows of one fold, in the order the evaluator sends
     them.
 

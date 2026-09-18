@@ -66,6 +66,7 @@ def write_assignment(
     """Write the assignment as JSON.
 
     Args:
+        assignment: The assignment to freeze.
         destination: Where to write it.
         force: Whether to overwrite an existing assignment.
 

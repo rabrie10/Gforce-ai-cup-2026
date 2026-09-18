@@ -9,7 +9,6 @@ import json
 
 import pytest
 
-from harness import folds as folds_module
 from harness.folds import (
     FOLD_SIZES,
     load_fold_assignment,
@@ -88,19 +87,43 @@ def test_an_unknown_fold_name_is_refused_rather_than_silently_empty():
         transcript_ids_in_fold("validation")
 
 
-def test_the_assignment_is_read_from_the_committed_file_not_regenerated(monkeypatch):
-    """The file on disk is the authority; nothing recomputes a split at import."""
-    monkeypatch.setattr(
-        folds_module,
-        "FOLD_FILE",
-        folds_module.PROJECT_ROOT / "data" / "does-not-exist.json",
-    )
-    load_fold_assignment.cache_clear()
-
+def test_a_missing_fold_file_stops_the_measurement_rather_than_inventing_a_split(
+    tmp_path,
+):
     with pytest.raises(FileNotFoundError):
-        load_fold_assignment()
+        load_fold_assignment(tmp_path / "does-not-exist.json")
 
-    load_fold_assignment.cache_clear()
+
+def _write_tampered(tmp_path, change):
+    document = load_fold_assignment().as_dict()
+    change(document["folds"])
+    destination = tmp_path / "folds.json"
+    destination.write_text(json.dumps(document), encoding="utf-8")
+    return destination
+
+
+def test_a_transcript_in_two_folds_is_refused_at_load(tmp_path):
+    def leak_one_conversation(folds):
+        folds["dev"][0] = folds["test"][0]
+
+    with pytest.raises(ValueError, match="more than one fold"):
+        load_fold_assignment(_write_tampered(tmp_path, leak_one_conversation))
+
+
+def test_a_fold_file_that_misses_a_conversation_is_refused_at_load(tmp_path):
+    def rename_one_conversation(folds):
+        folds["train"][0] = "sample_does_not_exist"
+
+    with pytest.raises(ValueError, match="does not cover"):
+        load_fold_assignment(_write_tampered(tmp_path, rename_one_conversation))
+
+
+def test_folds_of_the_wrong_sizes_are_refused_at_load(tmp_path):
+    def move_one_conversation(folds):
+        folds["dev"].append(folds["train"].pop())
+
+    with pytest.raises(ValueError, match="ADR-0002 prescribes"):
+        load_fold_assignment(_write_tampered(tmp_path, move_one_conversation))
 
 
 def test_the_committed_file_is_reproducible_from_its_own_seed():
