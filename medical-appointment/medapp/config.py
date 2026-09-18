@@ -33,6 +33,16 @@ class Settings(BaseSettings):
             at build time rather than downloaded on first request.
         transcript_cache_dir: The development transcript cache. Written and
             read by ``scripts/`` only; nothing under ``medapp`` touches it.
+        whisper_language: Fixed rather than detected per Conversation, so a
+            short or noisy opening cannot send one transcript through a
+            different language's decoder.
+        vad_filter: Skips silence before decoding, and is the standard guard
+            against the hallucination loops that multiply decode time on a
+            quiet stretch.
+        condition_on_previous_text: Off for the same reason; a repetition that
+            enters the prompt otherwise sustains itself.
+        beam_size: Worst-case latency scales with it, so it is tuned on the dev
+            fold against timing error rather than taken on faith.
     """
 
     model_config = SettingsConfigDict(
@@ -47,6 +57,11 @@ class Settings(BaseSettings):
     compute_type: ComputeType = "int8"
 
     whisper_model: str = "large-v3"
+    whisper_language: str = "en"
+    vad_filter: bool = True
+    condition_on_previous_text: bool = False
+    beam_size: int = Field(default=5, ge=1, le=10)
+
     rerank_model: str = "BAAI/bge-reranker-v2-m3"
     nli_model: str = "cross-encoder/nli-deberta-v3-base"
     dense_model: str = "BAAI/bge-small-en-v1.5"
