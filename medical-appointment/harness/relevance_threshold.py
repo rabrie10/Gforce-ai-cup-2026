@@ -224,7 +224,7 @@ def candidate_thresholds(
 def report_threshold(
     measurements: Sequence[QuestionMeasurement],
     threshold: float,
-    resamples: Sequence[Sequence[QuestionMeasurement]],
+    resampled: Sequence[Sequence[QuestionMeasurement]],
 ) -> ThresholdReport:
     """Score one candidate threshold on the fold and on its resamples."""
     return ThresholdReport(
@@ -251,11 +251,11 @@ def report_threshold(
         off_topic_interval=_interval(
             [
                 _accuracy_of_type(resample, threshold, "off_topic")
-                for resample in resamples
+                for resample in resampled
             ]
         ),
         accuracy_interval=_interval(
-            [_accuracy(resample, threshold) for resample in resamples]
+            [_accuracy(resample, threshold) for resample in resampled]
         ),
     )
 
@@ -290,9 +290,9 @@ def sweep(
             "choose a Relevance threshold against."
         )
 
-    drawn = resamples(measurements)
+    resampled = resamples(measurements)
     reports = tuple(
-        report_threshold(measurements, threshold, drawn)
+        report_threshold(measurements, threshold, resampled)
         for threshold in (thresholds or candidate_thresholds(measurements))
     )
 

@@ -46,14 +46,15 @@ def format_report(report: ThresholdReport, chosen: bool) -> str:
     """One candidate threshold as a table row, with the chosen one marked."""
     return (
         f"{'*' if chosen else ' '} {report.threshold:>11.6f}"
-        f"{report.off_topic_accuracy:>11.3f}{_interval(report.off_topic_interval):>18}"
+        f"{report.off_topic_accuracy:>11.3f}{_format(report.off_topic_interval):>18}"
         f"{report.hard_negative_accuracy:>10.3f}"
         f"{report.true_positive_rate:>8.3f}{report.true_negative_rate:>8.3f}"
-        f"{report.accuracy:>10.3f}{_interval(report.accuracy_interval):>18}"
+        f"{report.accuracy:>10.3f}{_format(report.accuracy_interval):>18}"
     )
 
 
-def _interval(interval: tuple[float, float]) -> str:
+def _format(interval: tuple[float, float]) -> str:
+    """One bootstrap interval as a table cell."""
     low, high = interval
 
     return f"[{low:.3f}, {high:.3f}]"

@@ -14,6 +14,12 @@ The two are reported side by side because they fail differently and are fixed
 in different modules. Oracle tIoU short of the gate is the Chunker's ladder;
 recall short of it with oracle tIoU above it is the retriever's ranking.
 
+Both are read at the ranking the system actually returns. Where a reranker is
+supplied, that is the reranked order: ADR-0002 states the gate at 5 and
+requires it re-measured after each component that changes the ranking, so
+measuring BM25's order while the endpoint returns the cross-encoder's would
+report a gate the shipped system is not held to.
+
 Read on train and dev only. ADR-0002 transcribes the test fold but does not read
 it until tuning ends.
 """
@@ -23,6 +29,7 @@ from dataclasses import dataclass
 from harness import transcript_cache
 from harness.folds import FoldName, questions_in_fold
 from medapp.chunker import ChunkScheme, chunk_conversation
+from medapp.reranker import Reranker
 from medapp.retrieval import Bm25Index
 from medapp.types import Chunk
 from utils import Span, gold_evidence, temporal_iou
@@ -74,6 +81,7 @@ class RetrievalReport:
     """One fold measured against both gates.
 
     Attributes:
+        reranked: Whether the ranking measured is the reranker's or BM25's.
         chunks_per_conversation: The mean size of the per-request index, which
             is the cost the gates are bought at.
         recall: Fraction of spans found, per depth.
@@ -83,6 +91,7 @@ class RetrievalReport:
     """
 
     fold: FoldName
+    reranked: bool
     conversations: int
     spans: int
     chunks_per_conversation: float
@@ -115,7 +124,9 @@ def measure_span(
     return oracle, at_depth
 
 
-def measure_fold(fold: FoldName, scheme: ChunkScheme) -> FoldMeasurement:
+def measure_fold(
+    fold: FoldName, scheme: ChunkScheme, reranker: Reranker | None = None
+) -> FoldMeasurement:
     """Measure every annotated Evidence Span of one fold.
 
     The Chunks and the index are built once per Conversation and every Question
@@ -125,6 +136,8 @@ def measure_fold(fold: FoldName, scheme: ChunkScheme) -> FoldMeasurement:
     Args:
         fold: Which fold to read.
         scheme: The Chunk granularities to measure.
+        reranker: Rescores the retrieved Chunks before they are measured.
+            Omitted, the ranking measured is BM25's alone.
 
     Raises:
         FileNotFoundError: If a Conversation of the fold is not cached.
@@ -144,9 +157,15 @@ def measure_fold(fold: FoldName, scheme: ChunkScheme) -> FoldMeasurement:
             if annotated is None:
                 continue
 
-            oracle, at_depth = measure_span(
-                chunks, index.rank(row["question"], depth), annotated
-            )
+            ranked = index.rank(row["question"], depth)
+
+            if reranker is not None:
+                ranked = tuple(
+                    candidate.chunk
+                    for candidate in reranker.rerank(row["question"], ranked)
+                )
+
+            oracle, at_depth = measure_span(chunks, ranked, annotated)
             spans.append(
                 SpanMeasurement(
                     question_id=row["question_id"],
@@ -159,7 +178,9 @@ def measure_fold(fold: FoldName, scheme: ChunkScheme) -> FoldMeasurement:
     return FoldMeasurement(spans=tuple(spans), chunk_counts=tuple(chunk_counts))
 
 
-def report(fold: FoldName, scheme: ChunkScheme) -> RetrievalReport:
+def report(
+    fold: FoldName, scheme: ChunkScheme, reranker: Reranker | None = None
+) -> RetrievalReport:
     """Summarise one fold against both gates.
 
     Raises:
@@ -167,7 +188,7 @@ def report(fold: FoldName, scheme: ChunkScheme) -> RetrievalReport:
         ValueError: If the fold holds no annotated Evidence Spans, which would
             leave both gates measured over nothing.
     """
-    measurement = measure_fold(fold, scheme)
+    measurement = measure_fold(fold, scheme, reranker)
 
     if not measurement.spans:
         raise ValueError(
@@ -177,6 +198,7 @@ def report(fold: FoldName, scheme: ChunkScheme) -> RetrievalReport:
 
     return RetrievalReport(
         fold=fold,
+        reranked=reranker is not None,
         conversations=len(measurement.chunk_counts),
         spans=len(measurement.spans),
         chunks_per_conversation=_mean(

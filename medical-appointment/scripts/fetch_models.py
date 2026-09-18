@@ -13,7 +13,8 @@ the offline load fails on, loudly, at startup.
 
 from huggingface_hub import snapshot_download
 
-from medapp.config import Settings, settings
+from medapp.config import Settings
+from medapp.config import settings as default_settings
 
 # What a cross-encoder needs to load: the config, the tokenizer and one copy of
 # the weights. The `.bin` duplicate of the safetensors is excluded — it is the
@@ -32,11 +33,11 @@ def models_to_fetch(settings: Settings) -> tuple[str, ...]:
 
 
 def main() -> None:
-    for repository in models_to_fetch(settings):
-        print(f"{repository} -> {settings.model_cache_dir}")
+    for repository in models_to_fetch(default_settings):
+        print(f"{repository} -> {default_settings.model_cache_dir}")
         path = snapshot_download(
             repository,
-            cache_dir=str(settings.model_cache_dir),
+            cache_dir=str(default_settings.model_cache_dir),
             allow_patterns=WEIGHT_PATTERNS,
         )
         print(f"  {path}")
