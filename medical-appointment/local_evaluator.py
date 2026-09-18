@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 import requests
 
 from dtos import ASRQuestionResponseDto
+from medapp.config import settings
 from utils import (
     Span,
     encode_audio,
@@ -42,7 +43,7 @@ from utils import (
     temporal_iou,
 )
 
-DEFAULT_URL = "http://localhost:9054/predict"
+DEFAULT_URL = f"http://localhost:9054/predict{settings.route_suffix}"
 
 # Mirrors the timeout the evaluation service uses per request. One request now
 # covers a whole conversation, so this budget has to fit one transcription plus

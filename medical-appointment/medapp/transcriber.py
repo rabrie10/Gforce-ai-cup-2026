@@ -10,7 +10,10 @@ the audio. Segments are kept apart: joining them into one string throws away the
 only thing that makes an Evidence Span returnable.
 """
 
+import array
 import io
+import math
+import wave
 from collections.abc import Iterable
 from typing import Protocol
 
@@ -87,17 +90,39 @@ class Transcriber:
             The Segments in time order, each carrying its Words.
         """
         decoded, _ = self._model.transcribe(
-            io.BytesIO(audio_bytes),
-            language=self._settings.whisper_language,
-            beam_size=self._settings.beam_size,
-            vad_filter=self._settings.vad_filter,
-            condition_on_previous_text=self._settings.condition_on_previous_text,
-            word_timestamps=True,
+            io.BytesIO(audio_bytes), **self._decoding_options()
         )
 
         # faster-whisper yields segments lazily; decoding only runs as they are
         # consumed.
         return tuple(_as_segment(segment) for segment in decoded if segment.words)
+
+    def warm_up(self) -> None:
+        """Decode one synthetic second so no request pays the first decode.
+
+        Weights are loaded lazily and the first decode allocates the decoder's
+        state, both of which would otherwise land inside a request that has
+        seconds to spare. The voice-activity filter is off here because the
+        synthetic audio carries no speech and would otherwise be skipped,
+        leaving the decoder untouched.
+        """
+        decoded, _ = self._model.transcribe(
+            io.BytesIO(_warm_up_audio()), **self._decoding_options(vad_filter=False)
+        )
+
+        tuple(decoded)
+
+    def _decoding_options(self, vad_filter: bool | None = None) -> dict[str, object]:
+        """The decoding knobs, every one of them resolved from Settings."""
+        return {
+            "language": self._settings.whisper_language,
+            "beam_size": self._settings.beam_size,
+            "vad_filter": (
+                self._settings.vad_filter if vad_filter is None else vad_filter
+            ),
+            "condition_on_previous_text": self._settings.condition_on_previous_text,
+            "word_timestamps": True,
+        }
 
 
 def _load_model(settings: Settings) -> WhisperModel:
@@ -132,3 +157,32 @@ def _as_segment(decoded: _DecodedSegment) -> Segment:
             for word in decoded.words
         ),
     )
+
+
+WARM_UP_SAMPLE_RATE_HZ = 16_000
+WARM_UP_SECONDS = 1.0
+WARM_UP_TONE_HZ = 220.0
+
+
+def _warm_up_audio() -> bytes:
+    """One second of tone as a WAV, for :meth:`Transcriber.warm_up`.
+
+    Synthesised rather than shipped so the warm-up does not depend on a sample
+    file surviving into the container.
+    """
+    sample_count = int(WARM_UP_SAMPLE_RATE_HZ * WARM_UP_SECONDS)
+    radians_per_sample = 2 * math.pi * WARM_UP_TONE_HZ / WARM_UP_SAMPLE_RATE_HZ
+    samples = array.array(
+        "h",
+        (int(8000 * math.sin(radians_per_sample * i)) for i in range(sample_count)),
+    )
+
+    buffer = io.BytesIO()
+
+    with wave.open(buffer, "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(WARM_UP_SAMPLE_RATE_HZ)
+        wav.writeframes(samples.tobytes())
+
+    return buffer.getvalue()

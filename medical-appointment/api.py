@@ -17,6 +17,7 @@ from fastapi import FastAPI
 
 from dtos import ASRQuestionRequestDto, ASRQuestionResponseDto
 from example import predict
+from medapp.config import settings
 from utils import validate_response
 
 HOST = "0.0.0.0"
@@ -29,7 +30,7 @@ app = FastAPI()
 start_time = time.time()
 
 
-@app.post("/predict", response_model=ASRQuestionResponseDto)
+@app.post(f"/predict{settings.route_suffix}", response_model=ASRQuestionResponseDto)
 def predict_endpoint(request: ASRQuestionRequestDto):
     """Answer every question about one conversation."""
     response = predict(request)

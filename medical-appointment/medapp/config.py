@@ -16,7 +16,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Device = Literal["cpu", "cuda"]
 ComputeType = Literal["int8", "int8_float16", "float16", "float32"]
-AnswerStrategy = Literal["retrieve_rerank_entail", "single_llm"]
+AnswerStrategy = Literal["cite_first_segment", "retrieve_rerank_entail", "single_llm"]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     Attributes:
         answer_strategy: Which Answerer is constructed at startup. Candidates
             are compared by running the system twice, not by a runtime switch.
+            A strategy no Answerer implements yet fails at startup rather than
+            being quietly substituted.
+        route_suffix: Appended to the ``/predict`` path so the deployed
+            endpoint sits at an unguessable route. Empty in development.
         deadline_seconds: Checked between stages and between Questions, and
             strictly under the service's 60-second request timeout.
         model_cache_dir: Where model weights live, pre-fetched into the image
@@ -66,7 +70,8 @@ class Settings(BaseSettings):
     nli_model: str = "cross-encoder/nli-deberta-v3-base"
     dense_model: str = "BAAI/bge-small-en-v1.5"
 
-    answer_strategy: AnswerStrategy = "retrieve_rerank_entail"
+    answer_strategy: AnswerStrategy = "cite_first_segment"
+    route_suffix: str = ""
 
     deadline_seconds: float = Field(default=50.0, gt=0, lt=60)
 
