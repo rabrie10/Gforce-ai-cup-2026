@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "independent_affine_transforms": 384,
+  "independent_prediction_rows": 17192,
+  "prior_control_rows": 12280,
+  "common_cohort_keys": 2213,
+  "summary_rows": 3514,
+  "pairwise_rows": 486,
+  "one_step_rows": 729,
+  "target_delete_poison_checks": 16,
+  "deterministic_repeat_class_checks": 16,
+  "known_and_degenerate_fixtures": "PASS",
+  "future_target_history_rejected": "PASS",
+  "no_fallback": "PASS",
+  "preserved_files": 93,
+  "figures": 9
+}

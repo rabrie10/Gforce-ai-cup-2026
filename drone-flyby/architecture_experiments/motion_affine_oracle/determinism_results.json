@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "repeated_execution_artifacts_compared": 22,
+  "comparison": "SHA-256 before and after a complete repeated experiment run",
+  "changed_artifacts": 0,
+  "scope": "All runner-generated result JSON, CSV tables, and nine PNG figures"
+}
