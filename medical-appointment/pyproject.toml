@@ -18,6 +18,7 @@ dependencies = [
   "sentence-transformers>=3.0",
   "torch>=2.4",
   "numpy>=1.26",
+  "more-itertools>=11.1.0",
 ]
 
 [project.optional-dependencies]
@@ -48,6 +49,8 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+# Vendored upstream code is kept byte-comparable with openai/whisper.
+extend-exclude = ["medapp/vendor"]
 
 [tool.ruff.lint]
 # pycodestyle, pyflakes, isort, pyupgrade, bugbear, simplify
@@ -71,3 +74,9 @@ disallow_untyped_defs = false
 # are pinned by Protocols in medapp/transcriber.py instead.
 module = ["faster_whisper.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Vendored upstream code is kept diffable against openai/whisper, so it is not
+# held to this project's typing; medapp/normalizer.py is the typed boundary.
+module = ["medapp.vendor.*"]
+ignore_errors = true

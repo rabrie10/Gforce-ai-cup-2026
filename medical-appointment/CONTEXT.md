@@ -57,6 +57,17 @@ Selected at startup by configuration so that candidate Answerers can be
 measured against each other. There is no runtime switch between them and no
 degraded Answerer to fall back to.
 
+## Normalizer
+
+The one written form a Question and the speech that answers it are both reduced
+to, so that "41 mmol/mol" and *"41 millimoles per mole"* are the same tokens.
+Casing, punctuation, spelled-out numbers, units and the clinical abbreviations
+the error analysis listed are all its job.
+
+It normalizes *tokens*, not strings: a token carries the Words it was read from,
+including the several Words a merged token covers, because an Evidence Span is
+returned as Word timings and a token that has lost its Words cannot back one.
+
 ## Chunk
 
 A candidate Evidence Span: a short, contiguous stretch of the Conversation,
