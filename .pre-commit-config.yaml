@@ -2,6 +2,10 @@
 # would intersect with every hook and filter out .git/COMMIT_EDITMSG.
 fail_fast: true
 
+# Vendored upstream code is kept byte-comparable with its source so upstream
+# fixes can be diffed in; formatters and the type checker leave it alone.
+exclude: ^medical-appointment/medapp/vendor/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
