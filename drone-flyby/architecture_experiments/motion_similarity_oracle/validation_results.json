@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "independent_transform_reconstructions": 384,
+  "independent_prediction_rows": 17192,
+  "common_cohort_keys": 2213,
+  "matched_size_and_identical_center_ablation_checks": "PASS",
+  "independently_checked_summary_rows": 3514,
+  "pairwise_cohort_rows": 486,
+  "held_out_transition_rows": 729,
+  "prior_control_rows": 7368,
+  "whole_target_deletion_and_poisoning_checks": 16,
+  "restricted_history_origin_checks": 243,
+  "known_transform_and_degeneracy_fixtures": "PASS",
+  "no_donor_fallback": "PASS",
+  "future_history_rejected": "PASS",
+  "preserved_input_files": 60,
+  "figures": 9
+}
