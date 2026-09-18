@@ -1,0 +1,17 @@
+class,first_frame,last_frame,visible_frames,contiguous,gaps,sampled_duration_s,first_last_span_s,first_nearest_edge,first_edge_distance,last_nearest_edge,last_edge_distance,entry,exit
+condor,0,10,11,True,,3.6666666666666665,3.3333333333333335,bottom,629,bottom,1,left-censored,touching-bottom
+hangar,19,24,6,True,,2.0,1.6666666666666667,top,0,left,102,touching-top,right-censored
+helicopter,0,18,19,True,,6.333333333333333,6.0,top,850,bottom,1,left-censored,touching-bottom
+jammer,0,12,13,True,,4.333333333333333,4.0,bottom,870,bottom,1,left-censored,touching-bottom
+jet_plane,3,24,22,True,,7.333333333333333,7.0,top,0,bottom,881,touching-top,right-censored
+large_launcher,0,24,25,True,,8.333333333333334,8.0,right,246,right,1,left-censored,right-censored
+large_tower,6,24,19,True,,6.333333333333333,6.0,top,0,right,180,touching-top,right-censored
+medium_launcher,14,23,10,True,,3.3333333333333335,3.0,top,0,right,1,touching-top,touching-right
+medium_plane,20,24,5,True,,1.6666666666666667,1.3333333333333333,top,0,top,199,touching-top,right-censored
+mine_roller,0,1,2,True,,0.6666666666666666,0.3333333333333333,bottom,90,bottom,10,left-censored,unknown-nearest-bottom
+small_launcher,0,24,25,True,,8.333333333333334,8.0,top,221,bottom,377,left-censored,right-censored
+small_plane,0,8,9,True,,3.0,2.6666666666666665,bottom,610,bottom,3,left-censored,unknown-nearest-bottom
+small_tower,0,19,20,True,,6.666666666666667,6.333333333333333,top,791,bottom,1,left-censored,touching-bottom
+spacecraft,0,22,23,True,,7.666666666666667,7.333333333333333,top,627,bottom,1,left-censored,touching-bottom
+ta-ta,0,24,25,True,,8.333333333333334,8.0,top,293,bottom,295,left-censored,right-censored
+tank,0,24,25,True,,8.333333333333334,8.0,top,0,bottom,688,left-censored,right-censored
