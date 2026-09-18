@@ -129,3 +129,32 @@ def test_a_segment_without_word_timings_is_dropped_rather_than_carried():
         " Take two tablets.",
         " Twice daily.",
     ]
+
+
+def test_warm_up_decodes_synthetic_audio_past_the_voice_activity_filter():
+    model = _RecordingModel(_segments())
+
+    Transcriber(settings=Settings(), model=model).warm_up()
+
+    assert model.options["vad_filter"] is False
+    assert model.options["word_timestamps"] is True
+    assert model.audio and model.audio[:4] == b"RIFF"
+
+
+def test_warm_up_consumes_the_segments_so_decoding_actually_runs():
+    consumed = []
+
+    class _CountingModel(_RecordingModel):
+        def transcribe(self, audio, **options):
+            segments, info = super().transcribe(audio, **options)
+
+            def counted():
+                for segment in segments:
+                    consumed.append(segment)
+                    yield segment
+
+            return counted(), info
+
+    Transcriber(settings=Settings(), model=_CountingModel(_segments())).warm_up()
+
+    assert len(consumed) == len(_segments())

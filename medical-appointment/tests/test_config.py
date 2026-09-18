@@ -24,7 +24,8 @@ def test_defaults_resolve_without_any_environment(monkeypatch):
 
     assert settings.device == "cpu"
     assert settings.compute_type == "int8"
-    assert settings.answer_strategy == "retrieve_rerank_entail"
+    assert settings.answer_strategy == "cite_first_segment"
+    assert settings.route_suffix == ""
     assert settings.deadline_seconds == 50.0
     assert settings.transcript_cache_dir.name == "transcripts"
     assert settings.whisper_language == "en"
@@ -45,6 +46,7 @@ def test_environment_overrides_every_deployment_value(monkeypatch):
     monkeypatch.setenv("MEDAPP_CONDITION_ON_PREVIOUS_TEXT", "true")
     monkeypatch.setenv("MEDAPP_BEAM_SIZE", "1")
     monkeypatch.setenv("MEDAPP_WHISPER_LANGUAGE", "de")
+    monkeypatch.setenv("MEDAPP_ROUTE_SUFFIX", "-a1b2c3")
 
     settings = Settings()
 
@@ -58,6 +60,7 @@ def test_environment_overrides_every_deployment_value(monkeypatch):
     assert settings.condition_on_previous_text is True
     assert settings.beam_size == 1
     assert settings.whisper_language == "de"
+    assert settings.route_suffix == "-a1b2c3"
 
 
 def test_deadline_must_stay_strictly_under_the_service_timeout(monkeypatch):
