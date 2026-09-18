@@ -8,8 +8,7 @@ is the unit the wire protocol and the harness both use.
 
 from dataclasses import dataclass
 
-# Start and end second of a stretch of audio. Matches ``utils.Span``.
-Span = tuple[float, float]
+from utils import Span
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,9 +69,18 @@ class Verdict:
 
     ``candidates`` carries the ranked Chunks the verdict was chosen from, so
     component metrics — recall@k, oracle tIoU — are computed from this seam's
-    output rather than by reaching inside the Chunker.
+    output rather than by reaching inside the Chunker. It has no default:
+    measurement depends on it, and an omitted ranking is silently unmeasurable.
     """
 
     answer: bool
     evidence: Span | None
-    candidates: tuple[Chunk, ...] = ()
+    candidates: tuple[Chunk, ...]
+
+    def __post_init__(self) -> None:
+        if self.answer != (self.evidence is not None):
+            raise ValueError(
+                "A yes carries the Evidence Span it was read from and a no "
+                f"carries none: got answer={self.answer!r}, "
+                f"evidence={self.evidence!r}."
+            )

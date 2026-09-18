@@ -18,7 +18,7 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-Device = Literal["cpu", "cuda", "auto"]
+Device = Literal["cpu", "cuda"]
 ComputeType = Literal["int8", "int8_float16", "float16", "float32"]
 
 # Which Answerer is constructed at startup. There is no runtime switch between
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     # between stages and between Questions by the protocol guard: being early
     # with guesses loses at most the Questions guessed, being late loses the
     # whole Conversation.
-    deadline_seconds: float = Field(default=50.0, gt=0, le=60)
+    deadline_seconds: float = Field(default=50.0, gt=0, lt=60)
 
     # --- Caches --------------------------------------------------------- #
 

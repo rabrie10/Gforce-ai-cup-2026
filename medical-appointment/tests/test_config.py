@@ -5,15 +5,23 @@ development defaults, and every value the deployment VM overrides is actually
 reachable from the environment.
 """
 
+import os
+
 import pytest
 from pydantic import ValidationError
 
 from medapp.config import Settings
 
 
+def _clear_medapp_environment(monkeypatch):
+    """Whatever the developer's shell exports, these tests start from nothing."""
+    for name in list(os.environ):
+        if name.startswith("MEDAPP_"):
+            monkeypatch.delenv(name)
+
+
 def test_defaults_resolve_without_any_environment(monkeypatch):
-    for name in ("MEDAPP_DEVICE", "MEDAPP_COMPUTE_TYPE", "MEDAPP_DEADLINE_SECONDS"):
-        monkeypatch.delenv(name, raising=False)
+    _clear_medapp_environment(monkeypatch)
 
     settings = Settings()
 
@@ -25,6 +33,7 @@ def test_defaults_resolve_without_any_environment(monkeypatch):
 
 
 def test_environment_overrides_every_deployment_value(monkeypatch):
+    _clear_medapp_environment(monkeypatch)
     monkeypatch.setenv("MEDAPP_DEVICE", "cuda")
     monkeypatch.setenv("MEDAPP_COMPUTE_TYPE", "float16")
     monkeypatch.setenv("MEDAPP_WHISPER_MODEL", "large-v3-turbo")
@@ -42,14 +51,16 @@ def test_environment_overrides_every_deployment_value(monkeypatch):
     assert str(settings.model_cache_dir) == "/weights"
 
 
-def test_deadline_must_stay_under_the_service_timeout(monkeypatch):
-    monkeypatch.setenv("MEDAPP_DEADLINE_SECONDS", "90")
+def test_deadline_must_stay_strictly_under_the_service_timeout(monkeypatch):
+    _clear_medapp_environment(monkeypatch)
+    monkeypatch.setenv("MEDAPP_DEADLINE_SECONDS", "60")
 
     with pytest.raises(ValidationError):
         Settings()
 
 
 def test_unknown_device_is_rejected_rather_than_passed_to_the_transcriber(monkeypatch):
+    _clear_medapp_environment(monkeypatch)
     monkeypatch.setenv("MEDAPP_DEVICE", "mps")
 
     with pytest.raises(ValidationError):
@@ -57,6 +68,8 @@ def test_unknown_device_is_rejected_rather_than_passed_to_the_transcriber(monkey
 
 
 def test_settings_are_frozen(monkeypatch):
+    _clear_medapp_environment(monkeypatch)
+
     settings = Settings()
 
     with pytest.raises(ValidationError):
