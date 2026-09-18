@@ -40,6 +40,9 @@ _SPELLINGS = _WHISPER.standardize_spellings
 # must survive as single tokens rather than becoming two.
 _KEEP_SYMBOLS = ".%$¢€£/"
 
+# Whisper's fillers, as whole tokens.
+_FILLER = re.compile(_WHISPER.ignore_patterns)
+
 _NUMERIC = re.compile(r"[-+$€£¢]?\d+(\.\d+)?%?")
 _LEADING_POINT = re.compile(r"\.\d+")
 
@@ -71,18 +74,16 @@ _TERMS: dict[tuple[str, ...], str] = {
     ("mls",): "ml",
     ("liter",): "l",
     ("liters",): "l",
-    ("millimoles", "per", "mole"): "mmol/mol",
-    ("millimole", "per", "mole"): "mmol/mol",
-    ("mmol", "per", "mole"): "mmol/mol",
-    ("mmol", "mol"): "mmol/mol",
-    ("millimoles", "per", "liter"): "mmol/l",
-    ("millimole", "per", "liter"): "mmol/l",
-    ("mmol", "per", "liter"): "mmol/l",
-    ("mmol", "l"): "mmol/l",
+    ("millimole",): "mmol",
+    ("millimoles",): "mmol",
+    ("mole",): "mol",
+    ("moles",): "mol",
+    ("minute",): "min",
+    ("minutes",): "min",
     ("millimeters", "of", "mercury"): "mmhg",
     ("millimeter", "of", "mercury"): "mmhg",
     ("mm", "hg"): "mmhg",
-    ("beats", "per", "minute"): "bpm",
+    ("beats", "per", "min"): "bpm",
     ("hemoglobin", "a1c"): "hba1c",
     ("hb", "a1c"): "hba1c",
     ("a1c",): "hba1c",
@@ -97,6 +98,15 @@ _READINGS: dict[tuple[str, ...], str] = {
     ("coronavirus",): "covid19",
     ("covid", "19"): "covid19",
 }
+
+# What a rate is measured in. "mg per day" written is "mg/day", and "mmol per
+# mole" is "mmol/mol", so the two are joined by rule rather than one compound at
+# a time — and a "/" between anything else is not a unit and is split back
+# apart, because "and/or" is spoken as two words.
+_MEASURES = frozenset(
+    {"mg", "mcg", "g", "kg", "ml", "l", "mmol", "mol", "unit", "units"}
+)
+_PER_MEASURES = _MEASURES | {"day", "week", "min", "hour", "m2"}
 
 _LONGEST_TERM = max(len(phrase) for phrase in (*_TERMS, *_READINGS))
 
@@ -160,9 +170,12 @@ def _normalize(
     """Run the pipeline over one token sequence, with or without Words."""
     tokens = _clean(texts, words)
     tokens = _rewrite(tokens, _TERMS)
+    tokens = _drop_fillers(tokens)
+    tokens = _join_measures(tokens)
     tokens = _read_numbers(tokens)
     tokens = _rewrite(tokens, _READINGS)
     tokens = _read_slashed(tokens)
+    tokens = _split_compounds(tokens)
 
     return tuple(tokens)
 
@@ -173,8 +186,9 @@ def _clean(texts: Sequence[str], words: Sequence[Word] | None) -> list[Normalize
     This is Whisper's text normalizer with its number and string-wide stages
     held back: everything here is a rewrite of one token into zero or more
     tokens, which is what lets every output token keep the Word it came from.
-    A token may vanish — a filler, or punctuation on its own — and a token may
-    split, as "don't" splits into "do" and "not".
+    A token may vanish — punctuation on its own — and a token may split, as
+    "don't" splits into "do" and "not". Whisper's fillers are dropped a stage
+    later: "mm" is one of them, and "mm Hg" is a unit.
     """
     cleaned: list[NormalizedToken] = []
 
@@ -184,7 +198,6 @@ def _clean(texts: Sequence[str], words: Sequence[Word] | None) -> list[Normalize
         piece = text.lower()
         piece = re.sub(r"[<\[][^>\]]*[>\]]", "", piece)
         piece = re.sub(r"\(([^)]+?)\)", "", piece)
-        piece = re.sub(_WHISPER.ignore_patterns, "", piece)
 
         for pattern, replacement in _WHISPER.replacers.items():
             piece = re.sub(pattern, replacement, piece)
@@ -201,6 +214,15 @@ def _clean(texts: Sequence[str], words: Sequence[Word] | None) -> list[Normalize
     return cleaned
 
 
+def _drop_fillers(tokens: Sequence[NormalizedToken]) -> list[NormalizedToken]:
+    """Drop Whisper's fillers, after the terms that are spelled like one.
+
+    "mm" is both a filler and the first half of "mm Hg", so the fillers go once
+    the units have been read rather than during cleaning.
+    """
+    return [token for token in tokens if not _FILLER.fullmatch(token.text)]
+
+
 def _rewrite(
     tokens: Sequence[NormalizedToken], rules: dict[tuple[str, ...], str]
 ) -> list[NormalizedToken]:
@@ -209,8 +231,27 @@ def _rewrite(
     The longest phrase wins, so that "millimoles per mole" is read as a unit
     rather than as "millimoles" followed by anything. A merged token carries
     every Word of the phrase it replaced.
+
+    Rewriting runs to a fixed point, because one rule's output is another's
+    input: "mmol liter" only becomes "mmol/l" once "liter" has become "l".
     """
+    rewritten = list(tokens)
+
+    for _ in range(_LONGEST_TERM):
+        rewritten, changed = _rewrite_once(rewritten, rules)
+
+        if not changed:
+            break
+
+    return rewritten
+
+
+def _rewrite_once(
+    tokens: Sequence[NormalizedToken], rules: dict[tuple[str, ...], str]
+) -> tuple[list[NormalizedToken], bool]:
+    """One left-to-right pass of :func:`_rewrite`, and whether it changed anything."""
     rewritten: list[NormalizedToken] = []
+    changed = False
     index = 0
 
     while index < len(tokens):
@@ -225,13 +266,79 @@ def _rewrite(
                         words=_merged(tokens[index : index + length]),
                     )
                 )
+                changed = changed or phrase != (canonical,)
                 index += length
                 break
         else:
             rewritten.append(tokens[index])
             index += 1
 
-    return rewritten
+    return rewritten, changed
+
+
+def _join_measures(tokens: Sequence[NormalizedToken]) -> list[NormalizedToken]:
+    """Join "mg per day", and the "mmol litre" a transcript elides, into "mg/day"."""
+    joined: list[NormalizedToken] = []
+    index = 0
+
+    while index < len(tokens):
+        rate = tokens[index : index + 3]
+
+        pair = tokens[index : index + 2]
+
+        if len(pair) == 2 and pair[0].text in _MEASURES and pair[1].text in _MEASURES:
+            joined.append(
+                NormalizedToken(
+                    text=f"{pair[0].text}/{pair[1].text}", words=_merged(pair)
+                )
+            )
+            index += 2
+            continue
+
+        if (
+            len(rate) == 3
+            and rate[1].text == "per"
+            and rate[0].text in _MEASURES
+            and rate[2].text in _PER_MEASURES
+        ):
+            joined.append(
+                NormalizedToken(
+                    text=f"{rate[0].text}/{rate[2].text}", words=_merged(rate)
+                )
+            )
+            index += 3
+            continue
+
+        joined.append(tokens[index])
+        index += 1
+
+    return joined
+
+
+def _split_compounds(tokens: Sequence[NormalizedToken]) -> list[NormalizedToken]:
+    """Split a "/" that joins neither a reading nor a rate.
+
+    "135/88" and "mmol/mol" are written forms of what is spoken as a whole;
+    "and/or" is written for what is spoken as two words, and a Question that
+    writes one has to reach a transcript that speaks the other.
+    """
+    split: list[NormalizedToken] = []
+
+    for token in tokens:
+        parts = token.text.split("/")
+
+        if len(parts) == 2 and (
+            all(part.isdigit() for part in parts)
+            or (parts[0] in _MEASURES and parts[1] in _PER_MEASURES)
+        ):
+            split.append(token)
+            continue
+
+        split.extend(
+            NormalizedToken(text=part, words=token.words) for part in parts if part
+        )
+
+    return split
 
 
 def _read_numbers(tokens: Sequence[NormalizedToken]) -> list[NormalizedToken]:
@@ -253,10 +360,27 @@ def _read_numbers(tokens: Sequence[NormalizedToken]) -> list[NormalizedToken]:
             index += 1
             continue
 
-        read.extend(_read_run(tokens[index : index + run]))
+        read.extend(_without_leading_bridge(_read_run(tokens[index : index + run])))
         index += run
 
     return read
+
+
+def _without_leading_bridge(
+    run: Sequence[NormalizedToken],
+) -> list[NormalizedToken]:
+    """Drop bridge words the number stage read as themselves.
+
+    "a hundred milligrams" is "100 mg": Whisper reads "a hundred" as 100 and
+    leaves the "a" standing, and a leading bridge word carries nothing a
+    Question would write.
+    """
+    start = 0
+
+    while start < len(run) - 1 and run[start].text in _BRIDGE_WORDS:
+        start += 1
+
+    return list(run[start:])
 
 
 def _run_length(tokens: Sequence[NormalizedToken], start: int) -> int:

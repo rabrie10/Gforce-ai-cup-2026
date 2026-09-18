@@ -49,6 +49,12 @@ def _texts(tokens: tuple[NormalizedToken, ...]) -> tuple[str, ...]:
         ("120/80 mmHg", "120 over 80 millimeters of mercury"),
         ("62 bpm", "62 beats per minute"),
         ("2.5 mg", "two and a half milligrams"),
+        ("100 mg", "a hundred milligrams"),
+        ("120/80 mmHg", "120 over 80 mm Hg"),
+        ("10 mg/day", "ten milligrams per day"),
+        ("7.2 mmol/L", "7.2 mmol liter"),
+        ("41 mmol/mol", "41 millimoles per mol"),
+        ("and/or", "and or"),
     ],
 )
 def test_written_and_spoken_forms_reduce_to_the_same_tokens(
@@ -122,6 +128,19 @@ def test_a_written_token_has_no_words_and_therefore_no_span() -> None:
     token = NormalizedToken(text="100", words=())
 
     assert token.span is None
+
+
+def test_a_slash_that_joins_nothing_measurable_is_split() -> None:
+    assert normalize_text("albumin/creatinine ratio") == (
+        "albumin",
+        "creatinine",
+        "ratio",
+    )
+
+
+def test_a_reading_and_a_rate_keep_their_slash() -> None:
+    assert normalize_text("135/88") == ("135/88",)
+    assert normalize_text("500 mcg/day") == ("500", "mcg/day")
 
 
 def test_a_split_contraction_keeps_the_word_it_was_spoken_in() -> None:
