@@ -65,3 +65,9 @@ python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+# faster-whisper ships no py.typed marker; the shapes this project depends on
+# are pinned by Protocols in medapp/transcriber.py instead.
+module = ["faster_whisper.*"]
+ignore_missing_imports = true

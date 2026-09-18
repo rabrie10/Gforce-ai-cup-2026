@@ -27,6 +27,10 @@ def test_defaults_resolve_without_any_environment(monkeypatch):
     assert settings.answer_strategy == "retrieve_rerank_entail"
     assert settings.deadline_seconds == 50.0
     assert settings.transcript_cache_dir.name == "transcripts"
+    assert settings.whisper_language == "en"
+    assert settings.vad_filter is True
+    assert settings.condition_on_previous_text is False
+    assert settings.beam_size == 5
 
 
 def test_environment_overrides_every_deployment_value(monkeypatch):
@@ -37,6 +41,10 @@ def test_environment_overrides_every_deployment_value(monkeypatch):
     monkeypatch.setenv("MEDAPP_ANSWER_STRATEGY", "single_llm")
     monkeypatch.setenv("MEDAPP_DEADLINE_SECONDS", "42.5")
     monkeypatch.setenv("MEDAPP_MODEL_CACHE_DIR", "/weights")
+    monkeypatch.setenv("MEDAPP_VAD_FILTER", "false")
+    monkeypatch.setenv("MEDAPP_CONDITION_ON_PREVIOUS_TEXT", "true")
+    monkeypatch.setenv("MEDAPP_BEAM_SIZE", "1")
+    monkeypatch.setenv("MEDAPP_WHISPER_LANGUAGE", "de")
 
     settings = Settings()
 
@@ -46,6 +54,10 @@ def test_environment_overrides_every_deployment_value(monkeypatch):
     assert settings.answer_strategy == "single_llm"
     assert settings.deadline_seconds == 42.5
     assert str(settings.model_cache_dir) == "/weights"
+    assert settings.vad_filter is False
+    assert settings.condition_on_previous_text is True
+    assert settings.beam_size == 1
+    assert settings.whisper_language == "de"
 
 
 def test_deadline_must_stay_strictly_under_the_service_timeout(monkeypatch):
@@ -59,6 +71,14 @@ def test_deadline_must_stay_strictly_under_the_service_timeout(monkeypatch):
 def test_unknown_device_is_rejected_rather_than_passed_to_the_transcriber(monkeypatch):
     _clear_medapp_environment(monkeypatch)
     monkeypatch.setenv("MEDAPP_DEVICE", "mps")
+
+    with pytest.raises(ValidationError):
+        Settings()
+
+
+def test_a_beam_size_below_one_is_rejected(monkeypatch):
+    _clear_medapp_environment(monkeypatch)
+    monkeypatch.setenv("MEDAPP_BEAM_SIZE", "0")
 
     with pytest.raises(ValidationError):
         Settings()
