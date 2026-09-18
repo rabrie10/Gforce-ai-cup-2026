@@ -19,7 +19,7 @@ from dtos import ASRQuestionRequestDto, ASRQuestionResponseDto
 from example import predict
 from utils import validate_response
 
-HOST = '0.0.0.0'
+HOST = "0.0.0.0"
 PORT = 9054
 
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +29,7 @@ app = FastAPI()
 start_time = time.time()
 
 
-@app.post('/predict', response_model=ASRQuestionResponseDto)
+@app.post("/predict", response_model=ASRQuestionResponseDto)
 def predict_endpoint(request: ASRQuestionRequestDto):
     """Answer every question about one conversation."""
     response = predict(request)
@@ -41,18 +41,18 @@ def predict_endpoint(request: ASRQuestionRequestDto):
     return response
 
 
-@app.get('/api')
+@app.get("/api")
 def hello():
     return {
-        'service': 'medical-appointment-usecase',
-        'uptime': '{}'.format(datetime.timedelta(seconds=time.time() - start_time)),
+        "service": "medical-appointment-usecase",
+        "uptime": f"{datetime.timedelta(seconds=time.time() - start_time)}",
     }
 
 
-@app.get('/')
+@app.get("/")
 def index():
     return "Your endpoint is running!"
 
 
-if __name__ == '__main__':
-    uvicorn.run('api:app', host=HOST, port=PORT)
+if __name__ == "__main__":
+    uvicorn.run("api:app", host=HOST, port=PORT)

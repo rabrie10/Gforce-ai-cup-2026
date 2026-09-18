@@ -28,7 +28,6 @@ import collections
 import sys
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
 
 import requests
 
@@ -43,7 +42,7 @@ from utils import (
     temporal_iou,
 )
 
-DEFAULT_URL = 'http://localhost:9054/predict'
+DEFAULT_URL = "http://localhost:9054/predict"
 
 # Mirrors the timeout the evaluation service uses per request. One request now
 # covers a whole conversation, so this budget has to fit one transcription plus
@@ -78,6 +77,7 @@ TIOU_WEIGHT = 0.6
 # Statistics
 # --------------------------------------------------------------------------- #
 
+
 @dataclass
 class Statistics:
     """Everything worth knowing about a run."""
@@ -91,27 +91,27 @@ class Statistics:
     timeouts: int = 0
     aborted: bool = False
 
-    by_type: Dict[str, List[int]] = field(
+    by_type: dict[str, list[int]] = field(
         default_factory=lambda: collections.defaultdict(lambda: [0, 0])
     )
-    latencies_ms: List[float] = field(default_factory=list)
-    questions_per_request: List[int] = field(default_factory=list)
+    latencies_ms: list[float] = field(default_factory=list)
+    questions_per_request: list[int] = field(default_factory=list)
 
     # One entry per question that has an annotated span to find, whether or not
     # anything usable came back for it.
-    tious: List[float] = field(default_factory=list)
+    tious: list[float] = field(default_factory=list)
     missing_spans: int = 0
     # Diagnostic only: the same IoUs, restricted to the ones actually answered
     # yes. Not part of the score.
-    tious_answered_yes: List[float] = field(default_factory=list)
+    tious_answered_yes: list[float] = field(default_factory=list)
 
     def record(
         self,
         question_type: str,
         label: int,
         prediction: int,
-        gold: Optional[Span] = None,
-        predicted: Optional[Span] = None,
+        gold: Span | None = None,
+        predicted: Span | None = None,
     ) -> float:
         """Score one question. Returns its temporal IoU, for the verbose line."""
         self.total += 1
@@ -147,7 +147,7 @@ class Statistics:
     def record_request(
         self,
         question_count: int,
-        latency_ms: Optional[float],
+        latency_ms: float | None,
         failed: bool,
         timed_out: bool = False,
     ) -> None:
@@ -182,49 +182,49 @@ class Statistics:
         return ACCURACY_WEIGHT * self.accuracy + TIOU_WEIGHT * self.mean_tiou
 
     def report(self) -> str:
-        lines = ['', 'Attempt statistics']
-        lines.append(f'  questions            {self.total}')
-        lines.append(f'  correct              {self.correct}')
-        lines.append(f'  unanswered           {self.errors}')
-        lines.append(f'  conversations        {self.conversations}')
-        lines.append(f'  failed conversations {self.failed_conversations}')
-        lines.append(f'  timeouts             {self.timeouts}')
+        lines = ["", "Attempt statistics"]
+        lines.append(f"  questions            {self.total}")
+        lines.append(f"  correct              {self.correct}")
+        lines.append(f"  unanswered           {self.errors}")
+        lines.append(f"  conversations        {self.conversations}")
+        lines.append(f"  failed conversations {self.failed_conversations}")
+        lines.append(f"  timeouts             {self.timeouts}")
 
         if self.aborted:
-            lines.append('  ABORTED: the service would have stopped sending here')
+            lines.append("  ABORTED: the service would have stopped sending here")
 
-        lines.append('')
-        lines.append('Accuracy by question type')
-        for question_type in ('positive', 'hard_negative', 'off_topic'):
+        lines.append("")
+        lines.append("Accuracy by question type")
+        for question_type in ("positive", "hard_negative", "off_topic"):
             correct, total = self.by_type.get(question_type, [0, 0])
             if total:
                 lines.append(
-                    f'  {question_type:<20} {correct / total:.3f}  ({correct}/{total})'
+                    f"  {question_type:<20} {correct / total:.3f}  ({correct}/{total})"
                 )
 
-        lines.append('')
-        lines.append('Evidence localization')
+        lines.append("")
+        lines.append("Evidence localization")
         lines.append(
             f'  {"mean tIoU":<24} {self.mean_tiou:.3f}  '
-            f'(over {len(self.tious)} annotated yes questions)'
+            f"(over {len(self.tious)} annotated yes questions)"
         )
         lines.append(f'  {"no span returned":<24} {self.missing_spans}')
         lines.append(
             f'  {"tIoU when answered yes":<24} '
-            f'{self.mean_tiou_answered_yes:.3f}  '
-            f'(diagnostic, n={len(self.tious_answered_yes)}, not scored)'
+            f"{self.mean_tiou_answered_yes:.3f}  "
+            f"(diagnostic, n={len(self.tious_answered_yes)}, not scored)"
         )
 
         if self.latencies_ms:
-            lines.append('')
-            lines.append('Round trip')
+            lines.append("")
+            lines.append("Round trip")
             lines.append(self._latency_lines())
 
-        lines.append('')
-        lines.append(f'Accuracy:  {self.accuracy:.3f}')
-        lines.append(f'Mean tIoU: {self.mean_tiou:.3f}')
-        lines.append(f'Score:     {self.final_score:.3f}')
-        return '\n'.join(lines)
+        lines.append("")
+        lines.append(f"Accuracy:  {self.accuracy:.3f}")
+        lines.append(f"Mean tIoU: {self.mean_tiou:.3f}")
+        lines.append(f"Score:     {self.final_score:.3f}")
+        return "\n".join(lines)
 
     def _latency_lines(self) -> str:
         mean = sum(self.latencies_ms) / len(self.latencies_ms)
@@ -234,22 +234,25 @@ class Statistics:
 
         budget_ms = REQUEST_TIMEOUT_SECONDS * 1000
 
-        return '\n'.join([
-            f'  {"per conversation":<24} {mean:8.0f} ms mean, '
-            f'{worst:8.0f} ms worst  (n={len(self.latencies_ms)})',
-            f'  {"per question":<24} {per_question:8.0f} ms',
-            f'  {"budget":<24} {budget_ms:8.0f} ms  '
-            f'({worst / budget_ms:.0%} of it used at worst)',
-        ])
+        return "\n".join(
+            [
+                f'  {"per conversation":<24} {mean:8.0f} ms mean, '
+                f"{worst:8.0f} ms worst  (n={len(self.latencies_ms)})",
+                f'  {"per question":<24} {per_question:8.0f} ms',
+                f'  {"budget":<24} {budget_ms:8.0f} ms  '
+                f"({worst / budget_ms:.0%} of it used at worst)",
+            ]
+        )
 
 
 # --------------------------------------------------------------------------- #
 # The replay loop
 # --------------------------------------------------------------------------- #
 
+
 def wait_for_endpoint(url: str, attempts: int = 30) -> bool:
     """Poll the server root until it answers, so a slow import is not an error."""
-    root = url.rsplit('/', 1)[0] + '/'
+    root = url.rsplit("/", 1)[0] + "/"
     for _ in range(attempts):
         try:
             requests.get(root, timeout=2)
@@ -276,21 +279,21 @@ def replay(url: str, verbose: bool) -> Statistics:
         if time.time() - started_attempt > attempt_budget:
             statistics.aborted = True
             print(
-                f'  attempt budget of {attempt_budget} seconds is gone before '
-                f'{audio_filename}: the service would stop sending here. The '
-                'questions it never sent are scored wrong there, but left out '
-                'of the numbers below, so this run is not comparable to a '
-                'competition score.',
+                f"  attempt budget of {attempt_budget} seconds is gone before "
+                f"{audio_filename}: the service would stop sending here. The "
+                "questions it never sent are scored wrong there, but left out "
+                "of the numbers below, so this run is not comparable to a "
+                "competition score.",
                 file=sys.stderr,
             )
             break
 
-        questions = [row['question'] for row in rows]
+        questions = [row["question"] for row in rows]
 
         payload = {
-            'audio_base64': encode_audio(load_sample_audio(audio_filename)),
-            'audio_filename': audio_filename,
-            'questions': questions,
+            "audio_base64": encode_audio(load_sample_audio(audio_filename)),
+            "audio_filename": audio_filename,
+            "questions": questions,
         }
 
         answers, spans, latency_ms, error, timed_out = _ask(
@@ -308,23 +311,23 @@ def replay(url: str, verbose: bool) -> Statistics:
 
         if error is not None:
             print(
-                f'  {audio_filename}: {error} '
-                f'All {len(questions)} questions scored wrong.',
+                f"  {audio_filename}: {error} "
+                f"All {len(questions)} questions scored wrong.",
                 file=sys.stderr,
             )
 
-        for row, prediction, predicted_span in zip(rows, answers, spans):
-            label = int(row['label'])
+        for row, prediction, predicted_span in zip(rows, answers, spans, strict=True):
+            label = int(row["label"])
             gold = gold_evidence(row)
 
             iou = statistics.record(
-                row['question_type'], label, prediction, gold, predicted_span
+                row["question_type"], label, prediction, gold, predicted_span
             )
 
             if verbose:
-                mark = 'ok  ' if prediction == label else 'WRONG'
-                said = {1: 'yes', 0: 'no'}.get(prediction, '-')
-                evidence = f' tIoU {iou:.3f}' if gold is not None else ''
+                mark = "ok  " if prediction == label else "WRONG"
+                said = {1: "yes", 0: "no"}.get(prediction, "-")
+                evidence = f" tIoU {iou:.3f}" if gold is not None else ""
                 print(
                     f'  {mark} {row["question_id"]:<24} {row["question_type"]:<14}'
                     f' said {said:<3} wanted {row["answer"]:<3}{evidence}'
@@ -333,10 +336,10 @@ def replay(url: str, verbose: bool) -> Statistics:
         if consecutive_timeouts >= MAX_CONSECUTIVE_TIMEOUTS:
             statistics.aborted = True
             print(
-                f'  {MAX_CONSECUTIVE_TIMEOUTS} timeouts in a row: the service would '
-                'stop sending here. The questions it never sent are scored wrong '
-                'there, but simply left out of the numbers below, so this run '
-                'is not comparable to a competition score.',
+                f"  {MAX_CONSECUTIVE_TIMEOUTS} timeouts in a row: the service would "
+                "stop sending here. The questions it never sent are scored wrong "
+                "there, but simply left out of the numbers below, so this run "
+                "is not comparable to a competition score.",
                 file=sys.stderr,
             )
             break
@@ -349,11 +352,11 @@ def _ask(
     url: str,
     payload: dict,
     expected_count: int,
-) -> Tuple[
-    List[int],
-    List[Optional[Span]],
-    Optional[float],
-    Optional[str],
+) -> tuple[
+    list[int],
+    list[Span | None],
+    float | None,
+    str | None,
     bool,
 ]:
     """One request, one conversation.
@@ -370,7 +373,7 @@ def _ask(
     every question about the conversation. That is what the service does too.
     """
     unanswered = [UNANSWERED] * expected_count
-    no_spans: List[Optional[Span]] = [None] * expected_count
+    no_spans: list[Span | None] = [None] * expected_count
 
     started = time.time()
     try:
@@ -386,13 +389,15 @@ def _ask(
                 unanswered,
                 no_spans,
                 latency_ms,
-                f'expected {expected_count} answers, got {len(answers)}.',
+                f"expected {expected_count} answers, got {len(answers)}.",
                 False,
             )
 
         spans = [
             evidence_interval(start, end)
-            for start, end in zip(prediction.evidence_start, prediction.evidence_end)
+            for start, end in zip(
+                prediction.evidence_start, prediction.evidence_end, strict=True
+            )
         ]
 
         return (
@@ -410,12 +415,12 @@ def _ask(
             unanswered,
             no_spans,
             None,
-            f'no answer within {REQUEST_TIMEOUT_SECONDS} seconds.',
+            f"no answer within {REQUEST_TIMEOUT_SECONDS} seconds.",
             True,
         )
 
     except Exception as exc:
-        return unanswered, no_spans, None, f'{type(exc).__name__}: {exc}', False
+        return unanswered, no_spans, None, f"{type(exc).__name__}: {exc}", False
 
 
 def oracle() -> Statistics:
@@ -426,40 +431,50 @@ def oracle() -> Statistics:
         statistics.record_request(len(rows), None, failed=False)
 
         for row in rows:
-            label = int(row['label'])
+            label = int(row["label"])
             gold = gold_evidence(row)
-            statistics.record(row['question_type'], label, label, gold, gold)
+            statistics.record(row["question_type"], label, label, gold, gold)
 
     return statistics
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--url', default=DEFAULT_URL, help='Your /predict endpoint.')
-    parser.add_argument('--oracle', action='store_true',
-                        help='Score the ground truth instead of your endpoint.')
-    parser.add_argument('--verbose', action='store_true',
-                        help='Print a line per question.')
+    parser.add_argument("--url", default=DEFAULT_URL, help="Your /predict endpoint.")
+    parser.add_argument(
+        "--oracle",
+        action="store_true",
+        help="Score the ground truth instead of your endpoint.",
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Print a line per question."
+    )
     args = parser.parse_args()
 
     if args.oracle:
         print(oracle().report())
-        print('\nThis is the harness scoring the ground truth. Anything below '
-              '1.000 means the\nsetup is broken, not the model.')
+        print(
+            "\nThis is the harness scoring the ground truth. Anything below "
+            "1.000 means the\nsetup is broken, not the model."
+        )
         return 0
 
     if not wait_for_endpoint(args.url):
-        print(f'Nothing answering at {args.url}. Start it with "python api.py".',
-              file=sys.stderr)
+        print(
+            f'Nothing answering at {args.url}. Start it with "python api.py".',
+            file=sys.stderr,
+        )
         return 1
 
     statistics = replay(args.url, args.verbose)
     print(statistics.report())
-    print(f'\n{statistics.conversations} conversations is a correctness check, '
-          'not a benchmark. The breakdown by\nquestion type and the evidence '
-          'block are the numbers to act on.')
+    print(
+        f"\n{statistics.conversations} conversations is a correctness check, "
+        "not a benchmark. The breakdown by\nquestion type and the evidence "
+        "block are the numbers to act on."
+    )
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())

@@ -11,7 +11,6 @@ system goes.
 """
 
 import logging
-from typing import Optional, Tuple
 
 from dtos import ASRQuestionRequestDto, ASRQuestionResponseDto
 from utils import Span, audio_duration_seconds, decode_audio
@@ -20,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 ### CALL YOUR CUSTOM MODEL VIA THIS FUNCTION ###
+
 
 def predict(request: ASRQuestionRequestDto) -> ASRQuestionResponseDto:
     """Answer every question about one conversation.
@@ -32,9 +32,9 @@ def predict(request: ASRQuestionRequestDto) -> ASRQuestionResponseDto:
 
     duration = audio_duration_seconds(audio_bytes)
     logger.info(
-        '%s (%.1f s, %.1f MB): %d questions',
+        "%s (%.1f s, %.1f MB): %d questions",
         request.audio_filename,
-        duration if duration is not None else float('nan'),
+        duration if duration is not None else float("nan"),
         len(audio_bytes) / 1e6,
         len(request.questions),
     )
@@ -53,7 +53,7 @@ def predict(request: ASRQuestionRequestDto) -> ASRQuestionResponseDto:
                 audio_bytes, request.audio_filename, question
             )
         except Exception:
-            logger.exception('Falling back to a guess for: %s', question)
+            logger.exception("Falling back to a guess for: %s", question)
             answer, span = True, None
 
         answers.append(answer)
@@ -69,11 +69,12 @@ def predict(request: ASRQuestionRequestDto) -> ASRQuestionResponseDto:
 
 ### DUMMY MODEL ###
 
+
 def answer_question(
     audio_bytes: bytes,
     audio_filename: str,
     question: str,
-) -> Tuple[bool, Optional[Span]]:
+) -> tuple[bool, Span | None]:
     """Always says yes, and never says where.
 
     Both splits are exactly balanced between yes and no, so the answer half of

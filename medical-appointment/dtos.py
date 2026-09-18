@@ -15,14 +15,12 @@ rejecting them. Do not rely on that. Send real JSON booleans, real JSON numbers
 and real JSON nulls.
 """
 
-from typing import List, Optional
-
 from pydantic import BaseModel, Field, model_validator
-
 
 # --------------------------------------------------------------------------- #
 # What the evaluator sends you
 # --------------------------------------------------------------------------- #
+
 
 class ASRQuestionRequestDto(BaseModel):
     """One conversation and every question asked about it.
@@ -34,21 +32,22 @@ class ASRQuestionRequestDto(BaseModel):
 
     audio_base64: str = Field(
         description='The raw MP3 bytes, base64 encoded. No "data:" URI prefix — '
-                    'pass it straight to base64.b64decode.',
+        "pass it straight to base64.b64decode.",
     )
     audio_filename: str = Field(
         description='e.g. "conversation_sample_11.mp3". Identifies the '
-                    'conversation; useful in your logs.',
+        "conversation; useful in your logs.",
     )
-    questions: List[str] = Field(
-        description='The English yes/no questions about this conversation. Ten '
-                    'of them, during validation and evaluation alike.',
+    questions: list[str] = Field(
+        description="The English yes/no questions about this conversation. Ten "
+        "of them, during validation and evaluation alike.",
     )
 
 
 # --------------------------------------------------------------------------- #
 # What you send back
 # --------------------------------------------------------------------------- #
+
 
 class ASRQuestionResponseDto(BaseModel):
     """Your answers and the evidence behind them.
@@ -60,36 +59,35 @@ class ASRQuestionResponseDto(BaseModel):
     are ``None``.
     """
 
-    answers: List[bool] = Field(
-        description='True for yes, False for no. Exactly as many answers as '
-                    'there were questions, in the same order.',
+    answers: list[bool] = Field(
+        description="True for yes, False for no. Exactly as many answers as "
+        "there were questions, in the same order.",
     )
-    evidence_start: List[Optional[float]] = Field(
-        description='Where the supporting passage starts, in seconds from the '
-                    'beginning of the audio. None for a no answer.',
+    evidence_start: list[float | None] = Field(
+        description="Where the supporting passage starts, in seconds from the "
+        "beginning of the audio. None for a no answer.",
     )
-    evidence_end: List[Optional[float]] = Field(
-        description='Where the supporting passage ends, in seconds. None for a '
-                    'no answer.',
+    evidence_end: list[float | None] = Field(
+        description="Where the supporting passage ends, in seconds. None for a "
+        "no answer.",
     )
 
-    @model_validator(mode='after')
-    def evidence_matches_answers(self) -> 'ASRQuestionResponseDto':
+    @model_validator(mode="after")
+    def evidence_matches_answers(self) -> "ASRQuestionResponseDto":
         """The three lists are read positionally, so they have to line up.
 
         A response that does not carry one evidence slot per answer cannot be
         scored at all — the service fails the whole conversation rather than
         guessing which answer a timestamp belongs to.
         """
-        if (
-            len(self.evidence_start) != len(self.answers)
-            or len(self.evidence_end) != len(self.answers)
-        ):
+        if len(self.evidence_start) != len(self.answers) or len(
+            self.evidence_end
+        ) != len(self.answers):
             raise ValueError(
-                f'evidence_start and evidence_end must both hold one value per '
-                f'answer: got {len(self.answers)} answers, '
-                f'{len(self.evidence_start)} evidence_start and '
-                f'{len(self.evidence_end)} evidence_end.'
+                f"evidence_start and evidence_end must both hold one value per "
+                f"answer: got {len(self.answers)} answers, "
+                f"{len(self.evidence_start)} evidence_start and "
+                f"{len(self.evidence_end)} evidence_end."
             )
 
         return self
