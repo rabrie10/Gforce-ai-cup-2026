@@ -16,6 +16,7 @@ from typing import Protocol
 from medapp.chunker import ChunkScheme, chunk_conversation
 from medapp.config import AnswerStrategy, Settings
 from medapp.config import settings as default_settings
+from medapp.reranker import CrossEncoderReranker, Reranker
 from medapp.retrieval import Bm25Index
 from medapp.types import Chunk, Segment, Verdict
 
@@ -134,6 +135,80 @@ class Bm25RetrievalAnswerer:
             )
 
 
+class RerankRelevanceAnswerer:
+    """BM25 retrieves, a cross-encoder re-orders, and Relevance decides yes.
+
+    Two things change against the BM25 baseline. The Evidence Span comes from
+    the Chunk the cross-encoder ranked first rather than the one BM25 did,
+    which is the boundary discrimination ADR-0002 recorded BM25 as lacking. And
+    a Question whose best Chunk does not reach the Relevance threshold is
+    answered no: nothing in the Conversation is about what it asks about, which
+    is what an Off-Topic Question looks like.
+
+    It answers yes to every Question that clears the threshold, Hard Negatives
+    included. Their best Chunk scores high on Relevance precisely because it is
+    lexically near-identical to the truth, and the judgement that separates
+    them is Entailment, which does not exist yet. Lowering this threshold until
+    it catches them would reject the Positives it is their business to keep.
+    """
+
+    def __init__(
+        self,
+        scheme: ChunkScheme,
+        candidates: int,
+        reranker: Reranker,
+        threshold: float,
+    ) -> None:
+        """Fix the granularities, the depth reranked, and the Relevance bar.
+
+        Args:
+            scheme: The Chunk granularities, as Settings resolved them.
+            candidates: How many ranked Chunks are rescored and carried on the
+                Verdict. The judges downstream read them, and so do the
+                component metrics.
+            reranker: Scores how far a Chunk is about what a Question asks
+                about.
+            threshold: The Relevance the best Chunk must reach for a yes.
+        """
+        self._scheme = scheme
+        self._candidates = candidates
+        self._reranker = reranker
+        self._threshold = threshold
+
+    def answer(
+        self, segments: tuple[Segment, ...], questions: Sequence[str]
+    ) -> Iterable[Verdict]:
+        """Answer each Question against the Chunks of one Conversation.
+
+        Raises:
+            ValueError: If the Conversation produced no Chunks, which leaves
+                every Question with nothing to read an answer from.
+        """
+        index = Bm25Index(chunk_conversation(segments, self._scheme))
+
+        return self._verdicts(index, questions)
+
+    def _verdicts(
+        self, index: Bm25Index, questions: Sequence[str]
+    ) -> Iterator[Verdict]:
+        """One Verdict per Question, judged as the caller consumes them."""
+        for question in questions:
+            retrieved = index.rank(question, self._candidates)
+            reranked = self._reranker.rerank(question, retrieved)
+            candidates = tuple(candidate.chunk for candidate in reranked)
+
+            if not reranked or reranked[0].relevance < self._threshold:
+                # Either the Question shares no term with the Conversation at
+                # all, or nothing the Conversation says comes close enough to
+                # what it asks about. Both are a no with nothing to point at.
+                yield Verdict(answer=False, evidence=None, candidates=candidates)
+                continue
+
+            yield Verdict(
+                answer=True, evidence=candidates[0].span, candidates=candidates
+            )
+
+
 def _build_bm25_retrieval(settings: Settings) -> Answerer:
     """The BM25 baseline, with the granularities Settings resolved."""
     return Bm25RetrievalAnswerer(
@@ -145,9 +220,31 @@ def _build_bm25_retrieval(settings: Settings) -> Answerer:
     )
 
 
+def _build_rerank_relevance(settings: Settings) -> Answerer:
+    """The reranked Answerer, with the weights loaded from the local cache.
+
+    The cross-encoder is exercised once here rather than inside the first
+    request: it is built at import, before the process is serving, and the
+    first forward pass costs seconds a request does not have.
+    """
+    reranker = CrossEncoderReranker(settings)
+    reranker.warm_up()
+
+    return RerankRelevanceAnswerer(
+        scheme=ChunkScheme(
+            word_lengths=settings.chunk_word_lengths,
+            stride_fraction=settings.chunk_stride_fraction,
+        ),
+        candidates=settings.retrieval_candidates,
+        reranker=reranker,
+        threshold=settings.relevance_threshold,
+    )
+
+
 _ANSWERERS: dict[AnswerStrategy, Callable[[Settings], Answerer]] = {
     "cite_first_segment": lambda _: CiteFirstSegmentAnswerer(),
     "retrieve_bm25": _build_bm25_retrieval,
+    "retrieve_rerank": _build_rerank_relevance,
 }
 
 

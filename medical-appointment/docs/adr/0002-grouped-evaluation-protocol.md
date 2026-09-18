@@ -174,3 +174,43 @@ Transcripts are cached to `transcripts/` (already git-ignored) so the ASR cost i
 paid once and every tuning iteration runs offline. The cache belongs to the
 evaluation harness and must never enter the request path, or the dev loop's
 caching silently becomes production behaviour.
+
+## Amendment 2026-09-19: what the reranker bought, and the gate still short
+
+The amendment above committed to re-measuring recall@5 after the cross-encoder
+and either meeting the gate or recording the shortfall. Measured by
+`python -m scripts.retrieval_metrics --rerank` on the same Chunk ladder and the
+same cached transcripts, with `BAAI/bge-reranker-v2-m3` rescoring the top 10
+BM25 candidates — the ranking the endpoint now returns.
+
+| Fold  | Spans | recall@1 | recall@5 | recall@10 | tIoU@1 |
+|-------|-------|----------|----------|-----------|--------|
+| train | 47    | 0.362    | 0.489    | 0.574     | 0.365  |
+| dev   | 75    | 0.467    | 0.667    | 0.707     | 0.447  |
+
+Against BM25 alone (recall@1 0.333, recall@5 0.533, tIoU@1 0.340 on dev), the
+reranker buys 0.13 of recall@1, 0.13 of recall@5 and 0.11 of the tIoU the cited
+Chunk achieves. That is the boundary discrimination it was built for: it is
+choosing better among the Chunks overlapping the same passage. tIoU@5 rises
+less, 0.514 to 0.557, and tIoU@10 not at all, which is exactly what reordering
+inside a fixed candidate set does: it moves the good Chunk up, it does not add
+one.
+
+recall@10 is unchanged at 0.707, and cannot move. The reranker reorders the top
+10 BM25 returns rather than reaching past them, so the deepest rank it is
+measured at is BM25's own. The 0.24 still missing at k=5 is therefore bounded by
+what BM25 retrieves at all, which is what the previous amendment recorded as
+lexically unreachable: 14 of 122 Positives whose evidence shares no content word
+with the Question, and 4 more the ASR mis-spelled.
+
+**The gate is not lowered, and it is not met.** It is now the dense half's to
+meet — ADR-0001's fusion increment is what addresses Questions with no lexical
+overlap, and it is the last component that can raise recall@10. recall@5 is
+re-measured there, and if it still falls short the gate is renegotiated with
+what the whole retrieval stack actually reaches rather than component by
+component.
+
+**What ships in the meantime.** The reranked Answerer is the default even with
+the gate unmet, because the gate protects a component and not a release: it says
+where work goes next, which is the dense half, and the alternative is serving
+the BM25 baseline that is worse on every number in the table.

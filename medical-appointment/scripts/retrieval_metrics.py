@@ -5,7 +5,12 @@ oracle-selected Chunk tIoU >= 0.75 for the Chunker. A gate failing here sends
 work back to that component; it does not send work forward.
 
     python -m scripts.retrieval_metrics
+    python -m scripts.retrieval_metrics --rerank
     python -m scripts.retrieval_metrics --lengths 1,2,3,5,8,13,21,34 --stride 0.25
+
+``--rerank`` measures the ranking the endpoint returns rather than BM25's own,
+which is what ADR-0002 requires the recall gate to be re-read at once a
+component that reorders the candidates ships.
 
 The ``--lengths`` and ``--stride`` options exist so the ladder can be tuned on
 the dev fold against oracle tIoU without editing Settings; the values that win
@@ -20,6 +25,7 @@ from harness.folds import FoldName
 from harness.retrieval_metrics import RECALL_DEPTHS, RetrievalReport, report
 from medapp.chunker import ChunkScheme
 from medapp.config import settings
+from medapp.reranker import CrossEncoderReranker
 
 READABLE_FOLDS: tuple[FoldName, ...] = ("train", "dev")
 
@@ -81,6 +87,11 @@ def main() -> None:
         type=float,
         help="How far apart the Chunks of one length start, as a fraction of it.",
     )
+    parser.add_argument(
+        "--rerank",
+        action="store_true",
+        help="Measure the reranked ranking rather than BM25's own.",
+    )
     arguments = parser.parse_args()
 
     scheme = ChunkScheme(
@@ -92,14 +103,21 @@ def main() -> None:
         stride_fraction=arguments.stride or settings.chunk_stride_fraction,
     )
 
+    reranker = None
+
+    if arguments.rerank:
+        reranker = CrossEncoderReranker(settings)
+        reranker.warm_up()
+
     print(
         f"Chunks at lengths {list(scheme.word_lengths)}, "
-        f"stride {scheme.stride_fraction:g} of each."
+        f"stride {scheme.stride_fraction:g} of each, ranked by "
+        f"{'BM25 then ' + settings.rerank_model if reranker else 'BM25'}."
     )
     print(format_header())
 
     for fold in READABLE_FOLDS:
-        print(format_report(report(fold, scheme)))
+        print(format_report(report(fold, scheme, reranker)))
 
     print(
         f"\nGates (ADR-0002): recall@{RECALL_GATE_DEPTH} >= {RECALL_GATE:g}, "

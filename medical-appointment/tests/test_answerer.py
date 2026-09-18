@@ -14,11 +14,13 @@ import pytest
 from medapp.answerer import (
     Bm25RetrievalAnswerer,
     CiteFirstSegmentAnswerer,
+    RerankRelevanceAnswerer,
     build_answerer,
 )
 from medapp.chunker import ChunkScheme
 from medapp.config import Settings
-from medapp.types import Segment, Word
+from medapp.normalizer import normalize_text
+from medapp.types import ScoredChunk, Segment, Word
 from tests.test_chunker import CONVERSATION
 
 SCHEME = ChunkScheme(word_lengths=(4, 8), stride_fraction=0.5)
@@ -136,3 +138,87 @@ def test_settings_resolve_the_granularities_the_bm25_answerer_is_built_with():
     assert isinstance(answerer, Bm25RetrievalAnswerer)
     assert len(verdicts[0].candidates) == 2
     assert all(len(chunk.text.split()) <= 9 for chunk in verdicts[0].candidates)
+
+
+class _RelevanceOf:
+    """A Relevance judge that scores by the words a Chunk shares with a Question.
+
+    Stands in for the cross-encoder, whose weights are not in the repository.
+    What the Answerer tests need from it is a score that is high for a
+    Conversation that discusses the Question and low for one that does not, and
+    that is what sharing content words gives.
+    """
+
+    def rerank(self, question, chunks):
+        wanted = set(normalize_text(question))
+
+        return tuple(
+            sorted(
+                (
+                    ScoredChunk(
+                        chunk=chunk,
+                        relevance=len(wanted & set(chunk.text.split()))
+                        / max(len(wanted), 1),
+                    )
+                    for chunk in chunks
+                ),
+                key=lambda candidate: -candidate.relevance,
+            )
+        )
+
+
+def rerank_answerer(threshold: float) -> RerankRelevanceAnswerer:
+    return RerankRelevanceAnswerer(
+        scheme=SCHEME,
+        candidates=5,
+        reranker=_RelevanceOf(),
+        threshold=threshold,
+    )
+
+
+def test_the_reranked_answerer_cites_the_chunk_the_judge_ranked_first():
+    verdicts = list(
+        rerank_answerer(threshold=0.1).answer(
+            CONVERSATION, ["Was the blood pressure 135/88?"]
+        )
+    )
+
+    assert verdicts[0].answer is True
+    assert verdicts[0].evidence == verdicts[0].candidates[0].span
+    assert "135/88" in verdicts[0].candidates[0].text
+
+
+def test_a_question_no_chunk_is_relevant_enough_for_is_answered_no_with_nulls():
+    verdicts = list(
+        rerank_answerer(threshold=0.9).answer(
+            CONVERSATION, ["Was the blood pressure 135/88?"]
+        )
+    )
+
+    assert verdicts[0].answer is False
+    assert verdicts[0].evidence is None
+
+
+def test_a_no_still_carries_the_candidates_it_was_judged_over():
+    """The component metrics read them, and so will the Entailment judge."""
+    verdicts = list(
+        rerank_answerer(threshold=0.9).answer(
+            CONVERSATION, ["Was the blood pressure 135/88?"]
+        )
+    )
+
+    assert len(verdicts[0].candidates) == 5
+
+
+def test_the_reranked_verdicts_are_produced_lazily():
+    verdicts = rerank_answerer(threshold=0.1).answer(
+        CONVERSATION, ["Was 100 mg prescribed?"] * 3
+    )
+
+    assert next(iter(verdicts)).answer is True
+    assert isinstance(verdicts, Iterator)
+
+
+def test_a_conversation_that_transcribed_to_nothing_raises_rather_than_guessing():
+    with pytest.raises(ValueError):
+        list(rerank_answerer(threshold=0.1).answer((), ["Was 100 mg prescribed?"]))

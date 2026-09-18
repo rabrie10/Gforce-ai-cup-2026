@@ -17,7 +17,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 Device = Literal["cpu", "cuda"]
 ComputeType = Literal["int8", "int8_float16", "float16", "float32"]
 AnswerStrategy = Literal[
-    "cite_first_segment", "retrieve_bm25", "retrieve_rerank_entail", "single_llm"
+    "cite_first_segment",
+    "retrieve_bm25",
+    "retrieve_rerank",
+    "retrieve_rerank_entail",
+    "single_llm",
 ]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -56,7 +60,21 @@ class Settings(BaseSettings):
             Evidence Spans require.
         retrieval_candidates: How many ranked Chunks a Verdict carries. The
             judges downstream read them and the component metrics are computed
-            from them, so it is deeper than the one Chunk cited.
+            from them, so it is deeper than the one Chunk cited. It is also the
+            k the reranker is handed: every candidate BM25 ranks is rescored.
+        rerank_batch_size: How many Question-Chunk pairs go through the
+            cross-encoder at once. One Question's whole candidate list fits in
+            one batch at the default k.
+        rerank_max_tokens: Where a Question-Chunk pair is truncated, counted in
+            the model's subwords rather than in the words the Chunk ladder is
+            cut at. Slack rather than a limit, and well under the model's 8192,
+            which would cost padding for nothing.
+        relevance_threshold: The Relevance a Conversation's best Chunk must
+            reach for the answer to be yes. Below it nothing in the
+            Conversation is about what the Question asks about, which is what
+            an Off-Topic Question looks like. Chosen on the dev fold for
+            stability under bootstrap resampling by
+            ``python -m scripts.relevance_threshold``, never by argmax.
     """
 
     model_config = SettingsConfigDict(
@@ -84,7 +102,22 @@ class Settings(BaseSettings):
     chunk_stride_fraction: float = Field(default=0.2, gt=0, le=1)
     retrieval_candidates: int = Field(default=10, ge=1)
 
-    answer_strategy: AnswerStrategy = "retrieve_bm25"
+    # Judging one Question — ranking plus the cross-encoder over 10 candidates
+    # — measured on dev at 180 ms on average and 308 ms worst on the Mac's CPU,
+    # so a Conversation's ten Questions cost 3.1 s of the 15 s the latency
+    # budget gives the answering half.
+    rerank_batch_size: int = Field(default=16, ge=1)
+    # The longest Question-Chunk pair on dev is 92 subwords: 69 for the top
+    # rung of the Chunk ladder and 23 for the Question. Nothing is truncated.
+    rerank_max_tokens: int = Field(default=128, ge=1)
+    # Measured on dev, 16 Conversations and 160 Questions: Off-Topic accuracy
+    # 1.000 (90% interval [1.000, 1.000]), Positive TPR 0.907, TNR 0.776,
+    # overall accuracy 0.838 [0.787, 0.887]. Higher candidates score better
+    # overall — 0.863 at 0.79 — entirely by rejecting Hard Negatives, at 0.12
+    # of Positive TPR.
+    relevance_threshold: float = 0.3
+
+    answer_strategy: AnswerStrategy = "retrieve_rerank"
     route_suffix: str = ""
 
     deadline_seconds: float = Field(default=50.0, gt=0, lt=60)
