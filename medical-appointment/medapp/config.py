@@ -16,7 +16,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Device = Literal["cpu", "cuda"]
 ComputeType = Literal["int8", "int8_float16", "float16", "float32"]
-AnswerStrategy = Literal["cite_first_segment", "retrieve_rerank_entail", "single_llm"]
+AnswerStrategy = Literal[
+    "cite_first_segment", "retrieve_bm25", "retrieve_rerank_entail", "single_llm"
+]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -47,6 +49,14 @@ class Settings(BaseSettings):
             enters the prompt otherwise sustains itself.
         beam_size: Worst-case latency scales with it, so it is tuned on the dev
             fold against timing error rather than taken on faith.
+        chunk_word_lengths: The ladder of Chunk lengths, in normalized tokens.
+            Tuned on the dev fold against oracle-selected tIoU.
+        chunk_stride_fraction: How far apart the Chunks of one length start, as
+            a fraction of that length. Below 1 they overlap, which annotated
+            Evidence Spans require.
+        retrieval_candidates: How many ranked Chunks a Verdict carries. The
+            judges downstream read them and the component metrics are computed
+            from them, so it is deeper than the one Chunk cited.
     """
 
     model_config = SettingsConfigDict(
@@ -70,7 +80,11 @@ class Settings(BaseSettings):
     nli_model: str = "cross-encoder/nli-deberta-v3-base"
     dense_model: str = "BAAI/bge-small-en-v1.5"
 
-    answer_strategy: AnswerStrategy = "cite_first_segment"
+    chunk_word_lengths: tuple[int, ...] = (1, 2, 3, 4, 6, 8, 11, 15, 20, 27, 36, 48)
+    chunk_stride_fraction: float = Field(default=0.2, gt=0, le=1)
+    retrieval_candidates: int = Field(default=10, ge=1)
+
+    answer_strategy: AnswerStrategy = "retrieve_bm25"
     route_suffix: str = ""
 
     deadline_seconds: float = Field(default=50.0, gt=0, lt=60)

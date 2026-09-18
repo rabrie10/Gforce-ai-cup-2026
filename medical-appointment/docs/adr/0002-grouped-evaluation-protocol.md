@@ -82,7 +82,8 @@ measurement:
 
 - **recall@5 >= 0.95** for the retriever. Anything not retrieved is unreachable
   by every judge downstream; a 5% structural miss is already ~0.03 off the final
-  score.
+  score. (Amended 2026-09-19: not met by BM25 alone, and the gate is restated
+  below rather than lowered.)
 - **worst-case per-Conversation latency <= 40 s** on the deployment VM against
   the longest supplied audio. One Conversation over 60 s loses its Questions and
   eats the whole-attempt budget of every Conversation after it.
@@ -106,6 +107,57 @@ transcribed, not read. (Amended 2026-09-18: reading all 39 contradicted the
 untouched hold-out above.) Both sources
 name the alternative as a pitfall — optimizing retrieval parameters before error
 analysis on what is actually failing.
+
+## Amendment 2026-09-19: recall@5 is not a gate BM25 alone can pass
+
+Measured by `python -m scripts.retrieval_metrics` on the tuned Chunk ladder
+(lengths 1–48 normalized tokens, stride 0.2 of each), against the cached
+`large-v3` transcripts. A Chunk counts as having found an annotated Evidence
+Span when their temporal IoU is at least 0.5 — it overlaps the annotation more
+than the two of them miss each other.
+
+| Fold  | Spans | recall@1 | recall@5 | recall@10 | oracle tIoU |
+|-------|-------|----------|----------|-----------|-------------|
+| train | 47    | 0.213    | 0.489    | 0.574     | 0.839       |
+| dev   | 75    | 0.333    | 0.533    | 0.707     | 0.835       |
+
+**The Chunker's gate passes.** Oracle-selected tIoU is 0.835 on dev against a
+gate of 0.75, so the ceiling on 0.6 of the score is not the Chunker's to raise
+and work moves on from it. Finer ladders were measured up to 2,600 Chunks per
+Conversation and oracle tIoU plateaus near 0.85, which is where the ASR's word
+boundaries and the two mis-annotated Positives put it.
+
+**The retriever's gate fails, by a lot.** 0.533 on dev against 0.95. Three
+things were measured before recording this rather than after: BM25's length
+normalization `b` swept from 0 to 1 (moves recall@5 by under 0.03 and 0.4 is
+already near the best of it), the Chunk ladder swept from 138 to 2,600 Chunks
+per Conversation (recall@5 between 0.52 and 0.71 on dev, always far short), and
+non-maximum suppression over the ranked Chunks by time (recall@5 up 0.05, but
+recall@50 down from 0.91 to 0.77 — it buys the near ranks by capping the deep
+ones).
+
+The shortfall is not a defect in the index. It is the corpus. ADR-0001's
+amendment already recorded that many Hard Negatives share little vocabulary
+with the passage that refutes them, and the error analysis counts 14 of 122
+Positives whose evidence is a paraphrase with no content word in common and 4
+more whose drug name the ASR mis-spelled. Those 18 are lexically unreachable at
+any k, which caps BM25's recall near 0.85 before ranking is considered at all.
+BM25 also has no way to prefer the Chunk whose *boundaries* are right among the
+dozens overlapping the same correct passage, which is what separates recall@5
+from the 0.91 the same ranking reaches by k=100: the evidence is found, and
+ranked deep.
+
+**The gate is not lowered.** Both components it exists to protect are still
+ahead: the cross-encoder reranker reads Question and Chunk jointly over the top
+candidates, which is exactly the boundary discrimination BM25 lacks, and dense
+retrieval plus fusion is what the 18 lexically unreachable Positives need.
+recall@5 is re-measured after each, and the gate is met there or the shortfall
+is amended again with what the reranker and the dense half actually bought.
+
+What this does change is the depth the system carries forward. `retrieve_bm25`
+returns 10 ranked Chunks per Question rather than 5, because recall@10 is 0.707
+on dev against recall@5's 0.533 and the reranker is the component that turns a
+deeper candidate list into a better rank-1. The gate stays stated at 5.
 
 ## Consequences
 
