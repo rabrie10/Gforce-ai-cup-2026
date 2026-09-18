@@ -56,6 +56,9 @@ ignore = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# `api.py`, `utils.py` and `medapp` are imported from the project root, which is
+# not on `sys.path` under a bare `pytest` invocation.
+pythonpath = ["."]
 
 [tool.mypy]
 python_version = "3.11"
