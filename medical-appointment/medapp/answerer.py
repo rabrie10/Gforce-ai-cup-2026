@@ -17,9 +17,12 @@ from medapp.chunker import ChunkScheme, chunk_conversation
 from medapp.claims import ClaimRewriter, Rewriter
 from medapp.config import AnswerStrategy, Settings
 from medapp.config import settings as default_settings
+from medapp.dense import Embedder
+from medapp.dense import load_model as load_embedder
+from medapp.dense import warm_up as warm_embedder
 from medapp.entailment import EntailmentJudge, NliEntailmentJudge
 from medapp.reranker import CrossEncoderReranker, Reranker
-from medapp.retrieval import Bm25Index
+from medapp.retrieval import Bm25Index, Retriever, build_index_factory
 from medapp.types import Chunk, Segment, Verdict
 
 
@@ -158,22 +161,26 @@ class RerankRelevanceAnswerer:
         self,
         scheme: ChunkScheme,
         candidates: int,
+        index_factory: Callable[[Sequence[Chunk]], Retriever],
         reranker: Reranker,
         threshold: float,
     ) -> None:
-        """Fix the granularities, the depth reranked, and the Relevance bar.
+        """Fix the granularities, the retriever, the depth reranked and the bar.
 
         Args:
             scheme: The Chunk granularities, as Settings resolved them.
             candidates: How many ranked Chunks are rescored and carried on the
                 Verdict. The judges downstream read them, and so do the
                 component metrics.
+            index_factory: Builds the per-request index over one Conversation's
+                Chunks, as Settings' retrieval mode names it.
             reranker: Scores how far a Chunk is about what a Question asks
                 about.
             threshold: The Relevance the best Chunk must reach for a yes.
         """
         self._scheme = scheme
         self._candidates = candidates
+        self._index_factory = index_factory
         self._reranker = reranker
         self._threshold = threshold
 
@@ -186,12 +193,12 @@ class RerankRelevanceAnswerer:
             ValueError: If the Conversation produced no Chunks, which leaves
                 every Question with nothing to read an answer from.
         """
-        index = Bm25Index(chunk_conversation(segments, self._scheme))
+        index = self._index_factory(chunk_conversation(segments, self._scheme))
 
         return self._verdicts(index, questions)
 
     def _verdicts(
-        self, index: Bm25Index, questions: Sequence[str]
+        self, index: Retriever, questions: Sequence[str]
     ) -> Iterator[Verdict]:
         """One Verdict per Question, judged as the caller consumes them."""
         for question in questions:
@@ -236,18 +243,21 @@ class RerankEntailAnswerer:
         self,
         scheme: ChunkScheme,
         candidates: int,
+        index_factory: Callable[[Sequence[Chunk]], Retriever],
         reranker: Reranker,
         rewriter: Rewriter,
         judge: EntailmentJudge,
         relevance_threshold: float | None,
         entailment_threshold: float,
     ) -> None:
-        """Fix the granularities, the depth reranked and the two bars.
+        """Fix the granularities, the retriever, the depth reranked and the bars.
 
         Args:
             scheme: The Chunk granularities, as Settings resolved them.
             candidates: How many ranked Chunks are rescored and carried on the
                 Verdict.
+            index_factory: Builds the per-request index over one Conversation's
+                Chunks, as Settings' retrieval mode names it.
             reranker: Scores how far a Chunk is about what a Question asks
                 about.
             rewriter: Turns a Question into the Claim a yes would agree with.
@@ -262,6 +272,7 @@ class RerankEntailAnswerer:
         """
         self._scheme = scheme
         self._candidates = candidates
+        self._index_factory = index_factory
         self._reranker = reranker
         self._rewriter = rewriter
         self._judge = judge
@@ -277,12 +288,12 @@ class RerankEntailAnswerer:
             ValueError: If the Conversation produced no Chunks, which leaves
                 every Question with nothing to read an answer from.
         """
-        index = Bm25Index(chunk_conversation(segments, self._scheme))
+        index = self._index_factory(chunk_conversation(segments, self._scheme))
 
         return self._verdicts(index, questions)
 
     def _verdicts(
-        self, index: Bm25Index, questions: Sequence[str]
+        self, index: Retriever, questions: Sequence[str]
     ) -> Iterator[Verdict]:
         """One Verdict per Question, judged as the caller consumes them."""
         for question in questions:
@@ -317,7 +328,21 @@ class RerankEntailAnswerer:
 
 
 def _build_bm25_retrieval(settings: Settings) -> Answerer:
-    """The BM25 baseline, with the granularities Settings resolved."""
+    """The BM25 baseline, with the granularities Settings resolved.
+
+    Raises:
+        ValueError: If Settings name a retrieval mode this Answerer does not
+            rank with. It is ADR-0001's BM25 baseline by definition, and
+            serving it under the name of another mode would report BM25's
+            numbers as that mode's.
+    """
+    if settings.retrieval_mode != "bm25":
+        raise ValueError(
+            f"The BM25 baseline Answerer ranks with BM25, and Settings name "
+            f"the {settings.retrieval_mode!r} retrieval mode. Answer with the "
+            "'retrieve_rerank_entail' strategy to use it."
+        )
+
     return Bm25RetrievalAnswerer(
         scheme=ChunkScheme(
             word_lengths=settings.chunk_word_lengths,
@@ -343,6 +368,7 @@ def _build_rerank_relevance(settings: Settings) -> Answerer:
             stride_fraction=settings.chunk_stride_fraction,
         ),
         candidates=settings.retrieval_candidates,
+        index_factory=build_index_factory(settings, _embedder_for(settings)),
         reranker=reranker,
         threshold=settings.relevance_threshold,
     )
@@ -351,9 +377,11 @@ def _build_rerank_relevance(settings: Settings) -> Answerer:
 def _build_rerank_entail(settings: Settings) -> Answerer:
     """The reranked Answerer with the Entailment judgement behind it.
 
-    Both models are exercised once here rather than inside the first request,
+    Every model is exercised once here rather than inside the first request,
     for the reason the reranker alone already was: the first forward pass costs
-    seconds a request does not have.
+    seconds a request does not have. The embedder is loaded only where Settings
+    name a retrieval mode that ranks with one, so the mode ADR-0001's
+    measurement rejected costs the request path no memory and no latency.
     """
     reranker = CrossEncoderReranker(settings)
     reranker.warm_up()
@@ -367,6 +395,7 @@ def _build_rerank_entail(settings: Settings) -> Answerer:
             stride_fraction=settings.chunk_stride_fraction,
         ),
         candidates=settings.retrieval_candidates,
+        index_factory=build_index_factory(settings, _embedder_for(settings)),
         reranker=reranker,
         rewriter=ClaimRewriter(),
         judge=judge,
@@ -375,6 +404,17 @@ def _build_rerank_entail(settings: Settings) -> Answerer:
         ),
         entailment_threshold=settings.entailment_threshold,
     )
+
+
+def _embedder_for(settings: Settings) -> Embedder | None:
+    """The bi-encoder, loaded and warmed, or None where no mode ranks with one."""
+    if settings.retrieval_mode == "bm25":
+        return None
+
+    embedder = load_embedder(settings)
+    warm_embedder(embedder, settings)
+
+    return embedder
 
 
 _ANSWERERS: dict[AnswerStrategy, Callable[[Settings], Answerer]] = {

@@ -290,3 +290,50 @@ them is noticed.
 NLI pass — is 216 ms on average and 369 ms worst on the Mac's CPU, so a
 Conversation's ten Questions cost 3.7 s of the 15 s the budget gives the
 answering half. Adding the Entailment judge cost 36 ms per Question.
+
+## Amendment 2026-09-19: the recall@5 gate is renegotiated, not met
+
+The previous amendment committed to this: "recall@5 is re-measured there, and
+if it still falls short the gate is renegotiated with what the whole retrieval
+stack actually reaches rather than component by component." The dense half has
+now been built and measured (ADR-0001's outcome), and it is the last component
+that could have moved the number.
+
+| Retrieval stack        | recall@5 | 90% interval   | Hard-neg | Accuracy |
+|------------------------|----------|----------------|----------|----------|
+| BM25 + reranker        | 0.667    | [0.571, 0.767] | 0.855    | 0.881    |
+| dense + reranker       | 0.733    | [0.653, 0.811] | 0.790    | 0.875    |
+| fused + reranker       | 0.707    | [0.622, 0.795] | 0.823    | 0.875    |
+
+**The gate is not met and it is withdrawn rather than lowered.** 0.733 is the
+best the whole stack reaches against a gate of 0.95, and the two things that
+would be done about it have both been done: the reranker bought 0.13 and the
+dense half bought 0.066 more.
+
+Withdrawn rather than restated at a reachable number, because the measurement
+above shows the gate was pointing the wrong way. A gate exists to send work
+back to a component when the number it protects is too low. This one now
+recommends the opposite of what the score wants: the stack with the *best*
+recall@5 has the *worst* Hard-Negative accuracy and a lower blended accuracy
+than the one with the worst recall. Restating it at 0.75 would make dense
+retrieval the passing configuration and cost 0.006 of accuracy and 0.065 of the
+component metric that matters. A gate that can be met only by making the system
+worse is not a gate.
+
+Two reasons the number is what it is, both already recorded and neither a
+defect in the ranking. The error analysis counts 18 of 122 Positives whose
+evidence shares no content word with the Question or whose drug name the ASR
+mis-spelled, which caps lexical recall near 0.85 before ranking is considered.
+And the Chunk ladder puts dozens of overlapping Chunks around every correct
+passage, so "the right place in the top 5" is a harder target here than the
+metric's usual reading suggests — which is why ranked tIoU@1, at 0.447, is the
+evidence-side number that tracks the score.
+
+**What replaces it.** Recall@5 is reported at every retrieval change and is not
+a gate. The retriever is held to the rule ADR-0001 states instead: *no
+retrieval change ships that lowers Hard-Negative accuracy*, measured end to end
+through the shipped Answerer with a bootstrap interval. That is a gate this
+project can both meet and be wrong about, which the withdrawn one was not.
+
+The Chunker's gate (oracle-selected tIoU >= 0.75) is unaffected and still
+passes at 0.835 under all three retrieval modes.

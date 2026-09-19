@@ -31,6 +31,9 @@ def test_defaults_resolve_without_any_environment(monkeypatch):
     assert settings.chunk_word_lengths == (1, 2, 3, 4, 6, 8, 11, 15, 20, 27, 36, 48)
     assert settings.chunk_stride_fraction == 0.2
     assert settings.retrieval_candidates == 10
+    assert settings.retrieval_mode == "bm25"
+    assert settings.fusion_depth == 50
+    assert settings.fusion_rank_constant == 60.0
     assert settings.route_suffix == ""
     assert settings.deadline_seconds == 50.0
     assert settings.transcript_cache_dir.name == "transcripts"

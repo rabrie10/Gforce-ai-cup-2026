@@ -65,6 +65,9 @@ repos:
           - uvicorn>=0.30
           - types-requests>=2.31
           - pytest>=8
+          # Ships its own types, so the hook checks the dense retriever's
+          # array code rather than skipping it.
+          - numpy>=1.26
 
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0
