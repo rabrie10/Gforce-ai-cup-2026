@@ -57,6 +57,14 @@ class ProposalConfig:
     """
 
     backend: str = field(default_factory=lambda: _env_str('DRONE_PROPOSAL_BACKEND', 'yolo'))
+    # Frozen appearance-discovery model selection.  This integration branch is
+    # the isolated V3 candidate, while ``v2`` remains a one-variable rollback.
+    # The detector label is deliberately not part of this interface: V3's
+    # single ``target`` class is discovery-only and can never become an
+    # official challenge class index.
+    discovery_backend: str = field(
+        default_factory=lambda: _env_str('DRONE_DISCOVERY_BACKEND', 'v3_standard')
+    )
     # Upper bound on proposals handed to the recognizer per frame.
     budget: int = field(default_factory=lambda: _env_int('DRONE_PROPOSAL_BUDGET', 32))
     # Saliency: multi-scale local contrast. Sizes are in received-image pixels.
@@ -87,6 +95,22 @@ class ProposalConfig:
         default_factory=lambda: _env_str(
             'DRONE_PROPOSAL_YOLO_FALLBACK', str(ROOT / 'models' / 'drone_yolo11n_l0.pt')
         )
+    )
+    v3_standard_weights: str = field(
+        default_factory=lambda: _env_str(
+            'DRONE_V3_STANDARD_ONNX', str(ROOT / 'models' / 'v3_oneclass_standard.onnx')
+        )
+    )
+    v3_standard_fallback_weights: str = field(
+        default_factory=lambda: _env_str(
+            'DRONE_V3_STANDARD_PT', str(ROOT / 'models' / 'v3_oneclass_standard.pt')
+        )
+    )
+    v3_standard_onnx_sha256: str = (
+        '2daeabaeee41ffca9285485920238ce09c7762423d2d4fc41e406625d1b44d8f'
+    )
+    v3_standard_pt_sha256: str = (
+        '126aa31373775b324cf0df37c683b983202f9bc4dbfafd6105f40d98fafcec07'
     )
     yolo_confidence: float = field(
         default_factory=lambda: _env_float('DRONE_PROPOSAL_YOLO_CONF', 0.01)
@@ -334,6 +358,12 @@ class TelemetryConfig:
     enabled: bool = field(default_factory=lambda: _env_bool('DRONE_TELEMETRY', False))
     directory: str = field(
         default_factory=lambda: _env_str('DRONE_TELEMETRY_DIR', str(ROOT / 'telemetry'))
+    )
+    # Optional caller-provided identity keeps parallel/repeated experiment
+    # sessions distinct while retaining request and sequence identity in each
+    # record. A random suffix is still added by the recorder.
+    session_id: str = field(
+        default_factory=lambda: _env_str('DRONE_TELEMETRY_SESSION_ID', '')
     )
     # Store the received image alongside the record.
     #

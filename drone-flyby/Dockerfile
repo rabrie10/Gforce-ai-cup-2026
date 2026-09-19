@@ -27,6 +27,11 @@ COPY models ./models
 # Match the four-vCPU deployment budget; torch otherwise oversubscribes.
 ENV DRONE_TORCH_THREADS=4
 ENV OMP_NUM_THREADS=4
+# The integration candidate defaults to the frozen V3 standard one-class
+# discovery model. Set DRONE_DISCOVERY_BACKEND=v2 for immediate rollback.
+ENV DRONE_DISCOVERY_BACKEND=v3_standard
+ENV DRONE_V3_STANDARD_ONNX=/app/models/v3_oneclass_standard.onnx
+ENV DRONE_V3_STANDARD_PT=/app/models/v3_oneclass_standard.pt
 # Telemetry is opt-in. Switch it on for a validation attempt with
 #   -e DRONE_TELEMETRY=1 -v /srv/gforce/telemetry:/app/telemetry
 ENV DRONE_TELEMETRY=0

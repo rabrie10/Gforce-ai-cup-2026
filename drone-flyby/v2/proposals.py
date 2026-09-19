@@ -36,6 +36,7 @@ the *detector's* view is downscaled.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import math
 import time
@@ -51,6 +52,29 @@ from v2.geometry import Box, box_short_side, iou
 
 
 logger = logging.getLogger(__name__)
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as handle:
+        for block in iter(lambda: handle.read(1 << 20), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _verify_v3_asset(config: ProposalConfig, path: Path) -> None:
+    if config.discovery_backend != 'v3_standard':
+        return
+    expected = (
+        config.v3_standard_onnx_sha256
+        if path.suffix.lower() == '.onnx'
+        else config.v3_standard_pt_sha256
+    )
+    actual = _sha256(path)
+    if actual != expected:
+        raise RuntimeError(
+            f'V3 standard model SHA256 mismatch for {path}: expected {expected}, got {actual}'
+        )
 
 
 @dataclass
@@ -173,9 +197,11 @@ class OnnxYoloProposer:
         import onnxruntime
 
         self.config = config
+        self.name = config.discovery_backend
         weights = Path(config.yolo_weights)
         if not weights.is_file():
             raise FileNotFoundError(f'ONNX proposal weights missing: {weights}')
+        _verify_v3_asset(config, weights)
 
         options = onnxruntime.SessionOptions()
         options.intra_op_num_threads = max(1, int(config.onnx_threads))
@@ -226,6 +252,11 @@ class OnnxYoloProposer:
         rows = prediction[0]
         if rows.shape[0] < rows.shape[1]:
             rows = rows.T                       # (anchors, 4 + nc)
+        if self.config.discovery_backend == 'v3_standard' and rows.shape[1] != 5:
+            raise RuntimeError(
+                'V3 standard discovery export must have exactly one class '
+                f'(expected 5 output columns, got {rows.shape[1]})'
+            )
         boxes_xywh = rows[:, :4]
         # Pooled objectness: the strongest class response, class identity
         # discarded on purpose.
@@ -275,6 +306,7 @@ class UltralyticsYoloProposer:
         from ultralytics import YOLO
 
         self.config = config
+        self.name = config.discovery_backend
         weights = Path(config.yolo_weights)
         if not weights.is_file():
             fallback = Path(config.yolo_fallback_weights)
@@ -286,6 +318,7 @@ class UltralyticsYoloProposer:
             logger.warning('Proposal weights %s missing; falling back to %s',
                            weights, fallback)
             weights = fallback
+        _verify_v3_asset(config, weights)
         self.weights = weights
         self.model = YOLO(str(weights))
 
@@ -372,6 +405,18 @@ class ProposalEngine:
 
     def __init__(self, config: Optional[ProposalConfig] = None) -> None:
         self.config = config or CONFIG.proposals
+        if self.config.discovery_backend not in ('v2', 'v3_standard'):
+            raise ValueError(
+                'DRONE_DISCOVERY_BACKEND must be v2 or v3_standard, got '
+                f'{self.config.discovery_backend!r}'
+            )
+        self.last_stats = {
+            'backend': self.config.discovery_backend,
+            'before_budget': 0,
+            'after_budget': 0,
+            'budget': self.config.budget,
+            'scores': [],
+        }
         self.backends = []
         wanted = self.config.backend
         if wanted in ('saliency', 'hybrid'):
@@ -390,15 +435,22 @@ class ProposalEngine:
         fallback to no detector would make the endpoint look healthy while
         emitting nothing.
         """
-        if str(self.config.yolo_weights).endswith('.onnx'):
+        detector_config = self.config
+        if self.config.discovery_backend == 'v3_standard':
+            detector_config = replace(
+                self.config,
+                yolo_weights=self.config.v3_standard_weights,
+                yolo_fallback_weights=self.config.v3_standard_fallback_weights,
+            )
+        if str(detector_config.yolo_weights).endswith('.onnx'):
             try:
-                return OnnxYoloProposer(self.config)
+                return OnnxYoloProposer(detector_config)
             except Exception:
                 logger.exception('ONNX proposal backend unavailable; trying ultralytics')
-        for weights in (self.config.yolo_weights, self.config.yolo_fallback_weights):
+        for weights in (detector_config.yolo_weights, detector_config.yolo_fallback_weights):
             try:
                 return UltralyticsYoloProposer(
-                    replace(self.config, yolo_weights=weights)
+                    replace(detector_config, yolo_weights=weights)
                 )
             except Exception:
                 logger.exception('Ultralytics proposal backend failed for %s', weights)
@@ -409,13 +461,26 @@ class ProposalEngine:
         self, image: np.ndarray, budget: Optional[int] = None, level: int = 0
     ) -> List[Proposal]:
         limit = budget or self.config.budget
+        # Ask each backend for an untruncated, but still hard-bounded, pool so
+        # telemetry distinguishes detector activation from the recognition
+        # budget. 300 is the validated V3 pre-NMS diagnostic ceiling.
+        collection_limit = max(limit, 300)
         collected: List[Proposal] = []
         for backend in self.backends:
             try:
-                collected.extend(backend.propose(image, limit, level))
+                collected.extend(backend.propose(image, collection_limit, level))
             except Exception:
                 logger.exception('Proposal backend %s failed', backend.name)
-        return merge_proposals(collected, self.config.merge_iou, limit)
+        ranked = merge_proposals(collected, self.config.merge_iou, collection_limit)
+        result = ranked[:limit]
+        self.last_stats = {
+            'backend': self.config.discovery_backend,
+            'before_budget': len(ranked),
+            'after_budget': len(result),
+            'budget': limit,
+            'scores': [float(proposal.score) for proposal in ranked],
+        }
+        return result
 
     def warmup(self) -> None:
         blank = np.zeros((540, 960, 3), dtype=np.uint8)

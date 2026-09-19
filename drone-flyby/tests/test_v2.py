@@ -44,6 +44,7 @@ from v2.config import (  # noqa: E402
     CONFIG,
     GmcConfig,
     OutputConfig,
+    ProposalConfig,
     SchedulerConfig,
     TrackConfig,
 )
@@ -57,6 +58,7 @@ from v2.geometry import (  # noqa: E402
 )
 from v2.gmc import GlobalMotionEstimator  # noqa: E402
 from v2.output import Candidate, OutputBuilder  # noqa: E402
+from v2.proposals import Proposal, ProposalEngine, merge_proposals  # noqa: E402
 from v2.scheduler import CameraScheduler, move_toward  # noqa: E402
 from v2.telemetry import TelemetryRecorder  # noqa: E402
 from v2.tracks import NUM_CLASSES, Observation, TrackBank  # noqa: E402
@@ -570,6 +572,33 @@ class OutputTests(unittest.TestCase):
         track.age = 5
         track.geometry_confidence = 0.4
         self.assertLess(self.builder.confidence_for(track, 0.9), fresh)
+
+    def test_internal_discovery_target_can_never_be_an_output_class(self):
+        self.assertNotIn('target', OBJECT_CLASSES)
+        bank = TrackBank(TrackConfig(confirm_hits=1))
+        bank.update(
+            [Observation(box=(10.0, 10.0, 50.0, 50.0), posterior=one_hot('hangar'), level=0)],
+            frame=0,
+        )
+        annotations, _ = self.builder.build(bank, IMAGE_WIDTH, IMAGE_HEIGHT)
+        self.assertTrue(annotations)
+        self.assertTrue(all(row.object_id in OBJECT_CLASSES for row in annotations))
+        self.assertTrue(all(row.object_id != 'target' for row in annotations))
+
+
+class V3DiscoveryInterfaceTests(unittest.TestCase):
+    def test_budget_is_score_ranked_and_hard_bounded(self):
+        rows = [
+            Proposal((float(i), 0.0, float(i + 1), 1.0), float(i), 'v3_standard')
+            for i in range(40)
+        ]
+        kept = merge_proposals(rows, merge_iou=0.99, budget=16)
+        self.assertEqual(len(kept), 16)
+        self.assertEqual([row.score for row in kept], list(range(39, 23, -1)))
+
+    def test_backend_switch_rejects_unknown_values(self):
+        with self.assertRaisesRegex(ValueError, 'v2 or v3_standard'):
+            ProposalEngine(ProposalConfig(discovery_backend='target'))
 
 
 # --------------------------------------------------------------------------- #

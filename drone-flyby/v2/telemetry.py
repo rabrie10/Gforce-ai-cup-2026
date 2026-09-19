@@ -25,6 +25,7 @@ import logging
 import queue
 import threading
 import time
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -70,7 +71,14 @@ class TelemetryRecorder:
             return
         try:
             root = Path(self.config.directory)
-            self._session = root / time.strftime('run_%Y%m%d_%H%M%S')
+            requested = ''.join(
+                char if char.isalnum() or char in '-_' else '_'
+                for char in self.config.session_id.strip()
+            )
+            prefix = f'{requested}_' if requested else 'run_'
+            self._session = root / (
+                prefix + time.strftime('%Y%m%d_%H%M%S') + '_' + uuid.uuid4().hex[:8]
+            )
             (self._session / 'frames').mkdir(parents=True, exist_ok=True)
             if self.config.store_images:
                 (self._session / 'images').mkdir(parents=True, exist_ok=True)
@@ -160,7 +168,16 @@ class TelemetryRecorder:
     def _write(self, payload: Dict[str, Any], image_b64: Optional[str]) -> None:
         assert self._session is not None
         frame_index = payload.get('frame_index', payload.get('frame', 0))
-        name = f'{int(frame_index):05d}'
+        request_id = ''.join(
+            char if char.isalnum() or char in '-_' else '_'
+            for char in str(payload.get('request_id', ''))
+        )[-40:]
+        sequence_id = ''.join(
+            char if char.isalnum() or char in '-_' else '_'
+            for char in str(payload.get('sequence_id', ''))
+        )[-24:]
+        suffix = '_'.join(part for part in (sequence_id, request_id) if part)
+        name = f'{int(frame_index):05d}' + (f'_{suffix}' if suffix else '')
         path = self._session / 'frames' / f'{name}.json'
         path.write_text(
             json.dumps(payload, default=str, separators=(',', ':')), encoding='utf-8'

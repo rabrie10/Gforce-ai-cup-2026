@@ -36,7 +36,7 @@ from dtos import (
     DroneFlybyPredictResponseDto,
 )
 from utils import decode_view
-from v2.config import CONFIG
+from v2.config import CONFIG, Config
 from v2.geometry import clamp_box_to_frame, crop_from_view, view_to_source
 from v2.gmc import GlobalMotionEstimator, MotionEstimate
 from v2.output import OutputBuilder
@@ -123,8 +123,8 @@ class LatencyLedger:
 class DroneFlybyPipeline:
     """One process-wide instance, loaded and warmed at startup."""
 
-    def __init__(self) -> None:
-        self.config = CONFIG
+    def __init__(self, config: Optional[Config] = None) -> None:
+        self.config = config or CONFIG
         self.proposals = ProposalEngine(self.config.proposals)
         self.recognizer = CropRecognizer(self.config.recognizer)
         self.bank = TrackBank(self.config.tracks)
@@ -137,6 +137,7 @@ class DroneFlybyPipeline:
         self._sequence_id: Optional[str] = None
         self._last_frame_index: int = -1
         self._last_observations: List[Observation] = []
+        self.last_diagnostics: Dict[str, object] = {}
         self._loaded = False
 
     # -- lifecycle ---------------------------------------------------------- #
@@ -173,6 +174,8 @@ class DroneFlybyPipeline:
         return {
             'recognizer': self.recognizer.describe(),
             'proposal_backends': [backend.name for backend in self.proposals.backends],
+            'discovery_backend': self.config.proposals.discovery_backend,
+            'proposal_budget': self.config.proposals.budget,
             'gmc_model': self.config.gmc.model if self.config.gmc.enabled else 'disabled',
             'working_level': self.config.scheduler.working_level,
             'scheduler_enabled': self.config.scheduler.enabled,
@@ -305,9 +308,24 @@ class DroneFlybyPipeline:
 
         timing.stop('total')
         self.latency.add(timing.marks)
+        self.last_diagnostics = {
+            'proposals': dict(self.proposals.last_stats),
+            'recognition': recognition_notes,
+            'observations': len(observations),
+            'bank': notes.get('bank', {}),
+            'track_bank_size': len(self.bank.tracks),
+            'track_bank_saturated': (
+                self.config.tracks.max_tracks > 0
+                and len(self.bank.tracks) >= self.config.tracks.max_tracks
+            ),
+            'emitted_annotations': len(annotations),
+            'emitted_classes': [annotation.object_id for annotation in annotations],
+            'emitted_confidences': [float(annotation.confidence) for annotation in annotations],
+            'timing_ms': dict(timing.marks),
+        }
         self._capture(
             request, view, motion, decision, proposals, observations,
-            recognition_notes, output_notes, timing, notes,
+            recognition_notes, annotations, output_notes, timing, notes,
         )
         return DroneFlybyPredictResponseDto(
             request_id=request.request_id,
@@ -392,6 +410,9 @@ class DroneFlybyPipeline:
             'mean_objectness': round(
                 float(np.mean([r.objectness for r in results])) if results else 0.0, 4
             ),
+            'top_classes': [result.best_class for result in results],
+            'top_posteriors': [round(float(np.max(result.posterior)), 6) for result in results],
+            'objectness': [round(float(result.objectness), 6) for result in results],
         }
 
     # -- telemetry ---------------------------------------------------------- #
@@ -405,6 +426,7 @@ class DroneFlybyPipeline:
         proposals,
         observations,
         recognition_notes,
+        annotations,
         output_notes,
         timing,
         notes,
@@ -442,6 +464,7 @@ class DroneFlybyPipeline:
                 'camera_decision': decision.summary(),
                 'proposals': {
                     'count': len(proposals),
+                    **self.proposals.last_stats,
                     'sources': sorted({p.source for p in proposals}),
                     'boxes': [
                         {'box': [round(v, 1) for v in p.box],
@@ -464,6 +487,14 @@ class DroneFlybyPipeline:
                 ],
                 'tracks': self.bank.summaries(),
                 'output': output_notes,
+                'emitted': [
+                    {
+                        'object_id': annotation.object_id,
+                        'confidence': round(float(annotation.confidence), 6),
+                        'bbox': [round(float(value), 8) for value in annotation.bbox],
+                    }
+                    for annotation in annotations
+                ],
                 'state': notes,
                 'timing_ms': timing.marks,
             }
