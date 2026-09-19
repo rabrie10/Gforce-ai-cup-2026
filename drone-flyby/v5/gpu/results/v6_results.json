@@ -1,0 +1,12 @@
+{
+  "official_local_helsinki_map50": {"oracle": 1.0, "L0_only": 0.0, "track_driven_camera": 0.006, "L0_plus_tiling": 0.048, "V6_multiscale_active": 0.212},
+  "V6_realtime_map50": 0.212, "V6_frames_skipped_realtime": 0, "V6_roundtrip_ms": {"median": 50, "max": 178},
+  "classes_with_AP>0": ["helicopter","small_tower","condor","jet_plane","spacecraft","large_launcher","small_plane","small_launcher","tank"],
+  "classes_zero": ["hangar","large_tower","medium_launcher","medium_plane","mine_roller","ta-ta","jammer"],
+  "detector": "yolo11s fine-tuned on multiscale Helsinki (dataset_ms), best epoch 85, val mAP50 0.995",
+  "feasibility_pretrained_ensemble_recall@0.5": {"L0": 0.0, "L1": 0.14, "L2": 0.25},
+  "config": {"detector": "ms1/weights/best.pt", "active_camera": true, "ttl": 15, "min_emit": 0.05, "budget_na": "one-class detector", "candidate": 64},
+  "largest_failure": "6-7 tiny/late-covered classes never discovered (coverage limit in 25 frames) + global-drift under-estimate (~43 vs ~65 px/frame) degrades retained-box IoU",
+  "next_action": "GMC-based global-motion estimation on periodic L0 + coverage that exploits downward drift (dwell) to bring objects through the view",
+  "caveat": "Helsinki has one physical instance per class; detector trained on these instances -> NOT proof of hosted generalization"
+}
