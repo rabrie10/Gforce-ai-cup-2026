@@ -1,0 +1,153 @@
+{
+  "all_frozen_artifact_hashes_match": true,
+  "experiment": "deterministic shadow replay of 50 captured hosted images",
+  "frozen_artifacts": {
+    "drone-flyby/models/drone_yolo11n_l0.onnx": {
+      "actual_sha256": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+      "expected_sha256": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+      "matches": true,
+      "size_bytes": 11098170
+    },
+    "drone-flyby/models/drone_yolo11n_l0.pt": {
+      "actual_sha256": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+      "expected_sha256": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+      "matches": true,
+      "size_bytes": 5494554
+    },
+    "drone-flyby/models/reference_gallery.npz": {
+      "actual_sha256": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+      "expected_sha256": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+      "matches": true,
+      "size_bytes": 2277374
+    }
+  },
+  "recorded_before_inference": true,
+  "relevant_environment_variables": {
+    "TORCHINDUCTOR_CACHE_DIR": "C:\\Users\\mbnas\\AppData\\Local\\Temp\\torchinductor_mbnas"
+  },
+  "repository": {
+    "branch": "drone-v2-shadow-replay",
+    "frozen_v2_commit": "6fb764e5b9fb5f7eefcb832c72b35553165219e5",
+    "head": "afbe0a6c47662b438362aafa01343224f85b11c9",
+    "hosted_validation_uuid": "6a86911aebf64be79a3b6a6742de0686",
+    "parent_audit_commit": "afbe0a6c47662b438362aafa01343224f85b11c9"
+  },
+  "runtime": {
+    "logical_cpu_count": 16,
+    "numpy": "2.5.3",
+    "onnxruntime": "1.30.0",
+    "onnxruntime_available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider"
+    ],
+    "opencv": "5.0.0",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+    "python_executable": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\.venv\\Scripts\\python.exe",
+    "torch": "2.14.0+cpu",
+    "torchvision": "0.29.0+cpu",
+    "ultralytics": "8.4.155"
+  },
+  "unset_relevant_environment_variables_use_config_defaults": false,
+  "v2_config": {
+    "gmc": {
+      "enabled": true,
+      "max_corners": 300,
+      "max_scale_deviation": 0.25,
+      "max_shear": 0.15,
+      "max_translation_fraction": 0.5,
+      "min_distance": 8,
+      "min_inlier_ratio": 0.45,
+      "min_inliers": 20,
+      "model": "affine",
+      "pyramid_levels": 5,
+      "quality_level": 0.01,
+      "ransac_threshold": 3.0,
+      "work_width": 640
+    },
+    "output": {
+      "cross_class_iou": 0.8,
+      "dedup_iou": 0.55,
+      "emit_top_k": 3,
+      "max_annotations": 180,
+      "min_confidence": 0.02,
+      "secondary_damping": 0.85,
+      "secondary_min_posterior": 0.06,
+      "staleness_half_life": 5.0
+    },
+    "proposals": {
+      "backend": "yolo",
+      "budget": 32,
+      "merge_iou": 0.45,
+      "onnx_threads": 4,
+      "saliency_max_side": 260.0,
+      "saliency_min_side": 3.0,
+      "saliency_percentile": 99.2,
+      "saliency_scales": [
+        3,
+        7,
+        15,
+        31
+      ],
+      "yolo_confidence": 0.01,
+      "yolo_fallback_weights": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\models\\drone_yolo11n_l0.pt",
+      "yolo_imgsz": 960,
+      "yolo_iou": 0.55,
+      "yolo_weights": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\models\\drone_yolo11n_l0.onnx"
+    },
+    "recognizer": {
+      "backbone": "resnet18",
+      "batch": 32,
+      "context": 1.25,
+      "crop_size": 64,
+      "enabled": true,
+      "gallery_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\models\\reference_gallery.npz",
+      "objectness_temperature": 0.03,
+      "objectness_threshold": 0.5,
+      "temperature": 0.07,
+      "top_k": 5,
+      "torch_threads": 4
+    },
+    "scheduler": {
+      "enabled": true,
+      "entry_band": 0.28,
+      "l0_refresh_period": 6,
+      "l2_identity_threshold": 0.45,
+      "l2_max_short_side": 60.0,
+      "max_l2_dwell": 2,
+      "transition_cost": 0.6,
+      "weight_ambiguous": 2.0,
+      "weight_boundary_risk": 1.2,
+      "weight_coverage": 0.8,
+      "weight_stale": 1.0,
+      "weight_tiny": 1.5,
+      "weight_unknown": 3.0,
+      "weight_unvisited": 1.0,
+      "working_level": 0
+    },
+    "telemetry": {
+      "directory": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\telemetry",
+      "enabled": false,
+      "image_stride": 5,
+      "queue_size": 256,
+      "store_images": true
+    },
+    "tracks": {
+      "confirm_hits": 2,
+      "detectable_short_side": 8.0,
+      "evidence_decay": 0.82,
+      "level_weight": [
+        0.35,
+        1.0,
+        1.35
+      ],
+      "match_center_gate": 1.2,
+      "match_iou": 0.3,
+      "max_age": 8,
+      "max_tentative_age": 2,
+      "max_tracks": 48,
+      "posterior_ceiling": 0.93
+    }
+  }
+}
