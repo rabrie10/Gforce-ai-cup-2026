@@ -28,6 +28,8 @@ class Discovery:
             raise ValueError(f'Unsupported device: {device}')
         self.session = ort.InferenceSession(str(Path(assets)/'discovery.onnx'),
             sess_options=opts, providers=providers)
+        if device.startswith('cuda') and self.session.get_providers()[0]!='CUDAExecutionProvider':
+            raise RuntimeError('CUDA provider initialization failed; refusing silent CPU execution')
         self.input = self.session.get_inputs()[0]
         self.size = int(self.input.shape[-1])
 

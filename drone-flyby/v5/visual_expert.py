@@ -40,6 +40,8 @@ class DinoEncoder:
             raise ValueError(f'Unsupported device: {device}')
         self.session = ort.InferenceSession(str(Path(assets)/f'dinov2_{size}.onnx'),
             sess_options=options, providers=providers)
+        if device.startswith('cuda') and self.session.get_providers()[0]!='CUDAExecutionProvider':
+            raise RuntimeError('CUDA provider initialization failed; refusing silent CPU execution')
         self.input_name = self.session.get_inputs()[0].name
 
     def encode(self, crops):

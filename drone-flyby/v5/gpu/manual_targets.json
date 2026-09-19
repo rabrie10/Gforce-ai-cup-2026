@@ -1,0 +1,14 @@
+{
+  "coordinate_space": "L0 local pixels, 960x540, [x1,y1,x2,y2]",
+  "provenance": "Manually identified by human-directed visual inspection of saved L0 pixels only. NOT used for inference or training. Not official ground truth. Frame-125 boxes corrected after close-up verification.",
+  "targets": [
+    {"id":"t60_heli","capture":60,"source_frame":61,"box":[638,266,684,300],"class_guess":"helicopter","manual_confidence":"high","note":"clear rotor X-pattern on apron"},
+    {"id":"t60_plane","capture":60,"source_frame":61,"box":[518,26,562,60],"class_guess":"plane_subtype_uncertain","manual_confidence":"medium","note":"dark winged aircraft on grass field; a second aircraft sits just below"},
+    {"id":"t60_dark","capture":60,"source_frame":61,"box":[275,66,316,110],"class_guess":"UNCERTAIN_hangar_like","manual_confidence":"shape_clear_class_uncertain","note":"solid black rounded dome on field; boundary clear, oracle suggested hangar"},
+    {"id":"t125_heli","capture":125,"source_frame":126,"box":[424,284,466,320],"class_guess":"helicopter","manual_confidence":"high","note":"rotor visible at land-water edge (verified in closeup)"},
+    {"id":"t125_hangar","capture":125,"source_frame":126,"box":[653,205,718,262],"class_guess":"UNCERTAIN_hangar_like","manual_confidence":"shape_clear_class_uncertain","note":"large black rounded dome/hangar; corrected coords"},
+    {"id":"t125_planeA","capture":125,"source_frame":126,"box":[676,230,702,254],"class_guess":"plane_subtype_uncertain","manual_confidence":"high","note":"upper aircraft in cluster beside hangar; corrected coords"},
+    {"id":"t125_planeB","capture":125,"source_frame":126,"box":[670,250,697,274],"class_guess":"plane_subtype_uncertain","manual_confidence":"high","note":"lower-left aircraft in cluster; corrected coords"},
+    {"id":"t125_planeC","capture":125,"source_frame":126,"box":[745,250,773,274],"class_guess":"plane_subtype_uncertain","manual_confidence":"high","note":"lower-right aircraft in cluster; corrected coords"}
+  ]
+}
