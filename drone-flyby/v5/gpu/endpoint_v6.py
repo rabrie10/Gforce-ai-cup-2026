@@ -12,6 +12,9 @@ pipeline = None
 startup_error = None
 latencies = deque(maxlen=4000)
 lock = threading.Lock()
+# Use Uvicorn's configured error logger so diagnostics are emitted into the
+# server log without adding a handler or altering the existing V5.4 logging.
+request_log = logging.getLogger("uvicorn.error")
 
 
 @asynccontextmanager
@@ -56,8 +59,25 @@ def reset():
 @app.post("/predict", response_model=DroneFlybyPredictResponseDto)
 def predict(request: DroneFlybyPredictRequestDto):
     start = time.perf_counter()
-    result = pipeline.predict(request) if pipeline else DroneFlybyPredictResponseDto(
-        request_id=request.request_id, frame=request.frame, annotations=[])
+    exception_type = None
+    if pipeline:
+        result = pipeline.predict(request)
+        diagnostic = pipeline.last_diagnostics
+        exception_type = diagnostic.get("error", "").split(":", 1)[0] or None
+    else:
+        result = DroneFlybyPredictResponseDto(request_id=request.request_id, frame=request.frame,
+                                               annotations=[])
+        exception_type = startup_error or "pipeline_unavailable"
+    duration_ms = (time.perf_counter() - start) * 1000
+    requested = result.requested_view
+    requested_view = ("-" if requested is None else
+                      f"L{requested.resolution_level}:({requested.center_x},{requested.center_y})")
     with lock:
-        latencies.append((time.perf_counter() - start) * 1000)
+        latencies.append(duration_ms)
+    request_log.info(
+        "v6_request request_id=%s frame=%s frame_index=%s view_level=%s view_center=(%s,%s) "
+        "requested_view=%s duration_ms=%.2f status=%s predictions=%d exception=%s",
+        request.request_id, request.frame, request.frame_index, request.view.resolution_level,
+        request.view.center_x, request.view.center_y, requested_view, duration_ms,
+        "error" if exception_type else "ok", len(result.annotations), exception_type or "-")
     return result
