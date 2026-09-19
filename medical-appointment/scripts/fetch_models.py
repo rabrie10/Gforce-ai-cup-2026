@@ -14,6 +14,7 @@ the offline load fails on, loudly, at startup.
 
 import argparse
 
+from faster_whisper.utils import download_model
 from huggingface_hub import snapshot_download
 
 from medapp.config import Settings
@@ -58,6 +59,13 @@ def main() -> None:
         "current retrieval mode does not load. The mode comparison needs them.",
     )
     arguments = parser.parse_args()
+
+    print(f"{default_settings.whisper_model} -> {default_settings.model_cache_dir}")
+    path = download_model(
+        default_settings.whisper_model,
+        cache_dir=str(default_settings.model_cache_dir),
+    )
+    print(f"  {path}")
 
     for repository in models_to_fetch(default_settings, every=arguments.all):
         print(f"{repository} -> {default_settings.model_cache_dir}")

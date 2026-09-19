@@ -120,6 +120,23 @@ def test_a_failure_before_transcription_guesses_every_question(caplog):
     assert caplog.records and all(r.levelname == "ERROR" for r in caplog.records)
 
 
+def test_no_log_record_carries_the_request_body(caplog):
+    """audio_base64 and question text are request-body content, never logged."""
+    questions = ["Two tablets?", "Six weeks?"]
+    request = _request(questions)
+    answerer = FailingOnOneQuestionAnswerer(0)
+    service = PredictionService(StubTranscriber(), answerer)
+
+    with caplog.at_level("INFO"):
+        service.predict(request)
+
+    for record in caplog.records:
+        message = record.getMessage()
+        assert request.audio_base64 not in message
+        for question in questions:
+            assert question not in message
+
+
 @pytest.mark.parametrize("count", [0, 1, 7, 13])
 def test_the_body_carries_one_entry_per_question_whatever_the_count(count):
     questions = [f"Question {i}?" for i in range(count)]
@@ -169,7 +186,7 @@ def test_a_question_that_raises_is_guessed_and_logged(caplog):
     assert response.answers == [False, True, True]
     assert response.evidence_start == [None, None, None]
     assert "the reranker ran out of memory" in caplog.text
-    assert "Six weeks?" in caplog.text
+    assert "Six weeks?" not in caplog.text, "question text is request-body content"
     assert caplog.records and all(r.levelname == "ERROR" for r in caplog.records)
 
 

@@ -145,7 +145,7 @@ class PredictionService:
         answered: list[_Answered] = []
         verdicts = iter(self._answerer.answer(segments, request.questions))
 
-        for position, question in enumerate(request.questions):
+        for position in range(len(request.questions)):
             try:
                 self._check_deadline(
                     deadline, request.audio_filename, f"question {position}"
@@ -160,11 +160,12 @@ class PredictionService:
                 )
                 break
             except Exception:
+                # The question text is request-body content and never logged;
+                # its position identifies it without it.
                 logger.error(
-                    "%s: guessing from question %d (%s) onwards.",
+                    "%s: guessing from question %d onwards.",
                     request.audio_filename,
                     position,
-                    question,
                     exc_info=True,
                 )
                 break
