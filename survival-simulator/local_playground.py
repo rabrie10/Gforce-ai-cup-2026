@@ -1,7 +1,17 @@
+import os
 import pygame
 import random
 from src.core import SimulationCore
-from src.utils.controllers.heuristic_policy import action_decision
+from src.utils.controllers.heuristic_policy import action_decision as heuristic_action_decision
+
+# Same toggle as agent_server.py: off by default, so this still shows the
+# heuristic unless you explicitly ask for the RL policy. See
+# training/RL/inference.py's module docstring for the current checkpoint's
+# known performance gap before relying on this for anything but watching it.
+USE_RL_POLICY = os.environ.get("USE_RL_POLICY", "0") == "1"
+
+if USE_RL_POLICY:
+    from training.RL.inference import action_decision as rl_action_decision
 
 def local_simulation(verbose=True):
     seed = None
@@ -10,6 +20,7 @@ def local_simulation(verbose=True):
 
     sim = SimulationCore(seed=seed)
     action_rng = random.Random(seed) # Deterministic actions. Can be removed if action_decision is deterministic
+    policy = rl_action_decision if USE_RL_POLICY else heuristic_action_decision
 
     pygame.init()
     screen, clock = None, None
@@ -22,6 +33,7 @@ def local_simulation(verbose=True):
         screen_width = int(screen_height * env_ratio) # Keep aspect ratio
         screen = pygame.display.set_mode((screen_width, int(screen_height)), pygame.SCALED)
         clock = pygame.time.Clock()
+        pygame.display.set_caption(f"Survival Simulator -- {'RL' if USE_RL_POLICY else 'heuristic'} policy")
 
     running = True
     actions = []
@@ -36,7 +48,7 @@ def local_simulation(verbose=True):
 
         actions = []
         for agent, agent_state in zip(sim.env.agents, state["observations"]):
-            action = action_decision(agent_state, action_rng)
+            action = policy(agent_state, action_rng)
             actions.append((agent.agent_id, action))
 
         if verbose:
