@@ -1,0 +1,760 @@
+{
+  "protocol": {
+    "scene": "helsinki",
+    "horizons": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "comparator": "GT-oracle strict LOO affine reached 238/243 = 0.9794 at h=1. A rejected transform counts as an eligible failure here, so these rates include the cost of quality gating."
+  },
+  "runs": {
+    "affine:l0": {
+      "policy": "l0",
+      "requested_model": "affine",
+      "frames": 25,
+      "transform_attempts": 24,
+      "transform_accepted": 24,
+      "transform_accept_rate": 1.0,
+      "outcomes": {
+        "ok:affine": 24
+      },
+      "latency_ms_mean": 22.524147998774424,
+      "latency_ms_p95": 27.47405999980401,
+      "inlier_ratio_mean": 0.997879709908764,
+      "horizons": {
+        "1": {
+          "valid": 233,
+          "eligible": 243,
+          "success_rate": 0.9588477366255144,
+          "hold_valid": 0,
+          "median_center_error_px": 0.7853376843200114,
+          "p90_center_error_px": 2.0278201840229713,
+          "in_view": {
+            "valid": 233,
+            "eligible": 243,
+            "success_rate": 0.9588477366255144
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "2": {
+          "valid": 215,
+          "eligible": 227,
+          "success_rate": 0.947136563876652,
+          "hold_valid": 0,
+          "median_center_error_px": 1.3521951432667723,
+          "p90_center_error_px": 3.861499163753431,
+          "in_view": {
+            "valid": 215,
+            "eligible": 227,
+            "success_rate": 0.947136563876652
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "3": {
+          "valid": 200,
+          "eligible": 212,
+          "success_rate": 0.9433962264150944,
+          "hold_valid": 0,
+          "median_center_error_px": 1.972930269970254,
+          "p90_center_error_px": 5.700771163555035,
+          "in_view": {
+            "valid": 200,
+            "eligible": 212,
+            "success_rate": 0.9433962264150944
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "4": {
+          "valid": 184,
+          "eligible": 197,
+          "success_rate": 0.934010152284264,
+          "hold_valid": 0,
+          "median_center_error_px": 2.6856338406676232,
+          "p90_center_error_px": 7.218574446696654,
+          "in_view": {
+            "valid": 184,
+            "eligible": 197,
+            "success_rate": 0.934010152284264
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "5": {
+          "valid": 170,
+          "eligible": 182,
+          "success_rate": 0.9340659340659341,
+          "hold_valid": 0,
+          "median_center_error_px": 3.4024208081651652,
+          "p90_center_error_px": 7.998494778358664,
+          "in_view": {
+            "valid": 170,
+            "eligible": 182,
+            "success_rate": 0.9340659340659341
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "6": {
+          "valid": 156,
+          "eligible": 168,
+          "success_rate": 0.9285714285714286,
+          "hold_valid": 0,
+          "median_center_error_px": 3.9033928899793846,
+          "p90_center_error_px": 8.171025012783453,
+          "in_view": {
+            "valid": 156,
+            "eligible": 168,
+            "success_rate": 0.9285714285714286
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        }
+      }
+    },
+    "affine:l1_static": {
+      "policy": "l1_static",
+      "requested_model": "affine",
+      "frames": 25,
+      "transform_attempts": 24,
+      "transform_accepted": 24,
+      "transform_accept_rate": 1.0,
+      "outcomes": {
+        "ok:affine": 24
+      },
+      "latency_ms_mean": 19.684295999759343,
+      "latency_ms_p95": 23.338239996519402,
+      "inlier_ratio_mean": 0.8519952659835139,
+      "horizons": {
+        "1": {
+          "valid": 233,
+          "eligible": 243,
+          "success_rate": 0.9588477366255144,
+          "hold_valid": 0,
+          "median_center_error_px": 1.0266064782477748,
+          "p90_center_error_px": 2.865498845630004,
+          "in_view": {
+            "valid": 88,
+            "eligible": 88,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 145,
+            "eligible": 155,
+            "success_rate": 0.9354838709677419
+          }
+        },
+        "2": {
+          "valid": 215,
+          "eligible": 227,
+          "success_rate": 0.947136563876652,
+          "hold_valid": 0,
+          "median_center_error_px": 1.9148566243505853,
+          "p90_center_error_px": 4.694111525069753,
+          "in_view": {
+            "valid": 87,
+            "eligible": 87,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 128,
+            "eligible": 140,
+            "success_rate": 0.9142857142857143
+          }
+        },
+        "3": {
+          "valid": 198,
+          "eligible": 212,
+          "success_rate": 0.9339622641509434,
+          "hold_valid": 0,
+          "median_center_error_px": 2.768464932851301,
+          "p90_center_error_px": 6.9784205711000595,
+          "in_view": {
+            "valid": 85,
+            "eligible": 86,
+            "success_rate": 0.9883720930232558
+          },
+          "off_view": {
+            "valid": 113,
+            "eligible": 126,
+            "success_rate": 0.8968253968253969
+          }
+        },
+        "4": {
+          "valid": 182,
+          "eligible": 197,
+          "success_rate": 0.9238578680203046,
+          "hold_valid": 0,
+          "median_center_error_px": 3.5648952207580202,
+          "p90_center_error_px": 8.836108635576165,
+          "in_view": {
+            "valid": 81,
+            "eligible": 84,
+            "success_rate": 0.9642857142857143
+          },
+          "off_view": {
+            "valid": 101,
+            "eligible": 113,
+            "success_rate": 0.8938053097345132
+          }
+        },
+        "5": {
+          "valid": 163,
+          "eligible": 182,
+          "success_rate": 0.8956043956043956,
+          "hold_valid": 0,
+          "median_center_error_px": 4.435735230460689,
+          "p90_center_error_px": 10.731625846568743,
+          "in_view": {
+            "valid": 74,
+            "eligible": 81,
+            "success_rate": 0.9135802469135802
+          },
+          "off_view": {
+            "valid": 89,
+            "eligible": 101,
+            "success_rate": 0.8811881188118812
+          }
+        },
+        "6": {
+          "valid": 149,
+          "eligible": 168,
+          "success_rate": 0.8869047619047619,
+          "hold_valid": 0,
+          "median_center_error_px": 5.479557250574939,
+          "p90_center_error_px": 12.550493959329172,
+          "in_view": {
+            "valid": 71,
+            "eligible": 78,
+            "success_rate": 0.9102564102564102
+          },
+          "off_view": {
+            "valid": 78,
+            "eligible": 90,
+            "success_rate": 0.8666666666666667
+          }
+        }
+      }
+    },
+    "affine:l1_sweep": {
+      "policy": "l1_sweep",
+      "requested_model": "affine",
+      "frames": 25,
+      "transform_attempts": 24,
+      "transform_accepted": 24,
+      "transform_accept_rate": 1.0,
+      "outcomes": {
+        "ok:affine": 24
+      },
+      "latency_ms_mean": 20.510492000030354,
+      "latency_ms_p95": 25.758360001782417,
+      "inlier_ratio_mean": 0.6603269385293139,
+      "horizons": {
+        "1": {
+          "valid": 233,
+          "eligible": 243,
+          "success_rate": 0.9588477366255144,
+          "hold_valid": 0,
+          "median_center_error_px": 1.2911886495721343,
+          "p90_center_error_px": 6.03451289360959,
+          "in_view": {
+            "valid": 79,
+            "eligible": 79,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 154,
+            "eligible": 164,
+            "success_rate": 0.9390243902439024
+          }
+        },
+        "2": {
+          "valid": 214,
+          "eligible": 227,
+          "success_rate": 0.9427312775330396,
+          "hold_valid": 0,
+          "median_center_error_px": 2.023491225568325,
+          "p90_center_error_px": 8.45129623607524,
+          "in_view": {
+            "valid": 78,
+            "eligible": 78,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 136,
+            "eligible": 149,
+            "success_rate": 0.912751677852349
+          }
+        },
+        "3": {
+          "valid": 199,
+          "eligible": 212,
+          "success_rate": 0.9386792452830188,
+          "hold_valid": 0,
+          "median_center_error_px": 3.0803451248416636,
+          "p90_center_error_px": 12.573996743368998,
+          "in_view": {
+            "valid": 76,
+            "eligible": 76,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 123,
+            "eligible": 136,
+            "success_rate": 0.9044117647058824
+          }
+        },
+        "4": {
+          "valid": 181,
+          "eligible": 197,
+          "success_rate": 0.9187817258883249,
+          "hold_valid": 0,
+          "median_center_error_px": 3.749360810915974,
+          "p90_center_error_px": 16.33871318211153,
+          "in_view": {
+            "valid": 74,
+            "eligible": 74,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 107,
+            "eligible": 123,
+            "success_rate": 0.8699186991869918
+          }
+        },
+        "5": {
+          "valid": 167,
+          "eligible": 182,
+          "success_rate": 0.9175824175824175,
+          "hold_valid": 0,
+          "median_center_error_px": 4.812519010643197,
+          "p90_center_error_px": 19.944926047530476,
+          "in_view": {
+            "valid": 70,
+            "eligible": 70,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 97,
+            "eligible": 112,
+            "success_rate": 0.8660714285714286
+          }
+        },
+        "6": {
+          "valid": 155,
+          "eligible": 168,
+          "success_rate": 0.9226190476190477,
+          "hold_valid": 0,
+          "median_center_error_px": 5.631415233460253,
+          "p90_center_error_px": 23.82956506023085,
+          "in_view": {
+            "valid": 68,
+            "eligible": 68,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 87,
+            "eligible": 100,
+            "success_rate": 0.87
+          }
+        }
+      }
+    },
+    "similarity:l0": {
+      "policy": "l0",
+      "requested_model": "similarity",
+      "frames": 25,
+      "transform_attempts": 24,
+      "transform_accepted": 24,
+      "transform_accept_rate": 1.0,
+      "outcomes": {
+        "ok:similarity": 24
+      },
+      "latency_ms_mean": 23.70744000101695,
+      "latency_ms_p95": 28.328200001851652,
+      "inlier_ratio_mean": 0.9976000678505983,
+      "horizons": {
+        "1": {
+          "valid": 229,
+          "eligible": 243,
+          "success_rate": 0.9423868312757202,
+          "hold_valid": 0,
+          "median_center_error_px": 2.5885474997988545,
+          "p90_center_error_px": 6.766074133611599,
+          "in_view": {
+            "valid": 229,
+            "eligible": 243,
+            "success_rate": 0.9423868312757202
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "2": {
+          "valid": 209,
+          "eligible": 227,
+          "success_rate": 0.920704845814978,
+          "hold_valid": 0,
+          "median_center_error_px": 4.727135883612408,
+          "p90_center_error_px": 12.677056512791502,
+          "in_view": {
+            "valid": 209,
+            "eligible": 227,
+            "success_rate": 0.920704845814978
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "3": {
+          "valid": 185,
+          "eligible": 212,
+          "success_rate": 0.8726415094339622,
+          "hold_valid": 0,
+          "median_center_error_px": 7.094430103004356,
+          "p90_center_error_px": 17.119637305308487,
+          "in_view": {
+            "valid": 185,
+            "eligible": 212,
+            "success_rate": 0.8726415094339622
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "4": {
+          "valid": 151,
+          "eligible": 197,
+          "success_rate": 0.766497461928934,
+          "hold_valid": 0,
+          "median_center_error_px": 8.823835846426384,
+          "p90_center_error_px": 20.81490027323394,
+          "in_view": {
+            "valid": 151,
+            "eligible": 197,
+            "success_rate": 0.766497461928934
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "5": {
+          "valid": 133,
+          "eligible": 182,
+          "success_rate": 0.7307692307692307,
+          "hold_valid": 0,
+          "median_center_error_px": 10.77487669846636,
+          "p90_center_error_px": 24.165535960888306,
+          "in_view": {
+            "valid": 133,
+            "eligible": 182,
+            "success_rate": 0.7307692307692307
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        },
+        "6": {
+          "valid": 108,
+          "eligible": 168,
+          "success_rate": 0.6428571428571429,
+          "hold_valid": 0,
+          "median_center_error_px": 12.582299165811223,
+          "p90_center_error_px": 28.43014660598824,
+          "in_view": {
+            "valid": 108,
+            "eligible": 168,
+            "success_rate": 0.6428571428571429
+          },
+          "off_view": {
+            "valid": 0,
+            "eligible": 0,
+            "success_rate": null
+          }
+        }
+      }
+    },
+    "similarity:l1_static": {
+      "policy": "l1_static",
+      "requested_model": "similarity",
+      "frames": 25,
+      "transform_attempts": 24,
+      "transform_accepted": 24,
+      "transform_accept_rate": 1.0,
+      "outcomes": {
+        "ok:similarity": 24
+      },
+      "latency_ms_mean": 21.25413200003095,
+      "latency_ms_p95": 26.91089999570977,
+      "inlier_ratio_mean": 0.8517146953543192,
+      "horizons": {
+        "1": {
+          "valid": 230,
+          "eligible": 243,
+          "success_rate": 0.9465020576131687,
+          "hold_valid": 0,
+          "median_center_error_px": 2.7108942978130144,
+          "p90_center_error_px": 6.783414088662024,
+          "in_view": {
+            "valid": 88,
+            "eligible": 88,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 142,
+            "eligible": 155,
+            "success_rate": 0.9161290322580645
+          }
+        },
+        "2": {
+          "valid": 207,
+          "eligible": 227,
+          "success_rate": 0.9118942731277533,
+          "hold_valid": 0,
+          "median_center_error_px": 5.172650524524326,
+          "p90_center_error_px": 12.822517153158346,
+          "in_view": {
+            "valid": 87,
+            "eligible": 87,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 120,
+            "eligible": 140,
+            "success_rate": 0.8571428571428571
+          }
+        },
+        "3": {
+          "valid": 177,
+          "eligible": 212,
+          "success_rate": 0.8349056603773585,
+          "hold_valid": 0,
+          "median_center_error_px": 7.397040898271284,
+          "p90_center_error_px": 17.77129964506518,
+          "in_view": {
+            "valid": 82,
+            "eligible": 86,
+            "success_rate": 0.9534883720930233
+          },
+          "off_view": {
+            "valid": 95,
+            "eligible": 126,
+            "success_rate": 0.753968253968254
+          }
+        },
+        "4": {
+          "valid": 149,
+          "eligible": 197,
+          "success_rate": 0.7563451776649747,
+          "hold_valid": 0,
+          "median_center_error_px": 9.828731986814669,
+          "p90_center_error_px": 21.73720395433767,
+          "in_view": {
+            "valid": 72,
+            "eligible": 84,
+            "success_rate": 0.8571428571428571
+          },
+          "off_view": {
+            "valid": 77,
+            "eligible": 113,
+            "success_rate": 0.6814159292035398
+          }
+        },
+        "5": {
+          "valid": 120,
+          "eligible": 182,
+          "success_rate": 0.6593406593406593,
+          "hold_valid": 0,
+          "median_center_error_px": 11.527955718037274,
+          "p90_center_error_px": 24.80289319783765,
+          "in_view": {
+            "valid": 65,
+            "eligible": 81,
+            "success_rate": 0.8024691358024691
+          },
+          "off_view": {
+            "valid": 55,
+            "eligible": 101,
+            "success_rate": 0.5445544554455446
+          }
+        },
+        "6": {
+          "valid": 98,
+          "eligible": 168,
+          "success_rate": 0.5833333333333334,
+          "hold_valid": 0,
+          "median_center_error_px": 13.664186055114719,
+          "p90_center_error_px": 28.510795708478945,
+          "in_view": {
+            "valid": 56,
+            "eligible": 78,
+            "success_rate": 0.717948717948718
+          },
+          "off_view": {
+            "valid": 42,
+            "eligible": 90,
+            "success_rate": 0.4666666666666667
+          }
+        }
+      }
+    },
+    "similarity:l1_sweep": {
+      "policy": "l1_sweep",
+      "requested_model": "similarity",
+      "frames": 25,
+      "transform_attempts": 24,
+      "transform_accepted": 24,
+      "transform_accept_rate": 1.0,
+      "outcomes": {
+        "ok:similarity": 24
+      },
+      "latency_ms_mean": 20.725203998736106,
+      "latency_ms_p95": 25.804139995307196,
+      "inlier_ratio_mean": 0.6606501396559616,
+      "horizons": {
+        "1": {
+          "valid": 230,
+          "eligible": 243,
+          "success_rate": 0.9465020576131687,
+          "hold_valid": 0,
+          "median_center_error_px": 3.1824402451862706,
+          "p90_center_error_px": 8.784561478705681,
+          "in_view": {
+            "valid": 79,
+            "eligible": 79,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 151,
+            "eligible": 164,
+            "success_rate": 0.9207317073170732
+          }
+        },
+        "2": {
+          "valid": 202,
+          "eligible": 227,
+          "success_rate": 0.8898678414096917,
+          "hold_valid": 0,
+          "median_center_error_px": 5.997410331618666,
+          "p90_center_error_px": 17.0370524686665,
+          "in_view": {
+            "valid": 78,
+            "eligible": 78,
+            "success_rate": 1.0
+          },
+          "off_view": {
+            "valid": 124,
+            "eligible": 149,
+            "success_rate": 0.8322147651006712
+          }
+        },
+        "3": {
+          "valid": 170,
+          "eligible": 212,
+          "success_rate": 0.8018867924528302,
+          "hold_valid": 0,
+          "median_center_error_px": 9.11672152384105,
+          "p90_center_error_px": 22.40264525007767,
+          "in_view": {
+            "valid": 75,
+            "eligible": 76,
+            "success_rate": 0.9868421052631579
+          },
+          "off_view": {
+            "valid": 95,
+            "eligible": 136,
+            "success_rate": 0.6985294117647058
+          }
+        },
+        "4": {
+          "valid": 133,
+          "eligible": 197,
+          "success_rate": 0.6751269035532995,
+          "hold_valid": 0,
+          "median_center_error_px": 11.940236046454082,
+          "p90_center_error_px": 29.04300387911624,
+          "in_view": {
+            "valid": 65,
+            "eligible": 74,
+            "success_rate": 0.8783783783783784
+          },
+          "off_view": {
+            "valid": 68,
+            "eligible": 123,
+            "success_rate": 0.5528455284552846
+          }
+        },
+        "5": {
+          "valid": 109,
+          "eligible": 182,
+          "success_rate": 0.5989010989010989,
+          "hold_valid": 0,
+          "median_center_error_px": 14.587556800869741,
+          "p90_center_error_px": 34.9325559246417,
+          "in_view": {
+            "valid": 57,
+            "eligible": 70,
+            "success_rate": 0.8142857142857143
+          },
+          "off_view": {
+            "valid": 52,
+            "eligible": 112,
+            "success_rate": 0.4642857142857143
+          }
+        },
+        "6": {
+          "valid": 85,
+          "eligible": 168,
+          "success_rate": 0.5059523809523809,
+          "hold_valid": 0,
+          "median_center_error_px": 17.610960281054652,
+          "p90_center_error_px": 40.66561334769714,
+          "in_view": {
+            "valid": 50,
+            "eligible": 68,
+            "success_rate": 0.7352941176470589
+          },
+          "off_view": {
+            "valid": 35,
+            "eligible": 100,
+            "success_rate": 0.35
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,3 +1,7 @@
 __pycache__/
 .venv/
 
+
+# Telemetry capture sessions; useful locally, never committed.
+telemetry/
+run_[0-9]*/

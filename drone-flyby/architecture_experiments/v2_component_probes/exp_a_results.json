@@ -1,0 +1,4286 @@
+{
+  "protocol": {
+    "scene": "helsinki",
+    "crop_size": 64,
+    "context": 1.6,
+    "temporal_gap": 4,
+    "top_k": 5,
+    "appearances": 259,
+    "variants": [
+      "full",
+      "object_only",
+      "background_only"
+    ],
+    "note": "One physical instance per class and objects static on the ground, so the full-crop numbers are confounded by terrain context. Read object_only against background_only; never quote any of these as cross-instance generalization evidence."
+  },
+  "results": {
+    "pixels": {
+      "dimension": 256,
+      "variants": {
+        "full": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 240,
+            "accuracy": 0.9266409266409267,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.46465360635035746,
+            "per_class": {
+              "condor": {
+                "correct": 11,
+                "n": 11,
+                "accuracy": 1.0
+              },
+              "hangar": {
+                "correct": 1,
+                "n": 6,
+                "accuracy": 0.16666666666666666
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 5,
+                "n": 10,
+                "accuracy": 0.5
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 8,
+                "n": 10,
+                "accuracy": 0.8
+              },
+              "4-<8": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              "8-<16": {
+                "correct": 112,
+                "n": 121,
+                "accuracy": 0.9256198347107438
+              },
+              "16-<32": {
+                "correct": 64,
+                "n": 66,
+                "accuracy": 0.9696969696969697
+              },
+              ">=32": {
+                "correct": 9,
+                "n": 12,
+                "accuracy": 0.75
+              }
+            },
+            "embed_ms_per_crop": 0.04155830114169233
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 241,
+            "accuracy": 0.9305019305019305,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.48054878862438055,
+            "per_class": {
+              "condor": {
+                "correct": 11,
+                "n": 11,
+                "accuracy": 1.0
+              },
+              "hangar": {
+                "correct": 1,
+                "n": 6,
+                "accuracy": 0.16666666666666666
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 6,
+                "n": 10,
+                "accuracy": 0.6
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 1,
+                "n": 1,
+                "accuracy": 1.0
+              },
+              "4-<8": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "8-<16": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              "16-<32": {
+                "correct": 113,
+                "n": 121,
+                "accuracy": 0.9338842975206612
+              },
+              ">=32": {
+                "correct": 73,
+                "n": 78,
+                "accuracy": 0.9358974358974359
+              }
+            },
+            "embed_ms_per_crop": 0.036798841708778444
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 241,
+            "accuracy": 0.9305019305019305,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.4851493759792744,
+            "per_class": {
+              "condor": {
+                "correct": 11,
+                "n": 11,
+                "accuracy": 1.0
+              },
+              "hangar": {
+                "correct": 1,
+                "n": 6,
+                "accuracy": 0.16666666666666666
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 6,
+                "n": 10,
+                "accuracy": 0.6
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 1,
+                "n": 1,
+                "accuracy": 1.0
+              },
+              "8-<16": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "16-<32": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              ">=32": {
+                "correct": 186,
+                "n": 199,
+                "accuracy": 0.9346733668341709
+              }
+            },
+            "embed_ms_per_crop": 0.03863513513745086
+          }
+        },
+        "object_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 222,
+            "accuracy": 0.8571428571428571,
+            "classes_with_any_correct": 13,
+            "classes_present": 16,
+            "mean_margin": 0.18776730620607907,
+            "per_class": {
+              "condor": {
+                "correct": 4,
+                "n": 11,
+                "accuracy": 0.36363636363636365
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 20,
+                "n": 25,
+                "accuracy": 0.8
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 3,
+                "n": 10,
+                "accuracy": 0.3
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 6,
+                "n": 10,
+                "accuracy": 0.6
+              },
+              "4-<8": {
+                "correct": 46,
+                "n": 50,
+                "accuracy": 0.92
+              },
+              "8-<16": {
+                "correct": 107,
+                "n": 121,
+                "accuracy": 0.8842975206611571
+              },
+              "16-<32": {
+                "correct": 60,
+                "n": 66,
+                "accuracy": 0.9090909090909091
+              },
+              ">=32": {
+                "correct": 3,
+                "n": 12,
+                "accuracy": 0.25
+              }
+            },
+            "embed_ms_per_crop": 0.061647490336214514
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 222,
+            "accuracy": 0.8571428571428571,
+            "classes_with_any_correct": 13,
+            "classes_present": 16,
+            "mean_margin": 0.20669328602584633,
+            "per_class": {
+              "condor": {
+                "correct": 4,
+                "n": 11,
+                "accuracy": 0.36363636363636365
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 20,
+                "n": 25,
+                "accuracy": 0.8
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 3,
+                "n": 10,
+                "accuracy": 0.3
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 6,
+                "n": 9,
+                "accuracy": 0.6666666666666666
+              },
+              "8-<16": {
+                "correct": 46,
+                "n": 50,
+                "accuracy": 0.92
+              },
+              "16-<32": {
+                "correct": 107,
+                "n": 121,
+                "accuracy": 0.8842975206611571
+              },
+              ">=32": {
+                "correct": 63,
+                "n": 78,
+                "accuracy": 0.8076923076923077
+              }
+            },
+            "embed_ms_per_crop": 0.08899652508458726
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 222,
+            "accuracy": 0.8571428571428571,
+            "classes_with_any_correct": 13,
+            "classes_present": 16,
+            "mean_margin": 0.21551252996484285,
+            "per_class": {
+              "condor": {
+                "correct": 4,
+                "n": 11,
+                "accuracy": 0.36363636363636365
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 20,
+                "n": 25,
+                "accuracy": 0.8
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 3,
+                "n": 10,
+                "accuracy": 0.3
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 6,
+                "n": 9,
+                "accuracy": 0.6666666666666666
+              },
+              "16-<32": {
+                "correct": 46,
+                "n": 50,
+                "accuracy": 0.92
+              },
+              ">=32": {
+                "correct": 170,
+                "n": 199,
+                "accuracy": 0.8542713567839196
+              }
+            },
+            "embed_ms_per_crop": 0.03834208493227945
+          }
+        },
+        "background_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 239,
+            "accuracy": 0.9227799227799228,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.41091995366982054,
+            "per_class": {
+              "condor": {
+                "correct": 11,
+                "n": 11,
+                "accuracy": 1.0
+              },
+              "hangar": {
+                "correct": 3,
+                "n": 6,
+                "accuracy": 0.5
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 12,
+                "n": 13,
+                "accuracy": 0.9230769230769231
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 8,
+                "n": 10,
+                "accuracy": 0.8
+              },
+              "medium_plane": {
+                "correct": 1,
+                "n": 5,
+                "accuracy": 0.2
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 21,
+                "n": 25,
+                "accuracy": 0.84
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 7,
+                "n": 10,
+                "accuracy": 0.7
+              },
+              "4-<8": {
+                "correct": 43,
+                "n": 50,
+                "accuracy": 0.86
+              },
+              "8-<16": {
+                "correct": 114,
+                "n": 121,
+                "accuracy": 0.9421487603305785
+              },
+              "16-<32": {
+                "correct": 64,
+                "n": 66,
+                "accuracy": 0.9696969696969697
+              },
+              ">=32": {
+                "correct": 11,
+                "n": 12,
+                "accuracy": 0.9166666666666666
+              }
+            },
+            "embed_ms_per_crop": 0.06018416988317276
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 243,
+            "accuracy": 0.9382239382239382,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.4187870999100586,
+            "per_class": {
+              "condor": {
+                "correct": 11,
+                "n": 11,
+                "accuracy": 1.0
+              },
+              "hangar": {
+                "correct": 3,
+                "n": 6,
+                "accuracy": 0.5
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 12,
+                "n": 13,
+                "accuracy": 0.9230769230769231
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 9,
+                "n": 10,
+                "accuracy": 0.9
+              },
+              "medium_plane": {
+                "correct": 1,
+                "n": 5,
+                "accuracy": 0.2
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "8-<16": {
+                "correct": 46,
+                "n": 50,
+                "accuracy": 0.92
+              },
+              "16-<32": {
+                "correct": 114,
+                "n": 121,
+                "accuracy": 0.9421487603305785
+              },
+              ">=32": {
+                "correct": 75,
+                "n": 78,
+                "accuracy": 0.9615384615384616
+              }
+            },
+            "embed_ms_per_crop": 0.09017104246904427
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 245,
+            "accuracy": 0.9459459459459459,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.4221944661386685,
+            "per_class": {
+              "condor": {
+                "correct": 11,
+                "n": 11,
+                "accuracy": 1.0
+              },
+              "hangar": {
+                "correct": 4,
+                "n": 6,
+                "accuracy": 0.6666666666666666
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 12,
+                "n": 13,
+                "accuracy": 0.9230769230769231
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 9,
+                "n": 10,
+                "accuracy": 0.9
+              },
+              "medium_plane": {
+                "correct": 1,
+                "n": 5,
+                "accuracy": 0.2
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 1,
+                "n": 1,
+                "accuracy": 1.0
+              },
+              "8-<16": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "16-<32": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              ">=32": {
+                "correct": 189,
+                "n": 199,
+                "accuracy": 0.949748743718593
+              }
+            },
+            "embed_ms_per_crop": 0.09345791505336848
+          }
+        }
+      }
+    },
+    "resnet18": {
+      "dimension": 512,
+      "variants": {
+        "full": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 240,
+            "accuracy": 0.9266409266409267,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.23936501099336102,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 3,
+                "n": 6,
+                "accuracy": 0.5
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 4,
+                "n": 10,
+                "accuracy": 0.4
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 7,
+                "n": 10,
+                "accuracy": 0.7
+              },
+              "4-<8": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              "8-<16": {
+                "correct": 109,
+                "n": 121,
+                "accuracy": 0.9008264462809917
+              },
+              "16-<32": {
+                "correct": 65,
+                "n": 66,
+                "accuracy": 0.9848484848484849
+              },
+              ">=32": {
+                "correct": 11,
+                "n": 12,
+                "accuracy": 0.9166666666666666
+              }
+            },
+            "embed_ms_per_crop": 8.858677992259214
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 239,
+            "accuracy": 0.9227799227799228,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.24782606096341342,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 1,
+                "n": 6,
+                "accuracy": 0.16666666666666666
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 4,
+                "n": 10,
+                "accuracy": 0.4
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 1,
+                "n": 1,
+                "accuracy": 1.0
+              },
+              "4-<8": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "8-<16": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              "16-<32": {
+                "correct": 109,
+                "n": 121,
+                "accuracy": 0.9008264462809917
+              },
+              ">=32": {
+                "correct": 74,
+                "n": 78,
+                "accuracy": 0.9487179487179487
+              }
+            },
+            "embed_ms_per_crop": 8.394999613898445
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 240,
+            "accuracy": 0.9266409266409267,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.24827416983350364,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 12,
+                "n": 13,
+                "accuracy": 0.9230769230769231
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 6,
+                "n": 10,
+                "accuracy": 0.6
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "16-<32": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              ">=32": {
+                "correct": 185,
+                "n": 199,
+                "accuracy": 0.9296482412060302
+              }
+            },
+            "embed_ms_per_crop": 8.333394980694314
+          }
+        },
+        "object_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 228,
+            "accuracy": 0.8803088803088803,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.08819616623366662,
+            "per_class": {
+              "condor": {
+                "correct": 5,
+                "n": 11,
+                "accuracy": 0.45454545454545453
+              },
+              "hangar": {
+                "correct": 2,
+                "n": 6,
+                "accuracy": 0.3333333333333333
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 1,
+                "n": 10,
+                "accuracy": 0.1
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "small_tower": {
+                "correct": 19,
+                "n": 20,
+                "accuracy": 0.95
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 7,
+                "n": 10,
+                "accuracy": 0.7
+              },
+              "4-<8": {
+                "correct": 46,
+                "n": 50,
+                "accuracy": 0.92
+              },
+              "8-<16": {
+                "correct": 105,
+                "n": 121,
+                "accuracy": 0.8677685950413223
+              },
+              "16-<32": {
+                "correct": 64,
+                "n": 66,
+                "accuracy": 0.9696969696969697
+              },
+              ">=32": {
+                "correct": 6,
+                "n": 12,
+                "accuracy": 0.5
+              }
+            },
+            "embed_ms_per_crop": 8.119472586848723
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 236,
+            "accuracy": 0.9111969111969112,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.11311786101131366,
+            "per_class": {
+              "condor": {
+                "correct": 9,
+                "n": 11,
+                "accuracy": 0.8181818181818182
+              },
+              "hangar": {
+                "correct": 2,
+                "n": 6,
+                "accuracy": 0.3333333333333333
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 4,
+                "n": 10,
+                "accuracy": 0.4
+              },
+              "medium_plane": {
+                "correct": 1,
+                "n": 5,
+                "accuracy": 0.2
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 19,
+                "n": 20,
+                "accuracy": 0.95
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "8-<16": {
+                "correct": 46,
+                "n": 50,
+                "accuracy": 0.92
+              },
+              "16-<32": {
+                "correct": 110,
+                "n": 121,
+                "accuracy": 0.9090909090909091
+              },
+              ">=32": {
+                "correct": 73,
+                "n": 78,
+                "accuracy": 0.9358974358974359
+              }
+            },
+            "embed_ms_per_crop": 7.847094208488203
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 236,
+            "accuracy": 0.9111969111969112,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.1328066258356838,
+            "per_class": {
+              "condor": {
+                "correct": 8,
+                "n": 11,
+                "accuracy": 0.7272727272727273
+              },
+              "hangar": {
+                "correct": 2,
+                "n": 6,
+                "accuracy": 0.3333333333333333
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "medium_launcher": {
+                "correct": 4,
+                "n": 10,
+                "accuracy": 0.4
+              },
+              "medium_plane": {
+                "correct": 1,
+                "n": 5,
+                "accuracy": 0.2
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 19,
+                "n": 20,
+                "accuracy": 0.95
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "16-<32": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              ">=32": {
+                "correct": 182,
+                "n": 199,
+                "accuracy": 0.914572864321608
+              }
+            },
+            "embed_ms_per_crop": 8.535593050190663
+          }
+        },
+        "background_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 238,
+            "accuracy": 0.918918918918919,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.2499690250310198,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 5,
+                "n": 10,
+                "accuracy": 0.5
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 7,
+                "n": 10,
+                "accuracy": 0.7
+              },
+              "4-<8": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              "8-<16": {
+                "correct": 110,
+                "n": 121,
+                "accuracy": 0.9090909090909091
+              },
+              "16-<32": {
+                "correct": 65,
+                "n": 66,
+                "accuracy": 0.9848484848484849
+              },
+              ">=32": {
+                "correct": 9,
+                "n": 12,
+                "accuracy": 0.75
+              }
+            },
+            "embed_ms_per_crop": 8.16375019303977
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 236,
+            "accuracy": 0.9111969111969112,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.2517611968931544,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 12,
+                "n": 13,
+                "accuracy": 0.9230769230769231
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 3,
+                "n": 10,
+                "accuracy": 0.3
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "8-<16": {
+                "correct": 46,
+                "n": 50,
+                "accuracy": 0.92
+              },
+              "16-<32": {
+                "correct": 108,
+                "n": 121,
+                "accuracy": 0.8925619834710744
+              },
+              ">=32": {
+                "correct": 74,
+                "n": 78,
+                "accuracy": 0.9487179487179487
+              }
+            },
+            "embed_ms_per_crop": 7.781505405430459
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 237,
+            "accuracy": 0.915057915057915,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.2362240753118596,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 4,
+                "n": 10,
+                "accuracy": 0.4
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "16-<32": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              ">=32": {
+                "correct": 181,
+                "n": 199,
+                "accuracy": 0.9095477386934674
+              }
+            },
+            "embed_ms_per_crop": 8.863994980709174
+          }
+        }
+      }
+    },
+    "resnet50": {
+      "dimension": 2048,
+      "variants": {
+        "full": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 243,
+            "accuracy": 0.9382239382239382,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.3481014350206235,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 9,
+                "n": 10,
+                "accuracy": 0.9
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 8,
+                "n": 10,
+                "accuracy": 0.8
+              },
+              "4-<8": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              "8-<16": {
+                "correct": 113,
+                "n": 121,
+                "accuracy": 0.9338842975206612
+              },
+              "16-<32": {
+                "correct": 65,
+                "n": 66,
+                "accuracy": 0.9848484848484849
+              },
+              ">=32": {
+                "correct": 9,
+                "n": 12,
+                "accuracy": 0.75
+              }
+            },
+            "embed_ms_per_crop": 18.856789575289426
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 242,
+            "accuracy": 0.9343629343629344,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.3893115388725715,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 9,
+                "n": 10,
+                "accuracy": 0.9
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "8-<16": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              "16-<32": {
+                "correct": 113,
+                "n": 121,
+                "accuracy": 0.9338842975206612
+              },
+              ">=32": {
+                "correct": 74,
+                "n": 78,
+                "accuracy": 0.9487179487179487
+              }
+            },
+            "embed_ms_per_crop": 18.398094594577042
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 238,
+            "accuracy": 0.918918918918919,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.38059992728661385,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 17,
+                "n": 19,
+                "accuracy": 0.8947368421052632
+              },
+              "medium_launcher": {
+                "correct": 7,
+                "n": 10,
+                "accuracy": 0.7
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "16-<32": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              ">=32": {
+                "correct": 183,
+                "n": 199,
+                "accuracy": 0.9195979899497487
+              }
+            },
+            "embed_ms_per_crop": 18.586047876455
+          }
+        },
+        "object_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 242,
+            "accuracy": 0.9343629343629344,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.31422913575034345,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 2,
+                "n": 6,
+                "accuracy": 0.3333333333333333
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 7,
+                "n": 10,
+                "accuracy": 0.7
+              },
+              "medium_plane": {
+                "correct": 1,
+                "n": 5,
+                "accuracy": 0.2
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 8,
+                "n": 10,
+                "accuracy": 0.8
+              },
+              "4-<8": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              "8-<16": {
+                "correct": 111,
+                "n": 121,
+                "accuracy": 0.9173553719008265
+              },
+              "16-<32": {
+                "correct": 65,
+                "n": 66,
+                "accuracy": 0.9848484848484849
+              },
+              ">=32": {
+                "correct": 10,
+                "n": 12,
+                "accuracy": 0.8333333333333334
+              }
+            },
+            "embed_ms_per_crop": 19.18445328186701
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 240,
+            "accuracy": 0.9266409266409267,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.3996662374398883,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 2,
+                "n": 6,
+                "accuracy": 0.3333333333333333
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 22,
+                "n": 22,
+                "accuracy": 1.0
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 4,
+                "n": 10,
+                "accuracy": 0.4
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "8-<16": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              "16-<32": {
+                "correct": 109,
+                "n": 121,
+                "accuracy": 0.9008264462809917
+              },
+              ">=32": {
+                "correct": 75,
+                "n": 78,
+                "accuracy": 0.9615384615384616
+              }
+            },
+            "embed_ms_per_crop": 18.08403204634568
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 240,
+            "accuracy": 0.9266409266409267,
+            "classes_with_any_correct": 15,
+            "classes_present": 16,
+            "mean_margin": 0.40387556405601355,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 2,
+                "n": 6,
+                "accuracy": 0.3333333333333333
+              },
+              "helicopter": {
+                "correct": 19,
+                "n": 19,
+                "accuracy": 1.0
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 4,
+                "n": 10,
+                "accuracy": 0.4
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 19,
+                "n": 20,
+                "accuracy": 0.95
+              },
+              "spacecraft": {
+                "correct": 23,
+                "n": 23,
+                "accuracy": 1.0
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "16-<32": {
+                "correct": 45,
+                "n": 50,
+                "accuracy": 0.9
+              },
+              ">=32": {
+                "correct": 187,
+                "n": 199,
+                "accuracy": 0.9396984924623115
+              }
+            },
+            "embed_ms_per_crop": 18.100495366792018
+          }
+        },
+        "background_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 237,
+            "accuracy": 0.915057915057915,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.28251242913794794,
+            "per_class": {
+              "condor": {
+                "correct": 9,
+                "n": 11,
+                "accuracy": 0.8181818181818182
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 12,
+                "n": 13,
+                "accuracy": 0.9230769230769231
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 8,
+                "n": 10,
+                "accuracy": 0.8
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 6,
+                "n": 10,
+                "accuracy": 0.6
+              },
+              "4-<8": {
+                "correct": 47,
+                "n": 50,
+                "accuracy": 0.94
+              },
+              "8-<16": {
+                "correct": 112,
+                "n": 121,
+                "accuracy": 0.9256198347107438
+              },
+              "16-<32": {
+                "correct": 63,
+                "n": 66,
+                "accuracy": 0.9545454545454546
+              },
+              ">=32": {
+                "correct": 9,
+                "n": 12,
+                "accuracy": 0.75
+              }
+            },
+            "embed_ms_per_crop": 17.955317760628475
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 241,
+            "accuracy": 0.9305019305019305,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.31466554887736625,
+            "per_class": {
+              "condor": {
+                "correct": 9,
+                "n": 11,
+                "accuracy": 0.8181818181818182
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 22,
+                "n": 22,
+                "accuracy": 1.0
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 9,
+                "n": 10,
+                "accuracy": 0.9
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "8-<16": {
+                "correct": 49,
+                "n": 50,
+                "accuracy": 0.98
+              },
+              "16-<32": {
+                "correct": 112,
+                "n": 121,
+                "accuracy": 0.9256198347107438
+              },
+              ">=32": {
+                "correct": 73,
+                "n": 78,
+                "accuracy": 0.9358974358974359
+              }
+            },
+            "embed_ms_per_crop": 19.84791621623352
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 240,
+            "accuracy": 0.9266409266409267,
+            "classes_with_any_correct": 14,
+            "classes_present": 16,
+            "mean_margin": 0.3359997445091778,
+            "per_class": {
+              "condor": {
+                "correct": 10,
+                "n": 11,
+                "accuracy": 0.9090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 13,
+                "n": 13,
+                "accuracy": 1.0
+              },
+              "jet_plane": {
+                "correct": 21,
+                "n": 22,
+                "accuracy": 0.9545454545454546
+              },
+              "large_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "large_tower": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "medium_launcher": {
+                "correct": 8,
+                "n": 10,
+                "accuracy": 0.8
+              },
+              "medium_plane": {
+                "correct": 2,
+                "n": 5,
+                "accuracy": 0.4
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 9,
+                "n": 9,
+                "accuracy": 1.0
+              },
+              "small_tower": {
+                "correct": 20,
+                "n": 20,
+                "accuracy": 1.0
+              },
+              "spacecraft": {
+                "correct": 22,
+                "n": 23,
+                "accuracy": 0.9565217391304348
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 6,
+                "n": 9,
+                "accuracy": 0.6666666666666666
+              },
+              "16-<32": {
+                "correct": 48,
+                "n": 50,
+                "accuracy": 0.96
+              },
+              ">=32": {
+                "correct": 186,
+                "n": 199,
+                "accuracy": 0.9346733668341709
+              }
+            },
+            "embed_ms_per_crop": 20.212617374521287
+          }
+        }
+      }
+    },
+    "yolo_head": {
+      "dimension": 16,
+      "variants": {
+        "full": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 128,
+            "accuracy": 0.4942084942084942,
+            "classes_with_any_correct": 12,
+            "classes_present": 16,
+            "mean_margin": 0.048756630264193856,
+            "per_class": {
+              "condor": {
+                "correct": 3,
+                "n": 11,
+                "accuracy": 0.2727272727272727
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 15,
+                "n": 19,
+                "accuracy": 0.7894736842105263
+              },
+              "jammer": {
+                "correct": 6,
+                "n": 13,
+                "accuracy": 0.46153846153846156
+              },
+              "jet_plane": {
+                "correct": 14,
+                "n": 22,
+                "accuracy": 0.6363636363636364
+              },
+              "large_launcher": {
+                "correct": 4,
+                "n": 25,
+                "accuracy": 0.16
+              },
+              "large_tower": {
+                "correct": 1,
+                "n": 19,
+                "accuracy": 0.05263157894736842
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 2,
+                "n": 9,
+                "accuracy": 0.2222222222222222
+              },
+              "small_tower": {
+                "correct": 14,
+                "n": 20,
+                "accuracy": 0.7
+              },
+              "spacecraft": {
+                "correct": 12,
+                "n": 23,
+                "accuracy": 0.5217391304347826
+              },
+              "ta-ta": {
+                "correct": 13,
+                "n": 25,
+                "accuracy": 0.52
+              },
+              "tank": {
+                "correct": 19,
+                "n": 25,
+                "accuracy": 0.76
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 2,
+                "n": 10,
+                "accuracy": 0.2
+              },
+              "4-<8": {
+                "correct": 38,
+                "n": 50,
+                "accuracy": 0.76
+              },
+              "8-<16": {
+                "correct": 52,
+                "n": 121,
+                "accuracy": 0.4297520661157025
+              },
+              "16-<32": {
+                "correct": 33,
+                "n": 66,
+                "accuracy": 0.5
+              },
+              ">=32": {
+                "correct": 3,
+                "n": 12,
+                "accuracy": 0.25
+              }
+            },
+            "embed_ms_per_crop": 11.910833590744875
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 138,
+            "accuracy": 0.5328185328185329,
+            "classes_with_any_correct": 12,
+            "classes_present": 16,
+            "mean_margin": 0.06365052820632816,
+            "per_class": {
+              "condor": {
+                "correct": 7,
+                "n": 11,
+                "accuracy": 0.6363636363636364
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 17,
+                "n": 19,
+                "accuracy": 0.8947368421052632
+              },
+              "jammer": {
+                "correct": 11,
+                "n": 13,
+                "accuracy": 0.8461538461538461
+              },
+              "jet_plane": {
+                "correct": 11,
+                "n": 22,
+                "accuracy": 0.5
+              },
+              "large_launcher": {
+                "correct": 9,
+                "n": 25,
+                "accuracy": 0.36
+              },
+              "large_tower": {
+                "correct": 3,
+                "n": 19,
+                "accuracy": 0.15789473684210525
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 22,
+                "n": 25,
+                "accuracy": 0.88
+              },
+              "small_plane": {
+                "correct": 8,
+                "n": 9,
+                "accuracy": 0.8888888888888888
+              },
+              "small_tower": {
+                "correct": 1,
+                "n": 20,
+                "accuracy": 0.05
+              },
+              "spacecraft": {
+                "correct": 21,
+                "n": 23,
+                "accuracy": 0.9130434782608695
+              },
+              "ta-ta": {
+                "correct": 18,
+                "n": 25,
+                "accuracy": 0.72
+              },
+              "tank": {
+                "correct": 10,
+                "n": 25,
+                "accuracy": 0.4
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 0,
+                "n": 9,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 41,
+                "n": 50,
+                "accuracy": 0.82
+              },
+              "16-<32": {
+                "correct": 53,
+                "n": 121,
+                "accuracy": 0.4380165289256198
+              },
+              ">=32": {
+                "correct": 44,
+                "n": 78,
+                "accuracy": 0.5641025641025641
+              }
+            },
+            "embed_ms_per_crop": 10.447500386095784
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 126,
+            "accuracy": 0.4864864864864865,
+            "classes_with_any_correct": 12,
+            "classes_present": 16,
+            "mean_margin": 0.06414571945271437,
+            "per_class": {
+              "condor": {
+                "correct": 5,
+                "n": 11,
+                "accuracy": 0.45454545454545453
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 18,
+                "n": 19,
+                "accuracy": 0.9473684210526315
+              },
+              "jammer": {
+                "correct": 7,
+                "n": 13,
+                "accuracy": 0.5384615384615384
+              },
+              "jet_plane": {
+                "correct": 17,
+                "n": 22,
+                "accuracy": 0.7727272727272727
+              },
+              "large_launcher": {
+                "correct": 5,
+                "n": 25,
+                "accuracy": 0.2
+              },
+              "large_tower": {
+                "correct": 1,
+                "n": 19,
+                "accuracy": 0.05263157894736842
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 13,
+                "n": 25,
+                "accuracy": 0.52
+              },
+              "small_plane": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "small_tower": {
+                "correct": 7,
+                "n": 20,
+                "accuracy": 0.35
+              },
+              "spacecraft": {
+                "correct": 17,
+                "n": 23,
+                "accuracy": 0.7391304347826086
+              },
+              "ta-ta": {
+                "correct": 14,
+                "n": 25,
+                "accuracy": 0.56
+              },
+              "tank": {
+                "correct": 15,
+                "n": 25,
+                "accuracy": 0.6
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 5,
+                "n": 9,
+                "accuracy": 0.5555555555555556
+              },
+              "16-<32": {
+                "correct": 22,
+                "n": 50,
+                "accuracy": 0.44
+              },
+              ">=32": {
+                "correct": 99,
+                "n": 199,
+                "accuracy": 0.49748743718592964
+              }
+            },
+            "embed_ms_per_crop": 10.217282239383206
+          }
+        },
+        "object_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 121,
+            "accuracy": 0.4671814671814672,
+            "classes_with_any_correct": 11,
+            "classes_present": 16,
+            "mean_margin": 0.02426525777831501,
+            "per_class": {
+              "condor": {
+                "correct": 1,
+                "n": 11,
+                "accuracy": 0.09090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 8,
+                "n": 19,
+                "accuracy": 0.42105263157894735
+              },
+              "jammer": {
+                "correct": 1,
+                "n": 13,
+                "accuracy": 0.07692307692307693
+              },
+              "jet_plane": {
+                "correct": 17,
+                "n": 22,
+                "accuracy": 0.7727272727272727
+              },
+              "large_launcher": {
+                "correct": 10,
+                "n": 25,
+                "accuracy": 0.4
+              },
+              "large_tower": {
+                "correct": 17,
+                "n": 19,
+                "accuracy": 0.8947368421052632
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 21,
+                "n": 25,
+                "accuracy": 0.84
+              },
+              "small_plane": {
+                "correct": 0,
+                "n": 9,
+                "accuracy": 0.0
+              },
+              "small_tower": {
+                "correct": 10,
+                "n": 20,
+                "accuracy": 0.5
+              },
+              "spacecraft": {
+                "correct": 3,
+                "n": 23,
+                "accuracy": 0.13043478260869565
+              },
+              "ta-ta": {
+                "correct": 13,
+                "n": 25,
+                "accuracy": 0.52
+              },
+              "tank": {
+                "correct": 20,
+                "n": 25,
+                "accuracy": 0.8
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 5,
+                "n": 10,
+                "accuracy": 0.5
+              },
+              "4-<8": {
+                "correct": 29,
+                "n": 50,
+                "accuracy": 0.58
+              },
+              "8-<16": {
+                "correct": 51,
+                "n": 121,
+                "accuracy": 0.4214876033057851
+              },
+              "16-<32": {
+                "correct": 35,
+                "n": 66,
+                "accuracy": 0.5303030303030303
+              },
+              ">=32": {
+                "correct": 1,
+                "n": 12,
+                "accuracy": 0.08333333333333333
+              }
+            },
+            "embed_ms_per_crop": 9.522922007726823
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 126,
+            "accuracy": 0.4864864864864865,
+            "classes_with_any_correct": 11,
+            "classes_present": 16,
+            "mean_margin": 0.037383900415943395,
+            "per_class": {
+              "condor": {
+                "correct": 1,
+                "n": 11,
+                "accuracy": 0.09090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 14,
+                "n": 19,
+                "accuracy": 0.7368421052631579
+              },
+              "jammer": {
+                "correct": 12,
+                "n": 13,
+                "accuracy": 0.9230769230769231
+              },
+              "jet_plane": {
+                "correct": 13,
+                "n": 22,
+                "accuracy": 0.5909090909090909
+              },
+              "large_launcher": {
+                "correct": 15,
+                "n": 25,
+                "accuracy": 0.6
+              },
+              "large_tower": {
+                "correct": 3,
+                "n": 19,
+                "accuracy": 0.15789473684210525
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 19,
+                "n": 25,
+                "accuracy": 0.76
+              },
+              "small_plane": {
+                "correct": 0,
+                "n": 9,
+                "accuracy": 0.0
+              },
+              "small_tower": {
+                "correct": 8,
+                "n": 20,
+                "accuracy": 0.4
+              },
+              "spacecraft": {
+                "correct": 16,
+                "n": 23,
+                "accuracy": 0.6956521739130435
+              },
+              "ta-ta": {
+                "correct": 15,
+                "n": 25,
+                "accuracy": 0.6
+              },
+              "tank": {
+                "correct": 10,
+                "n": 25,
+                "accuracy": 0.4
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 2,
+                "n": 9,
+                "accuracy": 0.2222222222222222
+              },
+              "8-<16": {
+                "correct": 33,
+                "n": 50,
+                "accuracy": 0.66
+              },
+              "16-<32": {
+                "correct": 48,
+                "n": 121,
+                "accuracy": 0.39669421487603307
+              },
+              ">=32": {
+                "correct": 43,
+                "n": 78,
+                "accuracy": 0.5512820512820513
+              }
+            },
+            "embed_ms_per_crop": 9.15060154441362
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 131,
+            "accuracy": 0.5057915057915058,
+            "classes_with_any_correct": 13,
+            "classes_present": 16,
+            "mean_margin": 0.04303175418073146,
+            "per_class": {
+              "condor": {
+                "correct": 1,
+                "n": 11,
+                "accuracy": 0.09090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 13,
+                "n": 19,
+                "accuracy": 0.6842105263157895
+              },
+              "jammer": {
+                "correct": 2,
+                "n": 13,
+                "accuracy": 0.15384615384615385
+              },
+              "jet_plane": {
+                "correct": 12,
+                "n": 22,
+                "accuracy": 0.5454545454545454
+              },
+              "large_launcher": {
+                "correct": 17,
+                "n": 25,
+                "accuracy": 0.68
+              },
+              "large_tower": {
+                "correct": 9,
+                "n": 19,
+                "accuracy": 0.47368421052631576
+              },
+              "medium_launcher": {
+                "correct": 1,
+                "n": 10,
+                "accuracy": 0.1
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              },
+              "small_plane": {
+                "correct": 1,
+                "n": 9,
+                "accuracy": 0.1111111111111111
+              },
+              "small_tower": {
+                "correct": 9,
+                "n": 20,
+                "accuracy": 0.45
+              },
+              "spacecraft": {
+                "correct": 4,
+                "n": 23,
+                "accuracy": 0.17391304347826086
+              },
+              "ta-ta": {
+                "correct": 15,
+                "n": 25,
+                "accuracy": 0.6
+              },
+              "tank": {
+                "correct": 23,
+                "n": 25,
+                "accuracy": 0.92
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 3,
+                "n": 9,
+                "accuracy": 0.3333333333333333
+              },
+              "16-<32": {
+                "correct": 38,
+                "n": 50,
+                "accuracy": 0.76
+              },
+              ">=32": {
+                "correct": 90,
+                "n": 199,
+                "accuracy": 0.45226130653266333
+              }
+            },
+            "embed_ms_per_crop": 9.28336409265899
+          }
+        },
+        "background_only": {
+          "0": {
+            "level": 0,
+            "eligible": 259,
+            "correct": 138,
+            "accuracy": 0.5328185328185329,
+            "classes_with_any_correct": 10,
+            "classes_present": 16,
+            "mean_margin": 0.07037725849041147,
+            "per_class": {
+              "condor": {
+                "correct": 0,
+                "n": 11,
+                "accuracy": 0.0
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 15,
+                "n": 19,
+                "accuracy": 0.7894736842105263
+              },
+              "jammer": {
+                "correct": 2,
+                "n": 13,
+                "accuracy": 0.15384615384615385
+              },
+              "jet_plane": {
+                "correct": 16,
+                "n": 22,
+                "accuracy": 0.7272727272727273
+              },
+              "large_launcher": {
+                "correct": 5,
+                "n": 25,
+                "accuracy": 0.2
+              },
+              "large_tower": {
+                "correct": 5,
+                "n": 19,
+                "accuracy": 0.2631578947368421
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 0,
+                "n": 9,
+                "accuracy": 0.0
+              },
+              "small_tower": {
+                "correct": 6,
+                "n": 20,
+                "accuracy": 0.3
+              },
+              "spacecraft": {
+                "correct": 19,
+                "n": 23,
+                "accuracy": 0.8260869565217391
+              },
+              "ta-ta": {
+                "correct": 21,
+                "n": 25,
+                "accuracy": 0.84
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 6,
+                "n": 10,
+                "accuracy": 0.6
+              },
+              "4-<8": {
+                "correct": 40,
+                "n": 50,
+                "accuracy": 0.8
+              },
+              "8-<16": {
+                "correct": 56,
+                "n": 121,
+                "accuracy": 0.4628099173553719
+              },
+              "16-<32": {
+                "correct": 36,
+                "n": 66,
+                "accuracy": 0.5454545454545454
+              },
+              ">=32": {
+                "correct": 0,
+                "n": 12,
+                "accuracy": 0.0
+              }
+            },
+            "embed_ms_per_crop": 10.880510810800624
+          },
+          "1": {
+            "level": 1,
+            "eligible": 259,
+            "correct": 144,
+            "accuracy": 0.555984555984556,
+            "classes_with_any_correct": 11,
+            "classes_present": 16,
+            "mean_margin": 0.07683312041418892,
+            "per_class": {
+              "condor": {
+                "correct": 1,
+                "n": 11,
+                "accuracy": 0.09090909090909091
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 17,
+                "n": 19,
+                "accuracy": 0.8947368421052632
+              },
+              "jammer": {
+                "correct": 4,
+                "n": 13,
+                "accuracy": 0.3076923076923077
+              },
+              "jet_plane": {
+                "correct": 19,
+                "n": 22,
+                "accuracy": 0.8636363636363636
+              },
+              "large_launcher": {
+                "correct": 7,
+                "n": 25,
+                "accuracy": 0.28
+              },
+              "large_tower": {
+                "correct": 6,
+                "n": 19,
+                "accuracy": 0.3157894736842105
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "small_plane": {
+                "correct": 2,
+                "n": 9,
+                "accuracy": 0.2222222222222222
+              },
+              "small_tower": {
+                "correct": 0,
+                "n": 20,
+                "accuracy": 0.0
+              },
+              "spacecraft": {
+                "correct": 14,
+                "n": 23,
+                "accuracy": 0.6086956521739131
+              },
+              "ta-ta": {
+                "correct": 25,
+                "n": 25,
+                "accuracy": 1.0
+              },
+              "tank": {
+                "correct": 24,
+                "n": 25,
+                "accuracy": 0.96
+              }
+            },
+            "per_size": {
+              "<4": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "4-<8": {
+                "correct": 7,
+                "n": 9,
+                "accuracy": 0.7777777777777778
+              },
+              "8-<16": {
+                "correct": 44,
+                "n": 50,
+                "accuracy": 0.88
+              },
+              "16-<32": {
+                "correct": 49,
+                "n": 121,
+                "accuracy": 0.4049586776859504
+              },
+              ">=32": {
+                "correct": 44,
+                "n": 78,
+                "accuracy": 0.5641025641025641
+              }
+            },
+            "embed_ms_per_crop": 12.607233976841002
+          },
+          "2": {
+            "level": 2,
+            "eligible": 259,
+            "correct": 145,
+            "accuracy": 0.5598455598455598,
+            "classes_with_any_correct": 11,
+            "classes_present": 16,
+            "mean_margin": 0.07120015055056245,
+            "per_class": {
+              "condor": {
+                "correct": 2,
+                "n": 11,
+                "accuracy": 0.18181818181818182
+              },
+              "hangar": {
+                "correct": 0,
+                "n": 6,
+                "accuracy": 0.0
+              },
+              "helicopter": {
+                "correct": 16,
+                "n": 19,
+                "accuracy": 0.8421052631578947
+              },
+              "jammer": {
+                "correct": 0,
+                "n": 13,
+                "accuracy": 0.0
+              },
+              "jet_plane": {
+                "correct": 18,
+                "n": 22,
+                "accuracy": 0.8181818181818182
+              },
+              "large_launcher": {
+                "correct": 13,
+                "n": 25,
+                "accuracy": 0.52
+              },
+              "large_tower": {
+                "correct": 4,
+                "n": 19,
+                "accuracy": 0.21052631578947367
+              },
+              "medium_launcher": {
+                "correct": 0,
+                "n": 10,
+                "accuracy": 0.0
+              },
+              "medium_plane": {
+                "correct": 0,
+                "n": 5,
+                "accuracy": 0.0
+              },
+              "mine_roller": {
+                "correct": 0,
+                "n": 2,
+                "accuracy": 0.0
+              },
+              "small_launcher": {
+                "correct": 23,
+                "n": 25,
+                "accuracy": 0.92
+              },
+              "small_plane": {
+                "correct": 1,
+                "n": 9,
+                "accuracy": 0.1111111111111111
+              },
+              "small_tower": {
+                "correct": 10,
+                "n": 20,
+                "accuracy": 0.5
+              },
+              "spacecraft": {
+                "correct": 15,
+                "n": 23,
+                "accuracy": 0.6521739130434783
+              },
+              "ta-ta": {
+                "correct": 23,
+                "n": 25,
+                "accuracy": 0.92
+              },
+              "tank": {
+                "correct": 20,
+                "n": 25,
+                "accuracy": 0.8
+              }
+            },
+            "per_size": {
+              "4-<8": {
+                "correct": 0,
+                "n": 1,
+                "accuracy": 0.0
+              },
+              "8-<16": {
+                "correct": 5,
+                "n": 9,
+                "accuracy": 0.5555555555555556
+              },
+              "16-<32": {
+                "correct": 43,
+                "n": 50,
+                "accuracy": 0.86
+              },
+              ">=32": {
+                "correct": 97,
+                "n": 199,
+                "accuracy": 0.48743718592964824
+              }
+            },
+            "embed_ms_per_crop": 10.324454440158373
+          }
+        }
+      }
+    }
+  }
+}

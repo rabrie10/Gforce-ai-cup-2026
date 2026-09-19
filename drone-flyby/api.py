@@ -19,7 +19,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from dtos import DroneFlybyPredictRequestDto, DroneFlybyPredictResponseDto
-from example import predict, warmup_detector
+from example import describe, predict, warmup_detector
 from utils import validate_response
 
 HOST = '0.0.0.0'
@@ -90,6 +90,18 @@ def predict_endpoint(request: DroneFlybyPredictRequestDto):
         len(response.annotations),
     )
     return response
+
+
+@app.get('/metrics')
+def metrics():
+    """What is loaded and what each component costs, for deployment checks.
+
+    Read-only and outside the scored path; the evaluator never calls it.
+    """
+    try:
+        return {'endpoint_ms': endpoint_metrics(), 'pipeline': describe()}
+    except Exception as exc:
+        return {'error': f'{type(exc).__name__}: {exc}'}
 
 
 @app.get('/api')

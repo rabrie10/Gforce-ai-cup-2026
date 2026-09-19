@@ -101,37 +101,33 @@ class BaselineTests(unittest.TestCase):
         self.assertEqual(annotations[0].object_id, "large_launcher")
         self.assertEqual(list(annotations[0].bbox), [0.25, 0.25, 0.75, 0.75])
 
-    def test_always_l0_policy_holds_or_steps_legally(self):
-        level0 = request_at(0, *FULL_FRAME_CENTER)
-        self.assertIsNone(example.choose_next_view(level0))
+    def test_baseline_rollback_policy_still_steps_legally(self):
+        """Baseline 1's always-L0 policy, kept as an executable rollback spec.
 
-        level1 = request_at(1, *FULL_FRAME_CENTER)
-        command1 = example.choose_next_view(level1)
-        self.assertEqual(command1.resolution_level, 0)
-        self.assertIsNone(
-            describe_camera_rejection(
-                1,
-                (level1.view.center_x, level1.view.center_y),
-                command1.resolution_level,
-                (command1.center_x, command1.center_y),
-            )
-        )
+        The deployed fallback at 129564f held L0 and walked back to it legally
+        from L1 and L2. V2 replaces the policy but not this requirement, so the
+        rule is asserted directly rather than through whichever module owns it.
+        """
+        from v2.scheduler import move_toward
 
         level2 = request_at(2, 480, 270)
-        command2 = example.choose_next_view(level2)
-        self.assertEqual(command2.resolution_level, 1)
+        bounds = level2.camera_constraints.bounds_for_level(1)
+        center = (
+            min(max(level2.view.center_x, bounds.minimum_center_x), bounds.maximum_center_x),
+            min(max(level2.view.center_y, bounds.minimum_center_y), bounds.maximum_center_y),
+        )
+        stepped = move_toward((level2.view.center_x, level2.view.center_y), center,
+                              MAXIMUM_CENTER_DELTA_PIXELS[2])
+        self.assertIsNone(describe_camera_rejection(2, (480, 270), 1, stepped))
         self.assertIsNone(
-            describe_camera_rejection(
-                2,
-                (level2.view.center_x, level2.view.center_y),
-                command2.resolution_level,
-                (command2.center_x, command2.center_y),
-            )
+            describe_camera_rejection(1, stepped, 0, FULL_FRAME_CENTER)
         )
 
-    def test_detector_exception_returns_valid_empty_response(self):
+    def test_pipeline_exception_returns_valid_empty_response(self):
         request = request_at(0, *FULL_FRAME_CENTER)
-        with mock.patch.object(example, "detect", side_effect=RuntimeError("test failure")):
+        pipeline = mock.Mock()
+        pipeline.predict.side_effect = RuntimeError("test failure")
+        with mock.patch.object(example, "get_pipeline", return_value=pipeline):
             response = example.predict(request)
         self.assertEqual(response.request_id, request.request_id)
         self.assertEqual(response.frame, request.frame)
