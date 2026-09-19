@@ -47,7 +47,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from training.RL.curriculum import get_stage
+from training.RL.curriculum import check_goal, get_stage
 from training.RL.env_wrapper import CurriculumEnv, OBS_DIM
 from training.RL.network import ACTION_DIM, ActorCritic
 
@@ -92,12 +92,23 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
     Runs rollout_steps env ticks (resetting and continuing into new episodes
     as needed), returns (finished trajectories ready for GAE, the obs dict
     to resume from next call). Appends one dict per completed episode to
-    episode_log (score, extinction_time/truncated, final_num_agents).
+    episode_log (score, extinction_time/truncated, final_num_agents,
+    starting_agents, fruit_energy_consumed).
+
+    Note: fruit_energy_consumed only accumulates ticks that fall within THIS
+    call's rollout window -- an episode that spans two collect_rollout calls
+    (runs longer than rollout_steps) will undercount it, since the
+    accumulator resets each call. This is a diagnostic metric only (see
+    reward.py's module docstring) and doesn't affect training itself, which
+    is why this approximation is acceptable rather than threading the
+    accumulator through env/reward_state instead.
     """
     active: Dict[int, _Traj] = {}
     finished: List[_Traj] = []
 
     ep_start_time = wallclock.time()
+    ep_fruit_energy = 0.0
+    starting_agents = env.stage.env_kwargs.get("starting_agents", 0)
 
     for _ in range(rollout_steps):
         agent_ids = sorted(obs.keys())
@@ -117,6 +128,7 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
 
         actions_norm = {aid: action_clipped_np[i] for i, aid in enumerate(agent_ids)}
         next_obs, rewards, done, info = env.step(actions_norm)
+        ep_fruit_energy += info.get("fruit_energy_tick", 0.0)
 
         for aid, r in rewards.items():
             if aid not in active:
@@ -152,8 +164,11 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
                 "final_num_agents": info["num_agents"],
                 "extinct": info["num_agents"] == 0,
                 "wall_seconds": wallclock.time() - ep_start_time,
+                "starting_agents": starting_agents,
+                "fruit_energy_consumed": ep_fruit_energy,
             })
             ep_start_time = wallclock.time()
+            ep_fruit_energy = 0.0
             obs = env.reset()
 
     # Rollout window ended with some agents still mid-episode: bootstrap and
@@ -279,7 +294,9 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
 
 def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[int],
           out_dir: str, log_every: int = 5, checkpoint_every: int = 20,
-          resume_from: Optional[str] = None, workers: Optional[int] = None) -> str:
+          resume_from: Optional[str] = None, workers: Optional[int] = None,
+          ignore_goal: bool = False, success_window: Optional[int] = None,
+          success_threshold: Optional[float] = None) -> str:
     device = torch.device("cpu")
     n_workers = _default_worker_count(workers)
     if n_workers > 1:
@@ -287,6 +304,15 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
         # torch calls (see _worker_loop) instead of this process's PPO
         # update contending for every core.
         torch.set_num_threads(1)
+
+    stage = get_stage(stage_name)
+    # Optional CLI overrides of the stage's own goal-check defaults
+    # (curriculum.py's StageConfig) -- e.g. to tighten/loosen a threshold
+    # for one run without editing the stage table.
+    if success_window is not None:
+        stage.success_window = success_window
+    if success_threshold is not None:
+        stage.success_threshold = success_threshold
 
     net = ActorCritic(OBS_DIM, ACTION_DIM).to(device)
     if resume_from:
@@ -297,11 +323,27 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     os.makedirs(out_dir, exist_ok=True)
     log_path = os.path.join(out_dir, f"{stage_name}_episodes.csv")
     log_f = open(log_path, "w", newline="")
-    log_writer = csv.DictWriter(log_f, fieldnames=["iteration", "score", "sim_time", "final_num_agents", "extinct", "wall_seconds"])
+    log_writer = csv.DictWriter(log_f, fieldnames=[
+        "iteration", "score", "sim_time", "final_num_agents", "extinct",
+        "wall_seconds", "starting_agents", "fruit_energy_consumed",
+    ])
     log_writer.writeheader()
 
     all_episode_scores: List[float] = []
+    all_episodes: List[dict] = []  # full dicts, for check_goal()'s rolling window
     t0 = wallclock.time()
+
+    stop_reason = f"reached --iterations cap ({iterations})"
+
+    if stage.success_metric and not ignore_goal:
+        print(
+            f"Goal-based stop enabled: {stage.success_metric} >= {stage.success_threshold} "
+            f"over a rolling window of the last {stage.success_window} episodes "
+            f"(hard cap: {iterations} iterations). Pass --ignore-goal to disable and "
+            f"always run the full iteration count instead."
+        )
+    elif not stage.success_metric:
+        print(f"{stage_name} has no success_metric configured -- running the full {iterations} iterations.")
 
     worker_procs: List[dict] = []
     env = None
@@ -323,7 +365,6 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
             worker_procs.append({"process": p, "in_q": in_q, "out_q": out_q})
         print(f"Started {n_workers} parallel rollout workers.")
     else:
-        stage = get_stage(stage_name)
         env = CurriculumEnv(stage, seed=seed)
         obs = env.reset()
 
@@ -341,23 +382,40 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
                 ep["iteration"] = it
                 log_writer.writerow(ep)
                 all_episode_scores.append(ep["score"])
+                all_episodes.append(ep)
             log_f.flush()
+
+            goal_met, goal_rate = (False, None) if (ignore_goal or not stage.success_metric) \
+                else check_goal(stage, all_episodes)
 
             if it % log_every == 0 or it == 1:
                 recent = all_episode_scores[-20:] if all_episode_scores else [0.0]
                 elapsed = wallclock.time() - t0
+                goal_str = f"  {stage.success_metric}={goal_rate:.3f}/{stage.success_threshold}" if goal_rate is not None else ""
                 print(
                     f"iter {it:4d}/{iterations}  episodes_so_far={len(all_episode_scores):4d}  "
                     f"mean_score(last20)={np.mean(recent):8.2f}  "
                     f"policy_loss={stats['policy_loss']:+.4f}  value_loss={stats['value_loss']:.4f}  "
                     f"entropy={stats['entropy']:.4f}  transitions={stats['n_transitions']:5d}  "
-                    f"elapsed={elapsed:6.1f}s"
+                    f"elapsed={elapsed:6.1f}s{goal_str}"
                 )
 
             if it % checkpoint_every == 0 or it == iterations:
                 ckpt_path = os.path.join(out_dir, f"{stage_name}_iter{it}.pt")
                 torch.save(net.state_dict(), ckpt_path)
                 print(f"  saved checkpoint: {ckpt_path}")
+
+            if goal_met:
+                stop_reason = (
+                    f"goal met at iteration {it}: {stage.success_metric}={goal_rate:.3f} "
+                    f">= {stage.success_threshold} over the last {stage.success_window} episodes"
+                )
+                print(stop_reason)
+                ckpt_path = os.path.join(out_dir, f"{stage_name}_iter{it}.pt")
+                if not os.path.exists(ckpt_path):
+                    torch.save(net.state_dict(), ckpt_path)
+                    print(f"  saved checkpoint: {ckpt_path}")
+                break
     finally:
         for w in worker_procs:
             w["in_q"].put(None)
@@ -367,7 +425,7 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     log_f.close()
     final_path = os.path.join(out_dir, f"{stage_name}_final.pt")
     torch.save(net.state_dict(), final_path)
-    print(f"Training done. Final weights: {final_path}")
+    print(f"Training done ({stop_reason}). Final weights: {final_path}")
     return final_path
 
 
@@ -384,6 +442,13 @@ def main():
     parser.add_argument("--workers", type=int, default=None,
                          help="Parallel rollout-collection processes. Default: min(4, cpu_count()-1). "
                               "1 disables multiprocessing entirely.")
+    parser.add_argument("--ignore-goal", action="store_true",
+                         help="Disable the stage's goal-based early stop (curriculum.py's "
+                              "success_metric) and always run the full --iterations count instead.")
+    parser.add_argument("--success-window", type=int, default=None,
+                         help="Override the stage's rolling-window size (default: per-stage, 50).")
+    parser.add_argument("--success-threshold", type=float, default=None,
+                         help="Override the stage's success threshold (default: per-stage).")
     args = parser.parse_args()
 
     out_dir = args.out or os.path.join(os.path.dirname(__file__), "checkpoints")
@@ -397,6 +462,9 @@ def main():
         checkpoint_every=args.checkpoint_every,
         resume_from=args.resume_from,
         workers=args.workers,
+        ignore_goal=args.ignore_goal,
+        success_window=args.success_window,
+        success_threshold=args.success_threshold,
     )
 
 

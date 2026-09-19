@@ -250,6 +250,13 @@ class CurriculumEnv:
         # training run reproducible end to end when you pass the same seed.
         self._episode_rng = random.Random(seed)
         self.reward_state = RewardState()
+        # Stage-level weight overrides (curriculum.py's StageConfig.reward_weights
+        # -- e.g. stage 2/3/5 turning on w_danger evasion shaping) apply first,
+        # so an explicit reward_weights argument here can still override them
+        # per-call if ever needed (train.py doesn't currently pass one; it
+        # relies entirely on the stage config).
+        if stage.reward_weights:
+            self.reward_state.weights.update(stage.reward_weights)
         if reward_weights:
             self.reward_state.weights.update(reward_weights)
         self.sim: Optional[SimulationCore] = None
@@ -349,6 +356,14 @@ class CurriculumEnv:
         observations = self._current_observations()
 
         done = (len(env.agents) == 0) or (env.time >= self.stage.max_sim_time)
-        info = {"sim_time": env.time, "score": env.score, "num_agents": len(env.agents)}
+        info = {
+            "sim_time": env.time,
+            "score": env.score,
+            "num_agents": len(env.agents),
+            # Food-consumption diagnostic (reward.py's algebraic
+            # decomposition) -- train.py accumulates this per episode into
+            # the CSV log as fruit_energy_consumed. Not a reward term.
+            "fruit_energy_tick": self.reward_state.last_fruit_energy_tick,
+        }
         self._last_state = state
         return observations, rewards, done, info
