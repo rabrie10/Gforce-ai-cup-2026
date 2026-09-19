@@ -147,21 +147,42 @@ class MergedDiscovery:
 
 
 class RejectingExpert(VisualExpert):
-    """Adds reference-similarity background suppression to the target head.
-    tau,temp from env V5_REF_TAU (default 0 = disabled), V5_REF_TEMP."""
+    """Background rejection on the frozen DINOv2 features.
+    Primary: a supervised learned target/background head (bg_head.npz) whose P(target)
+    replaces the weak sigmoid target head when V5_BG_HEAD=1 (default on if the file exists).
+    Fallback: optional reference-similarity gate (V5_REF_TAU>0). 16-class head unchanged."""
     def __init__(self, *a, **k):
         super().__init__(*a, **k)
         self.ref_tau = float(os.getenv("V5_REF_TAU", "0.0"))
         self.ref_temp = float(os.getenv("V5_REF_TEMP", "0.05"))
+        self.bg = None
+        path = os.path.join(str(self.assets), "bg_head.npz")
+        if os.getenv("V5_BG_HEAD", "1") == "1" and os.path.exists(path):
+            self.bg = dict(np.load(path, allow_pickle=False))
+            self.bg["kind"] = str(self.bg["kind"])
+
+    def _bg_prob(self, feats):
+        b = self.bg
+        if b["kind"] == "logreg":
+            z = feats @ b["w"] + b["b"]
+        else:  # mlp, single hidden relu
+            h = np.maximum(0.0, feats @ b["W1"] + b["b1"])
+            z = (h @ b["W2"] + b["b2"])[:, 0]
+        return 1.0 / (1.0 + np.exp(-z))
 
     def classify_features(self, features):
         results = super().classify_features(features)
-        if self.ref_tau <= 0:
+        if self.bg is not None and len(features):
+            p = self._bg_prob(np.asarray(features, dtype=np.float32))
+            for r, pv in zip(results, p):
+                r["target_probability_orig"] = r["target_probability"]
+                r["target_probability"] = float(pv)  # learned head is the gate
+                r["state"] = "unknown" if pv < 0.5 else r["state"]
             return results
-        for r in results:
-            ref_max = max(r["reference_similarity"]) if r["reference_similarity"] else 0.0
-            penalty = 1.0 / (1.0 + np.exp(-(ref_max - self.ref_tau) / self.ref_temp))
-            r["target_probability"] = float(r["target_probability"] * penalty)
-            r["ref_max"] = float(ref_max)
-            r["state"] = "unknown" if r["target_probability"] < 0.5 else r["state"]
+        if self.ref_tau > 0:
+            for r in results:
+                ref_max = max(r["reference_similarity"]) if r["reference_similarity"] else 0.0
+                penalty = 1.0 / (1.0 + np.exp(-(ref_max - self.ref_tau) / self.ref_temp))
+                r["target_probability"] = float(r["target_probability"] * penalty)
+                r["state"] = "unknown" if r["target_probability"] < 0.5 else r["state"]
         return results
