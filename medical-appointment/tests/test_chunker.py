@@ -1,57 +1,52 @@
-"""Chunks overlap, come in several lengths, and can represent every annotated
-Evidence Span rather than only the ones a partition happens to line up with.
+"""A Chunk is one spoken sentence, carrying the Words its boundaries are read
+from and the normalizer's written form of what was said.
 
-The fixture Conversation is built to the shapes the error analysis found in the
-supplied data: spans that share a boundary with nothing, spans that cross what
-would be a Segment boundary, two Questions annotated with the identical span,
-and one span nested strictly inside another. A partition can represent none of
-the last two.
+The fixture Conversation punctuates its sentences the way the Transcriber does
+and runs them across Segment boundaries, because the Chunker reads Words and
+not Segments. The guard against an unpunctuated run is exercised separately:
+it is a robustness rule, not a granularity, and it fires nowhere in the
+supplied data.
 """
 
 import pytest
 
-from medapp.chunker import ChunkScheme, chunk_conversation
+from medapp.chunker import SentenceScheme, chunk_conversation
 from medapp.config import Settings
 from medapp.types import Segment, Word
-from utils import Span, temporal_iou
 
-# ADR-0002's Chunker gate, applied here to every span rather than to the mean:
-# a span with no candidate this close is one no judge downstream can answer
-# well, whatever it decides.
-GATE = 0.75
+SCHEME = SentenceScheme(max_words=Settings().chunk_max_words)
 
-SCHEME = ChunkScheme(
-    word_lengths=Settings().chunk_word_lengths,
-    stride_fraction=Settings().chunk_stride_fraction,
+# Four sentences over forty-five words, cut into Segments of ten so that three
+# of the four cross a Segment boundary.
+SPOKEN = (
+    "so there is cardiovascular disease in your family? yes there is. "
+    "your blood pressure is 135 over 88 today, which is fine. "
+    "take one hundred milligrams daily for two weeks and then stop. "
+    "we will see you again in six months to check on that."
 )
 
 
-def conversation() -> tuple[Segment, ...]:
-    """Forty-five words at a steady 0.4 s each, cut into Segments of ten."""
-    spoken = str.split(
-        "so there is cardiovascular disease in your family yes there is "
-        "your blood pressure is 135 over 88 today which is fine "
-        "take one hundred milligrams daily for two weeks and then stop "
-        "we will see you again in six months to check on that"
-    )
-
+def conversation(spoken: str = SPOKEN, per_segment: int = 10) -> tuple[Segment, ...]:
+    """The words at a steady 0.4 s each, cut into Segments of ``per_segment``."""
+    words = spoken.split()
     segments = []
-    for index in range(0, len(spoken), 10):
-        words = tuple(
+
+    for index in range(0, len(words), per_segment):
+        timed = tuple(
             Word(
                 text=word,
                 start=round((index + offset) * 0.4, 1),
                 end=round((index + offset + 1) * 0.4, 1),
                 probability=0.9,
             )
-            for offset, word in enumerate(spoken[index : index + 10])
+            for offset, word in enumerate(words[index : index + per_segment])
         )
         segments.append(
             Segment(
-                start=words[0].start,
-                end=words[-1].end,
-                text=" ".join(spoken[index : index + 10]),
-                words=words,
+                start=timed[0].start,
+                end=timed[-1].end,
+                text=" ".join(words[index : index + per_segment]),
+                words=timed,
             )
         )
 
@@ -60,73 +55,42 @@ def conversation() -> tuple[Segment, ...]:
 
 CONVERSATION = conversation()
 
-# Annotated Evidence Spans in the shapes the error analysis names. The last two
-# pairs are what rules a partition out: `q03` and `q04` are annotated
-# identically, and `q06` sits strictly inside `q05`.
-ANNOTATED: dict[str, Span] = {
-    "q01": (0.0, 4.0),  # a turn and the answer to it
-    "q02": (3.6, 4.4),  # two words, crossing a Segment boundary
-    "q03": (4.4, 7.6),  # the blood-pressure reading
-    "q04": (4.4, 7.6),  # the same words answer a second Question
-    "q05": (8.8, 12.0),  # the whole of the dosing instruction
-    "q06": (9.2, 10.4),  # the dose alone, nested inside q05
-    "q07": (0.4, 0.8),  # a single word
-    "q08": (13.2, 18.0),  # the tail of the Conversation
-}
+
+def test_one_chunk_per_spoken_sentence():
+    assert len(chunk_conversation(CONVERSATION, SCHEME)) == SPOKEN.count(
+        "."
+    ) + SPOKEN.count("?")
 
 
-def best_tiou(annotated: Span, scheme: ChunkScheme = SCHEME) -> float:
-    """The best any candidate manages against one annotated span."""
-    return max(
-        temporal_iou(annotated, chunk.span)
-        for chunk in chunk_conversation(CONVERSATION, scheme)
-    )
+def test_chunks_are_in_time_order_and_do_not_overlap():
+    chunks = chunk_conversation(CONVERSATION, SCHEME)
 
-
-@pytest.mark.parametrize("question_id", sorted(ANNOTATED))
-def test_every_annotated_span_has_a_candidate_close_enough_to_return(question_id):
-    assert best_tiou(ANNOTATED[question_id]) >= GATE
-
-
-def test_identical_and_nested_spans_are_each_reachable():
-    """A partition could serve at most one of these three; overlap serves all."""
-    assert ANNOTATED["q03"] == ANNOTATED["q04"]
-    assert best_tiou(ANNOTATED["q03"]) >= GATE
-    assert best_tiou(ANNOTATED["q05"]) >= GATE
-    assert best_tiou(ANNOTATED["q06"]) >= GATE
-
-
-def test_chunks_of_one_length_overlap_their_neighbours():
-    scheme = ChunkScheme(word_lengths=(10,), stride_fraction=0.2)
-
-    chunks = chunk_conversation(CONVERSATION, scheme)
-    starts = [chunk.start for chunk in chunks]
-
-    assert starts == sorted(starts)
-    assert any(
-        later.start < earlier.end
+    assert all(
+        earlier.end <= later.start
         for earlier, later in zip(chunks, chunks[1:], strict=False)
     )
 
 
-def test_chunks_come_in_several_lengths():
-    lengths = {len(chunk.words) for chunk in chunk_conversation(CONVERSATION, SCHEME)}
+def test_a_sentence_that_crosses_a_segment_boundary_is_one_chunk():
+    """The Transcriber's segmentation is a unit of transcription, not evidence."""
+    boundaries = {segment.start for segment in CONVERSATION[1:]}
+    chunks = chunk_conversation(CONVERSATION, SCHEME)
 
-    assert len(lengths) > 1
+    assert (
+        sum(
+            any(chunk.start < boundary < chunk.end for boundary in boundaries)
+            for chunk in chunks
+        )
+        >= len(chunks) - 1
+    )
 
 
 def test_a_chunk_carries_the_words_its_boundaries_are_read_from():
-    chunk = chunk_conversation(CONVERSATION, ChunkScheme((3,), 1.0))[0]
+    chunk = chunk_conversation(CONVERSATION, SCHEME)[0]
 
     assert chunk.start == chunk.words[0].start
     assert chunk.end == chunk.words[-1].end
-    assert chunk.span == (0.0, 1.2)
-
-
-def test_the_same_stretch_reached_by_two_lengths_is_carried_once():
-    chunks = chunk_conversation(CONVERSATION, ChunkScheme((60, 80), 0.5))
-
-    assert [chunk.span for chunk in chunks] == [(0.0, 18.0)]
+    assert chunk.span == (0.0, 3.2)
 
 
 def test_chunk_text_is_normalized_so_a_question_reduces_to_the_same_tokens():
@@ -139,24 +103,40 @@ def test_chunk_text_is_normalized_so_a_question_reduces_to_the_same_tokens():
 def test_a_merged_token_keeps_every_word_it_was_read_from():
     reading = next(
         chunk
-        for chunk in chunk_conversation(CONVERSATION, ChunkScheme((1,), 1.0))
-        if chunk.text == "135/88"
+        for chunk in chunk_conversation(CONVERSATION, SCHEME)
+        if "135/88" in chunk.text
+    )
+    merged = [word.text for word in reading.words]
+
+    assert merged[merged.index("135") : merged.index("135") + 3] == [
+        "135",
+        "over",
+        "88",
+    ]
+
+
+def test_a_trailing_run_with_no_terminal_punctuation_is_still_a_chunk():
+    """The Transcriber does not always punctuate the last utterance."""
+    spoken = conversation("take 100 mg daily. and then we stop")
+
+    assert [chunk.text for chunk in chunk_conversation(spoken, SCHEME)][-1] == (
+        "and then we stop"
     )
 
-    assert [word.text for word in reading.words] == ["135", "over", "88"]
-    assert reading.span == (6.0, 7.2)
+
+def test_an_unpunctuated_run_is_cut_at_the_guard_rather_than_left_whole():
+    spoken = conversation("one two three four five six seven eight", per_segment=8)
+
+    chunks = chunk_conversation(spoken, SentenceScheme(max_words=3))
+
+    assert [len(chunk.words) for chunk in chunks] == [3, 3, 2]
 
 
 def test_a_conversation_that_transcribed_to_nothing_yields_no_candidates():
     assert chunk_conversation((), SCHEME) == ()
 
 
-@pytest.mark.parametrize(
-    "word_lengths,stride_fraction",
-    [((), 0.5), ((0, 4), 0.5), ((4,), 0.0), ((4,), 1.5)],
-)
-def test_a_scheme_that_cannot_cover_the_conversation_is_refused(
-    word_lengths, stride_fraction
-):
+@pytest.mark.parametrize("max_words", [0, -1])
+def test_a_guard_that_would_not_advance_is_refused(max_words):
     with pytest.raises(ValueError):
-        ChunkScheme(word_lengths=word_lengths, stride_fraction=stride_fraction)
+        SentenceScheme(max_words=max_words)

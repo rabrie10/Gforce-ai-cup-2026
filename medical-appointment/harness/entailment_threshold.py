@@ -1,36 +1,3 @@
-"""Where to put the Entailment threshold, and whether the Relevance gate earns
-its place.
-
-Two questions, measured on one pass over a fold because they read the same
-scores.
-
-The first is the threshold. Entailment is the judgement that separates a
-Positive from a Hard Negative, so ADR-0002 assigns it Hard-Negative accuracy as
-its component metric and requires Positive accuracy to be held while it is
-tuned. Held is the word that needs care: adding an Entailment test to the
-ticket-08 Answerer can only turn a yes into a no, so Positive accuracy is
-non-increasing in the threshold and a literal reading would choose the
-threshold that judges nothing. What is meant, and what is implemented here, is
-that the threshold may not cost more Positives than the fold's own sampling
-noise: a candidate is eligible when its Positive accuracy is at or above the
-lower bound of the bootstrap interval on the ticket-08 value. Among the
-eligible candidates the one with the highest lower bound on Hard-Negative
-accuracy is chosen, which is stability rather than argmax, as ADR-0002 requires
-of every threshold.
-
-The second is the ablation. The Relevance gate answers no before Entailment is
-judged at all, and it was tuned when Entailment did not exist. If the
-Entailment judge rejects Off-Topic Questions on its own — nothing in the
-Conversation establishes a Claim about a concert — the gate costs Positives for
-nothing and should come out. So every candidate is scored twice, with the gate
-and without it, and the gate is kept only if Off-Topic accuracy drops when it
-is removed.
-
-Resampling is at Conversation level, for the reason ``relevance_threshold``
-records: the ten Questions of a Conversation share one transcript and one set
-of Chunks and are not independent observations.
-"""
-
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -39,14 +6,13 @@ from harness import transcript_cache
 from harness.bootstrap import interval, rate, resamples
 from harness.folds import FoldName, conversations_in_fold
 from harness.relevance_threshold import NOTHING_RETRIEVED
-from medapp.chunker import ChunkScheme, chunk_conversation
+from medapp.chunker import SentenceScheme, chunk_conversation
 from medapp.claims import Rewriter
 from medapp.entailment import EntailmentJudge
 from medapp.reranker import Reranker
-from medapp.retrieval import Bm25Index
 
-# A Question nothing was retrieved for has no Chunk to judge, so it is a no at
-# every threshold and under either arm of the ablation.
+# A Question with no Chunk has nothing to judge, so it is a no at every
+# threshold and under either arm of the ablation.
 NOT_JUDGED = float("-inf")
 
 CANDIDATE_COUNT = 21
@@ -70,7 +36,7 @@ class QuestionMeasurement:
             that goes wrong can be read against the rewrite that produced it.
         judging_seconds: Wall time for this Question alone — ranking, the
             reranker's pass, the rewrite and the NLI pass. The Chunker and the
-            index are built once per Conversation and are not charged here.
+            Chunker runs once per Conversation and is not charged here.
     """
 
     question_id: str
@@ -154,7 +120,7 @@ class ThresholdSweep:
 
 def measure_fold(
     fold: FoldName,
-    scheme: ChunkScheme,
+    scheme: SentenceScheme,
     reranker: Reranker,
     rewriter: Rewriter,
     judge: EntailmentJudge,
@@ -162,17 +128,17 @@ def measure_fold(
 ) -> tuple[QuestionMeasurement, ...]:
     """Score every Question of one fold the way one request scores it.
 
-    The Chunks and the index are built once per Conversation and every Question
-    of it is retrieved, reranked, rewritten and judged against them, which is
-    exactly what happens inside one request.
+    The Chunks are built once per Conversation and every Question of it is
+    reranked, rewritten and judged against them, which is exactly what happens
+    inside one request.
 
     Args:
         fold: Which fold to read.
-        scheme: The Chunk granularities to cut at.
+        scheme: How the Conversation is cut.
         reranker: The Relevance judge, already loaded.
         rewriter: The Claim rewriter, already loaded.
         judge: The Entailment judge, already loaded.
-        candidates: How deep a BM25 ranking the reranker is handed.
+        candidates: How many of the ranked Chunks are carried.
 
     Raises:
         FileNotFoundError: If a Conversation of the fold is not cached.
@@ -180,15 +146,11 @@ def measure_fold(
     measurements: list[QuestionMeasurement] = []
 
     for transcript_id, rows in conversations_in_fold(fold):
-        index = Bm25Index(
-            chunk_conversation(transcript_cache.read(transcript_id), scheme)
-        )
+        sentences = chunk_conversation(transcript_cache.read(transcript_id), scheme)
 
         for row in rows:
             started = time.perf_counter()
-            reranked = reranker.rerank(
-                row["question"], index.rank(row["question"], candidates)
-            )
+            reranked = reranker.rerank(row["question"], sentences)[:candidates]
             claim = rewriter.rewrite(row["question"])
             judged = judge.judge(claim.text, [c.chunk for c in reranked[:1]])
             elapsed = time.perf_counter() - started
@@ -300,7 +262,7 @@ def report_threshold(
 
 def sweep(
     fold: FoldName,
-    scheme: ChunkScheme,
+    scheme: SentenceScheme,
     reranker: Reranker,
     rewriter: Rewriter,
     judge: EntailmentJudge,

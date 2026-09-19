@@ -27,7 +27,7 @@ from harness.relevance_threshold import (
     ThresholdSweep,
     sweep,
 )
-from medapp.chunker import ChunkScheme
+from medapp.chunker import SentenceScheme
 from medapp.config import settings
 from medapp.reranker import CrossEncoderReranker
 
@@ -119,10 +119,7 @@ def main() -> None:
         format_sweep(
             sweep(
                 fold=arguments.fold,
-                scheme=ChunkScheme(
-                    word_lengths=settings.chunk_word_lengths,
-                    stride_fraction=settings.chunk_stride_fraction,
-                ),
+                scheme=SentenceScheme(max_words=settings.chunk_max_words),
                 reranker=reranker,
                 candidates=settings.retrieval_candidates,
                 thresholds=(

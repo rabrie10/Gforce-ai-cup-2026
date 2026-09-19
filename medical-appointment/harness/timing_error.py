@@ -1,15 +1,3 @@
-"""How far the Transcriber's word boundaries sit from the annotated ones.
-
-Every Evidence Span the system can return is snapped to word edges, so the
-distance between an annotated boundary and the nearest word boundary is error no
-Chunker can remove. Measuring it before a Chunker exists separates the ASR's
-share of the tIoU ceiling from the Chunker's, which is the difference between
-tuning the right component and tuning the wrong one.
-
-Read on train and dev only. ADR-0002 transcribes the test fold but does not read
-it.
-"""
-
 import math
 import statistics
 from bisect import bisect_left

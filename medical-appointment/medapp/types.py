@@ -67,28 +67,40 @@ class Chunk:
 class Verdict:
     """The Answerer's decision about one Question.
 
+    The answer and the Evidence Span are one decision, so the Verdict carries
+    the Chunk the yes was read from rather than a span alongside a ranking.
+    Carrying a span separately let the two disagree: a caller that wanted the
+    cited Chunk had to find it in ``candidates`` by position, and an Answerer
+    that cited a Chunk it had not moved to the front silently returned a span
+    for a different passage than the one it answered from.
+
     Attributes:
-        evidence: The passage the yes was read from; None for a no, which has
+        cited: The Chunk the yes was read from; None for a no, which has
             nothing to point at.
         candidates: The ranked Chunks the verdict was chosen from. Component
             metrics are computed from these rather than by reaching inside the
-            Chunker, so there is no default to omit them by.
+            Chunker, so there is no default to omit them by. The order is the
+            ranking's, and the cited Chunk is not privileged within it.
 
     Raises:
-        ValueError: If the answer and the evidence disagree.
+        ValueError: If the answer and the cited Chunk disagree.
     """
 
     answer: bool
-    evidence: Span | None
+    cited: Chunk | None
     candidates: tuple[Chunk, ...]
 
     def __post_init__(self) -> None:
-        if self.answer != (self.evidence is not None):
+        if self.answer != (self.cited is not None):
             raise ValueError(
-                "A yes carries the Evidence Span it was read from and a no "
-                f"carries none: got answer={self.answer!r}, "
-                f"evidence={self.evidence!r}."
+                "A yes carries the Chunk it was read from and a no carries "
+                f"none: got answer={self.answer!r}, cited={self.cited!r}."
             )
+
+    @property
+    def evidence(self) -> Span | None:
+        """The boundaries to return, or None for a no."""
+        return self.cited.span if self.cited is not None else None
 
 
 @dataclass(frozen=True, slots=True)

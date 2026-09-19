@@ -158,3 +158,93 @@ def test_warm_up_consumes_the_segments_so_decoding_actually_runs():
     Transcriber(settings=Settings(), model=_CountingModel(_segments())).warm_up()
 
     assert len(consumed) == len(_segments())
+
+
+class _SlowModel:
+    """A decoder that costs the caller one clock step per segment yielded."""
+
+    def __init__(self, segments: list[_DecodedSegment], clock: "_StepClock") -> None:
+        self._segments = segments
+        self._clock = clock
+
+    def transcribe(self, audio, **options):
+        def decode():
+            for segment in self._segments:
+                self._clock.advance()
+                yield segment
+
+        return decode(), object()
+
+
+class _StepClock:
+    """A monotonic clock that only moves when the decoder is asked to."""
+
+    def __init__(self, step: float) -> None:
+        self.step = step
+        self.now = 0.0
+
+    def advance(self) -> None:
+        self.now += self.step
+
+    def __call__(self) -> float:
+        return self.now
+
+
+def test_a_budget_that_runs_out_truncates_the_conversation(caplog):
+    clock = _StepClock(step=1.0)
+    transcriber = Transcriber(
+        settings=Settings(), model=_SlowModel(_segments() * 4, clock), clock=clock
+    )
+
+    with caplog.at_level("ERROR"):
+        segments = transcriber.transcribe(b"mp3", budget_seconds=2.5)
+
+    assert len(segments) == 3, "decoding stops at the budget rather than running on"
+    assert "budget" in caplog.text
+    assert all(record.levelname == "ERROR" for record in caplog.records)
+
+
+def test_a_budget_the_decoder_finishes_inside_transcribes_the_whole_conversation(
+    caplog,
+):
+    clock = _StepClock(step=1.0)
+    transcriber = Transcriber(
+        settings=Settings(), model=_SlowModel(_segments(), clock), clock=clock
+    )
+
+    with caplog.at_level("ERROR"):
+        segments = transcriber.transcribe(b"mp3", budget_seconds=60.0)
+
+    assert len(segments) == len(_segments())
+    assert not caplog.records, "a budget that was not reached is not worth logging"
+
+
+def test_no_budget_decodes_the_whole_conversation():
+    clock = _StepClock(step=1.0)
+    transcriber = Transcriber(
+        settings=Settings(), model=_SlowModel(_segments() * 4, clock), clock=clock
+    )
+
+    assert len(transcriber.transcribe(b"mp3")) == len(_segments()) * 4
+
+
+def test_the_decoder_is_constructed_with_the_configured_thread_count(monkeypatch):
+    """``cpu_threads`` is the cheapest latency knob the Transcriber has — on the
+    dev machine it took the worst-case decode from 49.0 s to 37.8 s — and it is
+    only worth anything if it actually reaches CTranslate2."""
+    constructed = {}
+
+    class _Recorder:
+        def __init__(self, model, **options):
+            constructed["model"] = model
+            constructed.update(options)
+
+    monkeypatch.setattr("medapp.transcriber.WhisperModel", _Recorder)
+
+    from medapp.transcriber import _load_model
+
+    _load_model(Settings(cpu_threads=10, whisper_model="tiny.en"))
+
+    assert constructed["model"] == "tiny.en"
+    assert constructed["cpu_threads"] == 10
+    assert constructed["device"] == "cpu"

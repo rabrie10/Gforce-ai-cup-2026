@@ -1,95 +1,77 @@
-"""Overlapping, multi-length candidate Evidence Spans cut from timed Words.
-
-An annotated Evidence Span runs from 0.16 s to 14.20 s, 11 Positives share a
-span with another Question of the same Conversation and 12 sit strictly inside
-another's, so no partition of the Conversation can represent them: a Chunk
-scheme that does not overlap makes some correct answers structurally
-unreachable. Chunks are therefore cut at several lengths, each length sliding
-across the Conversation at a fraction of its own stride.
-
-Boundaries come from Word timings rather than from Segment boundaries or
-sentence punctuation. 30 of 122 annotated spans cross a Segment boundary, and 8
-of the 24 read Conversations lose punctuation for a run of 40 words or more, so
-neither is available as a cut.
-
-Cutting happens over *normalized* tokens rather than raw Words. The normalizer
-merges several Words into one token — "135 over 88" into "135/88" — and a cut
-through the middle of such a token would hand the retriever half a reading.
-Every token carries the Words it was read from, so a Chunk cut this way still
-carries the Word timings that make it returnable as an Evidence Span unchanged.
-"""
-
+import re
 from dataclasses import dataclass
 
 from medapp.normalizer import NormalizedToken, normalize_words
 from medapp.types import Chunk, Segment, Word
 
+# What ends a spoken sentence in the Transcriber's output. Read from the raw
+# Word text, before the normalizer strips punctuation: the boundary is the one
+# thing the normalizer throws away that the Chunker needs.
+SENTENCE_END = re.compile(r"[.?!]['\"’”)]*\s*$")
+
 
 @dataclass(frozen=True, slots=True)
-class ChunkScheme:
-    """The granularities a Conversation is cut at.
+class SentenceScheme:
+    """How a Conversation is cut into candidate Evidence Spans.
+
+    A Chunk is one spoken sentence. The alternative measured against it was a
+    ladder of overlapping fixed-length word windows, which reaches a far higher
+    oracle tIoU — every annotated boundary has some window close to it — and a
+    markedly lower achieved one, because it puts a dozen near-identical views
+    of the same stretch in front of a Relevance model that scores what a
+    passage is *about* and has no signal for where it should end. Measured over
+    train and dev, 122 annotated Evidence Spans: the ladder cites a Chunk worth
+    0.463 mean tIoU and sentences one worth 0.508, and adding two- and
+    three-sentence Chunks alongside single ones drops it to 0.440 while raising
+    the oracle. Candidate redundancy costs more than candidate coverage buys,
+    so the Chunker offers one reading of each stretch and no more.
 
     Attributes:
-        word_lengths: Chunk lengths in normalized tokens. A ladder rather than
-            one value, because the span a Question is answered from may be one
-            word or forty.
-        stride_fraction: How far apart consecutive Chunks of one length start,
-            as a fraction of that length. Below 1 the Chunks of a length
-            overlap, which is what lets a span that straddles two cuts still
-            have a candidate close to it.
+        max_words: Where a run of Words carrying no terminal punctuation is cut
+            anyway. Not a granularity — the supplied Conversations have a
+            median sentence of five Words and a longest of fifty-nine, so this
+            fires nowhere in them. It is the guard against a Conversation the
+            Transcriber punctuates sparsely or not at all, where one Chunk
+            would otherwise cover the whole audio and score near zero on every
+            Question.
 
     Raises:
-        ValueError: If the ladder is empty, holds a non-positive length, or the
-            stride would not advance.
+        ValueError: If the guard would not advance.
     """
 
-    word_lengths: tuple[int, ...]
-    stride_fraction: float
+    max_words: int
 
     def __post_init__(self) -> None:
-        if not self.word_lengths:
-            raise ValueError("A Chunk scheme needs at least one length.")
-
-        if any(length < 1 for length in self.word_lengths):
+        if self.max_words < 1:
             raise ValueError(
-                f"Chunk lengths are counted in tokens and must be positive: "
-                f"got {self.word_lengths!r}."
+                f"A Chunk holds at least one Word: got max_words={self.max_words!r}."
             )
-
-        if not 0 < self.stride_fraction <= 1:
-            raise ValueError(
-                f"The stride fraction must be over 0 and at most 1, so that "
-                f"Chunks advance and overlap: got {self.stride_fraction!r}."
-            )
-
-    def stride(self, length: int) -> int:
-        """How far apart consecutive Chunks of ``length`` tokens start."""
-        return max(1, round(length * self.stride_fraction))
 
 
 def chunk_conversation(
-    segments: tuple[Segment, ...], scheme: ChunkScheme
+    segments: tuple[Segment, ...], scheme: SentenceScheme
 ) -> tuple[Chunk, ...]:
-    """Cut one Conversation into overlapping candidate Evidence Spans.
+    """Cut one Conversation into candidate Evidence Spans, one per sentence.
 
     Args:
-        segments: The whole Conversation, in time order.
-        scheme: The granularities to cut at, as Settings resolved them.
+        segments: The whole Conversation, in time order. Segment boundaries are
+            dropped: the Transcriber's segmentation is a unit of transcription
+            and runs several sentences long.
+        scheme: Where an unpunctuated run is cut anyway.
 
     Returns:
-        The candidates in time order, each one distinct: the same stretch
-        reached by two lengths — at the tail of a Conversation shorter than the
-        length above it — is carried once.
+        The candidates in time order. A sentence whose Words all normalize away
+        carries no text to rank and is left out.
     """
-    spoken = normalize_words(_words_in_time_order(segments))
-    tokens = tuple(token for token in spoken if token.words)
+    chunks = []
 
-    if not tokens:
-        return ()
+    for sentence in _sentences(_words_in_time_order(segments), scheme):
+        tokens = tuple(token for token in normalize_words(sentence) if token.words)
 
-    windows = sorted({window for window in _windows(len(tokens), scheme)})
+        if tokens:
+            chunks.append(_chunk(tokens))
 
-    return tuple(_chunk(tokens[start:end]) for start, end in windows)
+    return tuple(chunks)
 
 
 def _words_in_time_order(segments: tuple[Segment, ...]) -> tuple[Word, ...]:
@@ -97,23 +79,29 @@ def _words_in_time_order(segments: tuple[Segment, ...]) -> tuple[Word, ...]:
     return tuple(word for segment in segments for word in segment.words)
 
 
-def _windows(token_count: int, scheme: ChunkScheme) -> list[tuple[int, int]]:
-    """The half-open token ranges the scheme cuts, one length at a time.
+def _sentences(
+    words: tuple[Word, ...], scheme: SentenceScheme
+) -> list[tuple[Word, ...]]:
+    """The Words grouped into sentences, in time order.
 
-    A length longer than the Conversation still yields the whole of it, so a
-    Conversation shorter than the ladder's top rung is not left uncovered.
+    A trailing run with no terminal punctuation is a sentence of its own: the
+    Transcriber does not always punctuate the last utterance, and dropping it
+    would make the end of every such Conversation unreachable.
     """
-    windows: list[tuple[int, int]] = []
+    sentences: list[tuple[Word, ...]] = []
+    current: list[Word] = []
 
-    for length in scheme.word_lengths:
-        for start in range(0, token_count, scheme.stride(length)):
-            end = min(start + length, token_count)
-            windows.append((start, end))
+    for word in words:
+        current.append(word)
 
-            if end == token_count:
-                break
+        if SENTENCE_END.search(word.text) or len(current) >= scheme.max_words:
+            sentences.append(tuple(current))
+            current = []
 
-    return windows
+    if current:
+        sentences.append(tuple(current))
+
+    return sentences
 
 
 def _chunk(tokens: tuple[NormalizedToken, ...]) -> Chunk:

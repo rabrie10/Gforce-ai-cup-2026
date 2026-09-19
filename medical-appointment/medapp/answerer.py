@@ -1,29 +1,12 @@
-"""The Answerer seam and the Answerer Settings names.
-
-An Answerer is pure: Segments and Questions in, a Verdict per Question out. It
-does not touch the wire, the clock or the audio, so it can be measured on a
-fold of the supplied data exactly as it runs under the endpoint.
-
-Candidate Answerers are compared by running the system twice under different
-configuration. There is no runtime switch between them and no degraded Answerer
-to fall back to, so a strategy without an implementation is a startup failure
-rather than something quietly substituted.
-"""
-
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from typing import Protocol
 
-from medapp.chunker import ChunkScheme, chunk_conversation
+from medapp.chunker import SentenceScheme, chunk_conversation
 from medapp.claims import ClaimRewriter, Rewriter
 from medapp.config import AnswerStrategy, Settings
 from medapp.config import settings as default_settings
-from medapp.dense import Embedder
-from medapp.dense import load_model as load_embedder
-from medapp.dense import warm_up as warm_embedder
 from medapp.entailment import EntailmentJudge, NliEntailmentJudge
 from medapp.reranker import CrossEncoderReranker, Reranker
-from medapp.retrieval import Bm25Index, Retriever, build_index_factory
-from medapp.span_refiner import refine_span
 from medapp.types import Chunk, Segment, Verdict
 
 
@@ -77,188 +60,109 @@ class CiteFirstSegmentAnswerer:
         )
 
         return [
-            Verdict(answer=True, evidence=chunk.span, candidates=(chunk,))
-            for _ in questions
+            Verdict(answer=True, cited=chunk, candidates=(chunk,)) for _ in questions
         ]
 
 
-class Bm25RetrievalAnswerer:
-    """ADR-0001's measured baseline: cut the Conversation up, rank, cite the best.
-
-    It answers yes to every Question it retrieves anything for. Saying no needs
-    a Relevance judgement and an Entailment judgement, and neither exists yet;
-    inventing a score threshold here would be a guess dressed as a decision. So
-    what this Answerer is for is the evidence half of the score and the
-    component metrics behind it — every Verdict carries the ranked Chunks it
-    was chosen from, which is what recall@k and oracle-selected tIoU are
-    computed from.
-    """
-
-    def __init__(self, scheme: ChunkScheme, candidates: int) -> None:
-        """Fix the granularities and how deep a ranking each Verdict carries.
-
-        Args:
-            scheme: The Chunk granularities, as Settings resolved them.
-            candidates: How many ranked Chunks a Verdict carries. The judges
-                downstream read them, and so do the component metrics, so this
-                is deeper than the one Chunk the Evidence Span comes from.
-        """
-        self._scheme = scheme
-        self._candidates = candidates
-
-    def answer(
-        self, segments: tuple[Segment, ...], questions: Sequence[str]
-    ) -> Iterable[Verdict]:
-        """Answer each Question against the Chunks of one Conversation.
-
-        The Chunks and the index are built once for the whole Conversation and
-        every Question is ranked against them, which is why the Verdicts are
-        produced lazily: the caller checks its deadline between them.
-
-        Raises:
-            ValueError: If the Conversation produced no Chunks, which leaves
-                every Question with nothing to read an answer from.
-        """
-        index = Bm25Index(chunk_conversation(segments, self._scheme))
-
-        return self._verdicts(index, questions)
-
-    def _verdicts(
-        self, index: Bm25Index, questions: Sequence[str]
-    ) -> Iterator[Verdict]:
-        """One Verdict per Question, ranked as the caller consumes them."""
-        for question in questions:
-            candidates = index.rank(question, self._candidates)
-
-            if not candidates:
-                # The Question shares no term with the Conversation at all, so
-                # there is no passage a yes could be read from.
-                yield Verdict(answer=False, evidence=None, candidates=())
-                continue
-
-            yield Verdict(
-                answer=True, evidence=candidates[0].span, candidates=candidates
-            )
-
-
 class RerankRelevanceAnswerer:
-    """BM25 retrieves, a cross-encoder re-orders, and Relevance decides yes.
+    """The cross-encoder ranks every sentence, and Relevance decides yes.
 
-    Two things change against the BM25 baseline. The Evidence Span comes from
-    the Chunk the cross-encoder ranked first rather than the one BM25 did,
-    which is the boundary discrimination ADR-0002 recorded BM25 as lacking. And
-    a Question whose best Chunk does not reach the Relevance threshold is
+    There is no retriever in front of the cross-encoder. One Conversation cuts
+    into a few dozen sentences, which is a batch the cross-encoder scores in
+    one pass, and every lexical prefilter measured over train and dev cost
+    tIoU rather than saving it: at a BM25 depth of 8, 16, 24 and 32 the cited
+    Chunk is worth 0.461, 0.477, 0.487 and 0.488 mean tIoU against 0.507 for
+    scoring all of them. A prefilter can only remove the right sentence, and on
+    a candidate set this small it buys no latency worth that.
+
+    A Question whose best sentence does not reach the Relevance threshold is
     answered no: nothing in the Conversation is about what it asks about, which
     is what an Off-Topic Question looks like.
-
-    It answers yes to every Question that clears the threshold, Hard Negatives
-    included. Their best Chunk scores high on Relevance precisely because it is
-    lexically near-identical to the truth, and the judgement that separates
-    them is Entailment, which does not exist yet. Lowering this threshold until
-    it catches them would reject the Positives it is their business to keep.
     """
 
     def __init__(
         self,
-        scheme: ChunkScheme,
+        scheme: SentenceScheme,
         candidates: int,
-        index_factory: Callable[[Sequence[Chunk]], Retriever],
         reranker: Reranker,
         threshold: float,
     ) -> None:
-        """Fix the granularities, the retriever, the depth reranked and the bar.
+        """Fix how the Conversation is cut, how deep a ranking is carried, and the bar.
 
         Args:
-            scheme: The Chunk granularities, as Settings resolved them.
-            candidates: How many ranked Chunks are rescored and carried on the
-                Verdict. The judges downstream read them, and so do the
-                component metrics.
-            index_factory: Builds the per-request index over one Conversation's
-                Chunks, as Settings' retrieval mode names it.
+            scheme: How the Conversation is cut, as Settings resolved it.
+            candidates: How many ranked Chunks a Verdict carries. Every
+                sentence is scored; this is how many of them the Verdict
+                exposes for the judges downstream and the component metrics.
             reranker: Scores how far a Chunk is about what a Question asks
                 about.
             threshold: The Relevance the best Chunk must reach for a yes.
         """
         self._scheme = scheme
         self._candidates = candidates
-        self._index_factory = index_factory
         self._reranker = reranker
         self._threshold = threshold
 
     def answer(
         self, segments: tuple[Segment, ...], questions: Sequence[str]
     ) -> Iterable[Verdict]:
-        """Answer each Question against the Chunks of one Conversation.
-
-        Raises:
-            ValueError: If the Conversation produced no Chunks, which leaves
-                every Question with nothing to read an answer from.
-        """
-        index = self._index_factory(chunk_conversation(segments, self._scheme))
-
-        return self._verdicts(index, questions)
+        """Answer each Question against the sentences of one Conversation."""
+        return self._verdicts(chunk_conversation(segments, self._scheme), questions)
 
     def _verdicts(
-        self, index: Retriever, questions: Sequence[str]
+        self, chunks: tuple[Chunk, ...], questions: Sequence[str]
     ) -> Iterator[Verdict]:
         """One Verdict per Question, judged as the caller consumes them."""
         for question in questions:
-            retrieved = index.rank(question, self._candidates)
-            reranked = self._reranker.rerank(question, retrieved)
-            candidates = tuple(candidate.chunk for candidate in reranked)
+            reranked = self._reranker.rerank(question, chunks)
+            candidates = tuple(
+                candidate.chunk for candidate in reranked[: self._candidates]
+            )
 
             if not reranked or reranked[0].relevance < self._threshold:
-                # Either the Question shares no term with the Conversation at
-                # all, or nothing the Conversation says comes close enough to
-                # what it asks about. Both are a no with nothing to point at.
-                yield Verdict(answer=False, evidence=None, candidates=candidates)
+                # Nothing the Conversation says comes close enough to what the
+                # Question asks about, which is a no with nothing to point at.
+                yield Verdict(answer=False, cited=None, candidates=candidates)
                 continue
 
-            yield Verdict(
-                answer=True, evidence=candidates[0].span, candidates=candidates
-            )
+            yield Verdict(answer=True, cited=candidates[0], candidates=candidates)
 
 
 class RerankEntailAnswerer:
     """Relevance finds the passage; Entailment decides whether it says so.
 
-    The Relevance judge cannot separate a Positive from a Hard Negative — the
-    Hard Negative's best Chunk is lexically near-identical to the truth and
-    scores just as high — so it is asked only what it can answer: whether
-    *anything* in the Conversation is about what the Question asks about. That
-    is what an Off-Topic Question fails. Everything that clears it goes to the
-    Entailment judge, which reads the Question as the Claim a yes would be
-    agreeing with and decides whether the passage establishes it.
+    The Relevance judge is asked what it can answer: whether *anything* in the
+    Conversation is about what the Question asks about, which is what an
+    Off-Topic Question fails. Everything that clears it goes to the Entailment
+    judge, which reads the Question as the Claim a yes would be agreeing with
+    and decides whether the passage establishes it.
 
     CONTEXT.md fixes the rule and it is not a blend of the two scores: yes
     requires entailment, and nothing less. A Chunk that contradicts the Claim
     and a Chunk that is silent on it are both a no, so the entailment
     probability alone is thresholded.
 
-    Only the top Relevant Chunk is judged. It is the Chunk the Evidence Span
-    would be read from, so it is the one the yes has to be true of; judging
-    deeper would let the answer come from a Chunk the Verdict does not cite.
+    The top Relevant Chunks are judged and the Verdict cites the one that
+    entailed best, which is what keeps the answer and the Evidence Span one
+    decision rather than two.
     """
 
     def __init__(
         self,
-        scheme: ChunkScheme,
+        scheme: SentenceScheme,
         candidates: int,
-        index_factory: Callable[[Sequence[Chunk]], Retriever],
         reranker: Reranker,
         rewriter: Rewriter,
         judge: EntailmentJudge,
         relevance_threshold: float | None,
         entailment_threshold: float,
+        entail_depth: int,
     ) -> None:
-        """Fix the granularities, the retriever, the depth reranked and the bars.
+        """Fix how the Conversation is cut, the depth carried, and the bars.
 
         Args:
-            scheme: The Chunk granularities, as Settings resolved them.
-            candidates: How many ranked Chunks are rescored and carried on the
-                Verdict.
-            index_factory: Builds the per-request index over one Conversation's
-                Chunks, as Settings' retrieval mode names it.
+            scheme: How the Conversation is cut, as Settings resolved it.
+            candidates: How many ranked Chunks the Verdict carries.
             reranker: Scores how far a Chunk is about what a Question asks
                 about.
             rewriter: Turns a Question into the Claim a yes would agree with.
@@ -270,38 +174,43 @@ class RerankEntailAnswerer:
                 against.
             entailment_threshold: The entailment probability that Chunk must
                 reach for a yes.
+            entail_depth: How many of the top Relevant Chunks are judged. The
+                Verdict cites the best-entailing of them.
+
+        Raises:
+            ValueError: If fewer than one Chunk would be judged, which leaves
+                every Question with no Entailment judgement to answer from.
         """
+        if entail_depth < 1:
+            raise ValueError(
+                f"At least one Chunk has to be judged for a yes to be "
+                f"entailed by anything: got entail_depth={entail_depth!r}."
+            )
+
         self._scheme = scheme
         self._candidates = candidates
-        self._index_factory = index_factory
         self._reranker = reranker
         self._rewriter = rewriter
         self._judge = judge
         self._relevance_threshold = relevance_threshold
         self._entailment_threshold = entailment_threshold
+        self._entail_depth = entail_depth
 
     def answer(
         self, segments: tuple[Segment, ...], questions: Sequence[str]
     ) -> Iterable[Verdict]:
-        """Answer each Question against the Chunks of one Conversation.
-
-        Raises:
-            ValueError: If the Conversation produced no Chunks, which leaves
-                every Question with nothing to read an answer from.
-        """
-        index = self._index_factory(chunk_conversation(segments, self._scheme))
-
-        return self._verdicts(index, questions)
+        """Answer each Question against the sentences of one Conversation."""
+        return self._verdicts(chunk_conversation(segments, self._scheme), questions)
 
     def _verdicts(
-        self, index: Retriever, questions: Sequence[str]
+        self, chunks: tuple[Chunk, ...], questions: Sequence[str]
     ) -> Iterator[Verdict]:
         """One Verdict per Question, judged as the caller consumes them."""
         for question in questions:
-            reranked = self._reranker.rerank(
-                question, index.rank(question, self._candidates)
+            reranked = self._reranker.rerank(question, chunks)
+            candidates = tuple(
+                candidate.chunk for candidate in reranked[: self._candidates]
             )
-            candidates = tuple(candidate.chunk for candidate in reranked)
 
             if not reranked or (
                 self._relevance_threshold is not None
@@ -310,92 +219,26 @@ class RerankEntailAnswerer:
                 # Nothing the Conversation says comes close to what the
                 # Question asks about, which is what an Off-Topic Question
                 # looks like. There is no Claim worth judging against it.
-                yield Verdict(answer=False, evidence=None, candidates=candidates)
+                yield Verdict(answer=False, cited=None, candidates=candidates)
                 continue
 
             claim = self._rewriter.rewrite(question)
-            judged = self._judge.judge(claim.text, candidates[:1])
+            judged = self._judge.judge(claim.text, candidates[: self._entail_depth])
+            best = max(judged, key=lambda judgement: judgement.entailment)
 
-            if judged[0].entailment < self._entailment_threshold:
-                # The passage is about the right subject and does not establish
-                # the Claim: it either contradicts it or is silent on it, and
-                # both are a no. This is the Hard Negative.
-                yield Verdict(answer=False, evidence=None, candidates=candidates)
+            if best.entailment < self._entailment_threshold:
+                # No passage the Conversation is about the right subject in
+                # establishes the Claim: each either contradicts it or is
+                # silent on it, and both are a no. This is the Hard Negative.
+                yield Verdict(answer=False, cited=None, candidates=candidates)
                 continue
 
-            yield Verdict(
-                answer=True, evidence=candidates[0].span, candidates=candidates
-            )
+            yield Verdict(answer=True, cited=best.chunk, candidates=candidates)
 
 
-class SpanRefiningAnswerer:
-    """Pads and snaps the winning Chunk's boundaries, whichever Answerer chose it.
-
-    The yes/no decision and the ranked Chunks a Verdict carries are exactly the
-    wrapped Answerer's own; only the Evidence Span the caller sees is refined.
-    Refinement is generic span arithmetic tuned on dev against mean tIoU over
-    annotated Positives — see ``python -m scripts.span_padding`` — and applies
-    to whichever Answerer is configured, so it wraps here rather than being
-    duplicated inside each one.
-    """
-
-    def __init__(self, answerer: Answerer, start_pad: float, end_pad: float) -> None:
-        """Wrap an Answerer with the padding Settings resolved.
-
-        Args:
-            answerer: The Answerer whose Verdicts are refined.
-            start_pad: Seconds to extend the Evidence Span's start earlier by,
-                before it is snapped back to a Word edge.
-            end_pad: Seconds to extend the Evidence Span's end later by, before
-                it is snapped back to a Word edge.
-        """
-        self._answerer = answerer
-        self._start_pad = start_pad
-        self._end_pad = end_pad
-
-    def answer(
-        self, segments: tuple[Segment, ...], questions: Sequence[str]
-    ) -> Iterable[Verdict]:
-        """Refine each yes Verdict's Evidence Span as the wrapped Answerer yields it."""
-        words = tuple(word for segment in segments for word in segment.words)
-
-        for verdict in self._answerer.answer(segments, questions):
-            if not verdict.answer:
-                yield verdict
-                continue
-
-            yield Verdict(
-                answer=True,
-                evidence=refine_span(
-                    verdict.candidates[0], words, self._start_pad, self._end_pad
-                ),
-                candidates=verdict.candidates,
-            )
-
-
-def _build_bm25_retrieval(settings: Settings) -> Answerer:
-    """The BM25 baseline, with the granularities Settings resolved.
-
-    Raises:
-        ValueError: If Settings name a retrieval mode this Answerer does not
-            rank with. It is ADR-0001's BM25 baseline by definition, and
-            serving it under the name of another mode would report BM25's
-            numbers as that mode's.
-    """
-    if settings.retrieval_mode != "bm25":
-        raise ValueError(
-            f"The BM25 baseline Answerer ranks with BM25, and Settings name "
-            f"the {settings.retrieval_mode!r} retrieval mode. Answer with the "
-            "'retrieve_rerank_entail' strategy to use it."
-        )
-
-    return Bm25RetrievalAnswerer(
-        scheme=ChunkScheme(
-            word_lengths=settings.chunk_word_lengths,
-            stride_fraction=settings.chunk_stride_fraction,
-        ),
-        candidates=settings.retrieval_candidates,
-    )
+def _scheme(settings: Settings) -> SentenceScheme:
+    """How the Conversation is cut, as Settings resolved it."""
+    return SentenceScheme(max_words=settings.chunk_max_words)
 
 
 def _build_rerank_relevance(settings: Settings) -> Answerer:
@@ -409,12 +252,8 @@ def _build_rerank_relevance(settings: Settings) -> Answerer:
     reranker.warm_up()
 
     return RerankRelevanceAnswerer(
-        scheme=ChunkScheme(
-            word_lengths=settings.chunk_word_lengths,
-            stride_fraction=settings.chunk_stride_fraction,
-        ),
+        scheme=_scheme(settings),
         candidates=settings.retrieval_candidates,
-        index_factory=build_index_factory(settings, _embedder_for(settings)),
         reranker=reranker,
         threshold=settings.relevance_threshold,
     )
@@ -425,9 +264,7 @@ def _build_rerank_entail(settings: Settings) -> Answerer:
 
     Every model is exercised once here rather than inside the first request,
     for the reason the reranker alone already was: the first forward pass costs
-    seconds a request does not have. The embedder is loaded only where Settings
-    name a retrieval mode that ranks with one, so the mode ADR-0001's
-    measurement rejected costs the request path no memory and no latency.
+    seconds a request does not have.
     """
     reranker = CrossEncoderReranker(settings)
     reranker.warm_up()
@@ -436,12 +273,8 @@ def _build_rerank_entail(settings: Settings) -> Answerer:
     judge.warm_up()
 
     return RerankEntailAnswerer(
-        scheme=ChunkScheme(
-            word_lengths=settings.chunk_word_lengths,
-            stride_fraction=settings.chunk_stride_fraction,
-        ),
+        scheme=_scheme(settings),
         candidates=settings.retrieval_candidates,
-        index_factory=build_index_factory(settings, _embedder_for(settings)),
         reranker=reranker,
         rewriter=ClaimRewriter(),
         judge=judge,
@@ -449,23 +282,12 @@ def _build_rerank_entail(settings: Settings) -> Answerer:
             settings.relevance_threshold if settings.relevance_gate else None
         ),
         entailment_threshold=settings.entailment_threshold,
+        entail_depth=settings.entail_depth,
     )
-
-
-def _embedder_for(settings: Settings) -> Embedder | None:
-    """The bi-encoder, loaded and warmed, or None where no mode ranks with one."""
-    if settings.retrieval_mode == "bm25":
-        return None
-
-    embedder = load_embedder(settings)
-    warm_embedder(embedder, settings)
-
-    return embedder
 
 
 _ANSWERERS: dict[AnswerStrategy, Callable[[Settings], Answerer]] = {
     "cite_first_segment": lambda _: CiteFirstSegmentAnswerer(),
-    "retrieve_bm25": _build_bm25_retrieval,
     "retrieve_rerank": _build_rerank_relevance,
     "retrieve_rerank_entail": _build_rerank_entail,
 }

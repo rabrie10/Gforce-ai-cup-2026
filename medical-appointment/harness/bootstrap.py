@@ -1,17 +1,3 @@
-"""Bootstrap resampling over a fold, at Conversation level.
-
-ADR-0002 chooses every threshold for stability under resampling rather than by
-argmax over a handful of groups, and reports every number with an interval
-because the folds are small enough that one is misleading without it. Both are
-this module's job, and both are shared by the thresholds that are tuned
-separately.
-
-Resampling is at Conversation level. The ten Questions of a Conversation share
-one transcript and one set of Chunks, so they are drawn together or not at all
-— resampling Questions would treat them as ten independent observations and
-report an interval far narrower than the fold supports.
-"""
-
 import random
 from collections.abc import Iterable, Sequence
 from typing import Protocol, TypeVar

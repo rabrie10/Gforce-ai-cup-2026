@@ -1,3 +1,5 @@
 __pycache__/
 .venv/
 
+CLAUDE.md
+.DS_Store

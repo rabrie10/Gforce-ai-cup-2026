@@ -82,3 +82,4 @@ cython_debug/
 .devcontainer
 .jupyter
 .DS_Store
+transcripts-turbo/

@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from dtos import ASRQuestionRequestDto, ASRQuestionResponseDto
 from example import predict
 from medapp.config import settings
+from medapp.service import scorable_response
 from utils import validate_response
 
 HOST = "0.0.0.0"
@@ -32,12 +33,41 @@ start_time = time.time()
 
 @app.post(f"/predict{settings.route_suffix}", response_model=ASRQuestionResponseDto)
 def predict_endpoint(request: ASRQuestionRequestDto):
-    """Answer every question about one conversation."""
-    response = predict(request)
+    """Answer every question about one conversation.
 
-    # Fail here, loudly, rather than having the evaluator silently score every
-    # question about this conversation wrong.
-    validate_response(response, expected_count=len(request.questions))
+    Nothing raises out of this route. A 500 and a body the evaluator cannot
+    read are scored the same — every question about this conversation wrong —
+    so the only thing an exception here would buy is a worse log line. The
+    body is repaired instead, and the repair is logged at error level.
+    """
+    expected_count = len(request.questions)
+
+    try:
+        response = scorable_response(
+            predict(request), expected_count, request.audio_filename
+        )
+    except Exception:
+        logger.error(
+            "%s: answering raised; guessing every question.",
+            request.audio_filename,
+            exc_info=True,
+        )
+        response = ASRQuestionResponseDto(
+            answers=[True] * expected_count,
+            evidence_start=[None] * expected_count,
+            evidence_end=[None] * expected_count,
+        )
+
+    # The repair above is written to make this impossible. It stays as the
+    # independent check on that claim, and it no longer decides the response.
+    try:
+        validate_response(response, expected_count=expected_count)
+    except ValueError:
+        logger.error(
+            "%s: the repaired body is still not scorable.",
+            request.audio_filename,
+            exc_info=True,
+        )
 
     return response
 

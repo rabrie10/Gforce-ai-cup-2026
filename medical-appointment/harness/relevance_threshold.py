@@ -1,31 +1,3 @@
-"""Where to put the Relevance threshold, measured on a fold.
-
-The threshold is the only free parameter of the Relevance judgement, and it
-decides one thing: how far the best Chunk of a Conversation has to be about
-what a Question asks about before the answer is yes. Too low and an Off-Topic
-Question finds something; too high and Positives lose the passage that makes
-them true. The two move against each other, so both are reported at every
-candidate — ADR-0002 requires TPR and TNR separately, because one blended
-number cannot see a threshold that is buying its accuracy entirely from one
-Question type.
-
-Hard Negatives are reported beside them and are not what the threshold is tuned
-on. Their best Chunk is highly Relevant by construction, so no threshold
-rejects them without taking the Positives with it; that is the Entailment
-judge's failure to fix, and pulling this threshold up to chase it would look
-like progress on the blended number while destroying the half of the score that
-is already working.
-
-ADR-0002 also fixes *what* the value is chosen on and *how*: on Off-Topic
-accuracy, the component metric this threshold owns, and for stability under
-bootstrap resampling rather than by argmax over a fold of 16 Conversations,
-which is substantially noise. So the chosen value is the lowest threshold whose
-Off-Topic accuracy survives resampling, which leaves the Positives everything
-above it would have cost. Resampling is at Conversation level, because the ten
-Questions of a Conversation share one transcript and one set of Chunks and are
-not independent observations.
-"""
-
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -33,13 +5,12 @@ from dataclasses import dataclass
 from harness import transcript_cache
 from harness.bootstrap import interval, rate, resamples
 from harness.folds import FoldName, conversations_in_fold
-from medapp.chunker import ChunkScheme, chunk_conversation
+from medapp.chunker import SentenceScheme, chunk_conversation
 from medapp.reranker import Reranker
-from medapp.retrieval import Bm25Index
 
 # A Question whose best Chunk did not reach the threshold is answered no, so a
-# Question nothing was retrieved for must be a no at every candidate, including
-# a candidate of zero.
+# Question with no Chunk to score must be a no at every candidate, including a
+# candidate of zero.
 NOTHING_RETRIEVED = float("-inf")
 
 CANDIDATE_COUNT = 21
@@ -67,7 +38,7 @@ class QuestionMeasurement:
             :data:`NOTHING_RETRIEVED` when the Question shares no term with the
             Conversation.
         judging_seconds: Wall time for this Question alone — ranking and the
-            reranker's forward pass. The Chunker and the index are built once
+            reranker's forward pass. The Chunker runs once
             per Conversation and are not charged here.
     """
 
@@ -136,19 +107,18 @@ class ThresholdSweep:
 
 
 def measure_fold(
-    fold: FoldName, scheme: ChunkScheme, reranker: Reranker, candidates: int
+    fold: FoldName, scheme: SentenceScheme, reranker: Reranker, candidates: int
 ) -> tuple[QuestionMeasurement, ...]:
     """Score every Question of one fold against its Conversation's Chunks.
 
-    The Chunks and the index are built once per Conversation and every Question
-    of it is retrieved and reranked against them, which is exactly what happens
-    inside one request.
+    The Chunks are built once per Conversation and every Question of it is
+    reranked against them, which is exactly what happens inside one request.
 
     Args:
         fold: Which fold to read.
-        scheme: The Chunk granularities to cut at.
+        scheme: How the Conversation is cut.
         reranker: The Relevance judge, already loaded.
-        candidates: How deep a BM25 ranking the reranker is handed.
+        candidates: How many of the ranked Chunks are carried.
 
     Raises:
         FileNotFoundError: If a Conversation of the fold is not cached.
@@ -156,15 +126,11 @@ def measure_fold(
     measurements: list[QuestionMeasurement] = []
 
     for transcript_id, rows in conversations_in_fold(fold):
-        index = Bm25Index(
-            chunk_conversation(transcript_cache.read(transcript_id), scheme)
-        )
+        sentences = chunk_conversation(transcript_cache.read(transcript_id), scheme)
 
         for row in rows:
             started = time.perf_counter()
-            reranked = reranker.rerank(
-                row["question"], index.rank(row["question"], candidates)
-            )
+            reranked = reranker.rerank(row["question"], sentences)[:candidates]
             elapsed = time.perf_counter() - started
 
             measurements.append(
@@ -256,7 +222,7 @@ def report_threshold(
 
 def sweep(
     fold: FoldName,
-    scheme: ChunkScheme,
+    scheme: SentenceScheme,
     reranker: Reranker,
     candidates: int,
     thresholds: Sequence[float] | None = None,

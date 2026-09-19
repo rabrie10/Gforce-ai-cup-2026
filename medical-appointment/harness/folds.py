@@ -1,13 +1,3 @@
-"""The frozen train/dev/test assignment, read from disk and never recomputed.
-
-ADR-0002 splits 20/40/40 grouped at Conversation level: all ten Questions of a
-Conversation live in the same fold, because they share one transcript and one
-set of Chunks. ``data/folds.json`` is written once by
-``scripts/assign_folds.py`` and committed; this module is the only way later
-measurements reach it, so the test fold stays untouched in practice rather than
-by promise.
-"""
-
 import json
 from dataclasses import dataclass
 from functools import lru_cache

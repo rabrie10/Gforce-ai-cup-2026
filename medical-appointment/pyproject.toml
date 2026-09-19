@@ -13,8 +13,6 @@ dependencies = [
   "pydantic>=2.7,<3",
   "pydantic-settings>=2.4",
   "faster-whisper>=1.1",
-  "bm25s>=0.2",
-  "PyStemmer>=2.2",
   "sentence-transformers>=3.0",
   "torch>=2.4",
   "numpy>=1.26",
@@ -85,12 +83,6 @@ module = ["faster_whisper.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# Neither ships a py.typed marker. The surface used here is three calls wide
-# (index, retrieve, stemWords) and is exercised by tests/test_retrieval.py.
-module = ["bm25s.*", "Stemmer.*"]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
 # Installed in the project environment but not in the pre-commit hook's, which
 # would otherwise fail on an import it has no way to resolve. Where they are
 # installed their own types are used: this only covers the not-found case. The
@@ -104,3 +96,11 @@ ignore_missing_imports = true
 # held to this project's typing; medapp/normalizer.py is the typed boundary.
 module = ["medapp.vendor.*"]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+# torch is imported inside `resolved_torch_device` to ask which backends this
+# machine actually has. It is not installed in the type-checking environment —
+# the hook would otherwise pull a gigabyte of wheels to check one `is_available`
+# call — and the surface used is two booleans wide.
+module = ["torch.*"]
+ignore_missing_imports = true

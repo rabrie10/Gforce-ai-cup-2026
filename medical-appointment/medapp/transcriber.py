@@ -1,27 +1,19 @@
-"""The one Transcriber: faster-whisper, configured entirely from Settings.
-
-Not an interface and not a set of interchangeable backends. The only realistic
-change is model size, device or a decoding knob, and configuration already
-covers all three — which is why this module never asks what hardware it is on.
-
-Word timestamps come from the same decoding pass as the Segments, so the timings
-the Chunker builds on cost an alignment step rather than a second traversal of
-the audio. Segments are kept apart: joining them into one string throws away the
-only thing that makes an Evidence Span returnable.
-"""
-
 import array
 import io
+import logging
 import math
+import time
 import wave
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Iterator
 from typing import Protocol
 
 from faster_whisper import WhisperModel
 
-from medapp.config import Settings
+from medapp.config import Settings, resolved_cpu_threads
 from medapp.config import settings as default_settings
 from medapp.types import Segment, Word
+
+logger = logging.getLogger(__name__)
 
 
 class _DecodedWord(Protocol):
@@ -57,6 +49,7 @@ class Transcriber:
         self,
         settings: Settings | None = None,
         model: _DecodingModel | None = None,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         """Load the decoding model, unless one is supplied.
 
@@ -66,17 +59,21 @@ class Transcriber:
             model: An already-constructed decoding model. The argument exists so
                 tests and the dev-loop scripts can hold one model across many
                 Conversations rather than reloading weights per call.
+            clock: Monotonic source the decoding budget is measured on.
         """
         self._settings = settings or default_settings
         self._model = model if model is not None else _load_model(self._settings)
+        self._clock = clock
 
     @property
     def settings(self) -> Settings:
         """The configuration this Transcriber decodes under."""
         return self._settings
 
-    def transcribe(self, audio_bytes: bytes) -> tuple[Segment, ...]:
-        """Transcribe one Conversation.
+    def transcribe(
+        self, audio_bytes: bytes, budget_seconds: float | None = None
+    ) -> tuple[Segment, ...]:
+        """Transcribe one Conversation, within a decoding budget.
 
         Segments the decoder produced no word timings for are dropped: an
         Evidence Span is returned as word boundaries, so a Segment without them
@@ -85,17 +82,55 @@ class Transcriber:
 
         Args:
             audio_bytes: The MP3 as it arrived on the wire.
+            budget_seconds: How long decoding may run for. None decodes the
+                whole Conversation however long it takes, which is what the
+                dev-loop scripts want and what a request must never do.
 
         Returns:
-            The Segments in time order, each carrying its Words.
+            The Segments decoded within the budget, in time order, each
+            carrying its Words. A budget that runs out truncates the
+            Conversation rather than raising: the Questions are still answered,
+            against the opening of it.
         """
         decoded, _ = self._model.transcribe(
             io.BytesIO(audio_bytes), **self._decoding_options()
         )
 
         # faster-whisper yields segments lazily; decoding only runs as they are
-        # consumed.
-        return tuple(_as_segment(segment) for segment in decoded if segment.words)
+        # consumed, which is what makes the budget below a budget on decoding
+        # rather than a timer running beside it.
+        return tuple(
+            _as_segment(segment)
+            for segment in self._within(decoded, budget_seconds)
+            if segment.words
+        )
+
+    def _within(
+        self, decoded: Iterable[_DecodedSegment], budget_seconds: float | None
+    ) -> Iterator[_DecodedSegment]:
+        """Yield decoded segments until the budget runs out, then stop.
+
+        The budget is checked before each segment is pulled rather than after,
+        so the check cannot itself be what takes the request past its deadline.
+        """
+        if budget_seconds is None:
+            yield from decoded
+            return
+
+        deadline = self._clock() + budget_seconds
+        iterator = iter(decoded)
+
+        while self._clock() < deadline:
+            try:
+                yield next(iterator)
+            except StopIteration:
+                return
+
+        logger.error(
+            "Decoding stopped at its %.1f s budget; the Conversation is "
+            "transcribed only as far as the decoder reached.",
+            budget_seconds,
+        )
 
     def warm_up(self) -> None:
         """Decode one synthetic second so no request pays the first decode.
@@ -131,6 +166,7 @@ def _load_model(settings: Settings) -> WhisperModel:
         settings.whisper_model,
         device=settings.device,
         compute_type=settings.compute_type,
+        cpu_threads=resolved_cpu_threads(settings.cpu_threads),
         download_root=str(settings.model_cache_dir),
     )
 
