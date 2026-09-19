@@ -1,0 +1,76 @@
+# Monorepo: hooks are scoped per hook, not via a top-level `files:` — that
+# would intersect with every hook and filter out .git/COMMIT_EDITMSG.
+fail_fast: true
+
+# Vendored upstream code is kept byte-comparable with its source so upstream
+# fixes can be diffed in; formatters and the type checker leave it alone.
+exclude: ^medical-appointment/medapp/vendor/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        files: &medapp ^medical-appointment/
+      - id: check-case-conflict
+        files: *medapp
+      - id: check-json
+        files: *medapp
+      - id: pretty-format-json
+        files: *medapp
+        args: ["--autofix", "--indent=2", "--no-sort-keys"]
+      - id: check-toml
+        files: *medapp
+      - id: check-xml
+        files: *medapp
+      - id: check-yaml
+        files: *medapp
+      - id: debug-statements
+        files: *medapp
+      - id: detect-private-key
+        files: *medapp
+      - id: end-of-file-fixer
+        files: *medapp
+      - id: mixed-line-ending
+        files: *medapp
+        args: ["--fix=lf"]
+      - id: trailing-whitespace
+        files: *medapp
+      - id: check-merge-conflict
+        files: *medapp
+
+  - repo: https://github.com/psf/black
+    rev: 26.5.1
+    hooks:
+      - id: black
+        files: *medapp
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.8
+    hooks:
+      - id: ruff-check
+        files: *medapp
+        args: ["--fix"]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+      - id: mypy
+        files: *medapp
+        args: ["--config-file=medical-appointment/pyproject.toml"]
+        additional_dependencies:
+          - pydantic>=2.7,<3
+          - pydantic-settings>=2.4
+          - fastapi>=0.115
+          - uvicorn>=0.30
+          - types-requests>=2.31
+          - pytest>=8
+          # Ships its own types, so the hook checks the dense retriever's
+          # array code rather than skipping it.
+          - numpy>=1.26
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]

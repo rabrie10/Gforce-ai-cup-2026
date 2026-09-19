@@ -128,7 +128,7 @@ off_topic      Is there any mention of attending a concert?              no
 The off-topic questions are free: if a subject never appears, the answer is no.
 The hard negatives are not. They are lexically almost identical to the true
 statement, so a model that answers from topical overlap gets every one of them
-wrong. 
+wrong.
 
 Two more things worth knowing. Yes and no answers are **exactly balanced** in
 both the validation and the evaluation set, so a constant answer earns the

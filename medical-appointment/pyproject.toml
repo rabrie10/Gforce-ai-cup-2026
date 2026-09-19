@@ -1,0 +1,106 @@
+# The medical-appointment system. Dependencies and tool configuration live
+# here; `requirements.txt` is kept because the case ships it and the README
+# names it, but `uv sync` against `uv.lock` is what reproduces the environment.
+
+[project]
+name = "medapp"
+version = "0.1.0"
+description = "Yes/no question answering with evidence spans over recorded consultations"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "pydantic>=2.7,<3",
+  "pydantic-settings>=2.4",
+  "faster-whisper>=1.1",
+  "sentence-transformers>=3.0",
+  "torch>=2.4",
+  "numpy>=1.26",
+  "more-itertools>=11.1.0",
+  # The Claim rewriter parses the Question to find where its subject ends. The
+  # model is a dependency rather than a download: the request path loads it,
+  # and nothing under `medapp` may reach the network. It is named by its wheel
+  # rather than through `[tool.uv.sources]` so that plain pip resolves it too —
+  # the deployment image installs with pip, and a model only uv can find would
+  # fail at import rather than at build. Capped below 3.9 because the model
+  # wheel is built against 3.8.
+  "spacy>=3.7,<3.9",
+  "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
+]
+
+[project.optional-dependencies]
+# Only if the single-LLM Answerer alternative is measured (ticket 13).
+llm = ["llama-cpp-python>=0.3"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "pandas>=2.2",
+  "requests>=2.31",
+  "pre-commit>=3.8",
+]
+
+[tool.uv]
+# The repository root is not an installable distribution: `api.py`, `dtos.py`
+# and `utils.py` are shipped top-level modules imported from the working
+# directory, and `medapp` sits beside them. uv manages the environment; there
+# is nothing to build.
+package = false
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+# Vendored upstream code is kept byte-comparable with openai/whisper.
+extend-exclude = ["medapp/vendor"]
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, isort, pyupgrade, bugbear, simplify
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `api.py`, `utils.py` and `medapp` are imported from the project root, which is
+# not on `sys.path` under a bare `pytest` invocation.
+pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+# faster-whisper ships no py.typed marker; the shapes this project depends on
+# are pinned by Protocols in medapp/transcriber.py instead.
+module = ["faster_whisper.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Installed in the project environment but not in the pre-commit hook's, which
+# would otherwise fail on an import it has no way to resolve. Where they are
+# installed their own types are used: this only covers the not-found case. The
+# surface `medapp` depends on is pinned by the Protocols in medapp/reranker.py
+# and medapp/claims.py.
+module = ["sentence_transformers.*", "huggingface_hub.*", "spacy", "spacy.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Vendored upstream code is kept diffable against openai/whisper, so it is not
+# held to this project's typing; medapp/normalizer.py is the typed boundary.
+module = ["medapp.vendor.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# torch is imported inside `resolved_torch_device` to ask which backends this
+# machine actually has. It is not installed in the type-checking environment —
+# the hook would otherwise pull a gigabyte of wheels to check one `is_available`
+# call — and the surface used is two booleans wide.
+module = ["torch.*"]
+ignore_missing_imports = true

@@ -1,3 +1,4 @@
+.scratch
 # Transcripts and model weights you cache locally
 transcripts/
 models/
@@ -80,3 +81,5 @@ cython_debug/
 .vscode
 .devcontainer
 .jupyter
+.DS_Store
+transcripts-turbo/

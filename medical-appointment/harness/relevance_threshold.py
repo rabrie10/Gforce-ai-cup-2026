@@ -1,0 +1,317 @@
+import time
+from collections.abc import Sequence
+from dataclasses import dataclass
+
+from harness import transcript_cache
+from harness.bootstrap import interval, rate, resamples
+from harness.folds import FoldName, conversations_in_fold
+from medapp.chunker import SentenceScheme, chunk_conversation
+from medapp.reranker import Reranker
+
+# A Question whose best Chunk did not reach the threshold is answered no, so a
+# Question with no Chunk to score must be a no at every candidate, including a
+# candidate of zero.
+NOTHING_RETRIEVED = float("-inf")
+
+CANDIDATE_COUNT = 21
+
+# The spec's latency budget gives all ten Questions of a Conversation 15 s
+# worst case. Retrieval and reranking are what this module measures; Entailment
+# is judged inside the same 15 s and is measured by
+# ``harness.entailment_threshold``.
+QUESTIONS_PER_CONVERSATION = 10
+JUDGING_BUDGET_SECONDS = 15.0
+
+
+@dataclass(frozen=True, slots=True)
+class QuestionMeasurement:
+    """What one Question got from retrieval and the reranker.
+
+    Recorded once and swept over afterwards, because every candidate threshold
+    reads the same scores: the model pass is what the measurement costs, and
+    paying it per threshold would buy nothing.
+
+    Attributes:
+        answer: The annotated answer, which is what a threshold is scored
+            against.
+        relevance: The Relevance of the best Chunk, or
+            :data:`NOTHING_RETRIEVED` when the Question shares no term with the
+            Conversation.
+        judging_seconds: Wall time for this Question alone — ranking and the
+            reranker's forward pass. The Chunker runs once
+            per Conversation and are not charged here.
+    """
+
+    question_id: str
+    transcript_id: str
+    question_type: str
+    answer: bool
+    relevance: float
+    judging_seconds: float
+
+
+@dataclass(frozen=True, slots=True)
+class ThresholdReport:
+    """One candidate threshold, scored on the fold and under resampling.
+
+    Attributes:
+        off_topic_accuracy: Fraction of Off-Topic Questions answered no. This
+            is what the threshold exists to buy.
+        hard_negative_accuracy: Fraction of Hard Negatives answered no.
+            Reported, not tuned on.
+        true_positive_rate: Fraction of Positives answered yes.
+        true_negative_rate: Fraction of all no Questions answered no, Hard
+            Negatives included.
+        accuracy: Over every Question of the fold. Reported so the sweep can
+            be read against the shipped score, and not what the threshold is
+            chosen on — blended accuracy would pull the threshold up until it
+            was rejecting Hard Negatives, which is the Entailment judge's job.
+        off_topic_interval: The bootstrap interval on ``off_topic_accuracy``,
+            resampled at Conversation level. This is what the threshold is
+            chosen on.
+        accuracy_interval: The same interval on ``accuracy``.
+    """
+
+    threshold: float
+    off_topic_accuracy: float
+    hard_negative_accuracy: float
+    true_positive_rate: float
+    true_negative_rate: float
+    accuracy: float
+    off_topic_interval: tuple[float, float]
+    accuracy_interval: tuple[float, float]
+
+
+@dataclass(frozen=True, slots=True)
+class ThresholdSweep:
+    """Every candidate threshold on one fold, and the one that is chosen.
+
+    Attributes:
+        chosen: The candidate with the highest lower bound on Off-Topic
+            accuracy under resampling, ties going to the one that keeps the
+            most Positives. ADR-0002 tunes this threshold on Off-Topic accuracy
+            and chooses for stability rather than by argmax, so this is the
+            lowest threshold that rejects Off-Topic Questions dependably —
+            anything above it is bought from the Positives.
+        judging_seconds: Per-Question judging time: mean, and the worst single
+            Question of the fold.
+    """
+
+    fold: FoldName
+    conversations: int
+    questions: int
+    reports: tuple[ThresholdReport, ...]
+    chosen: ThresholdReport
+    mean_judging_seconds: float
+    worst_judging_seconds: float
+
+
+def measure_fold(
+    fold: FoldName, scheme: SentenceScheme, reranker: Reranker, candidates: int
+) -> tuple[QuestionMeasurement, ...]:
+    """Score every Question of one fold against its Conversation's Chunks.
+
+    The Chunks are built once per Conversation and every Question of it is
+    reranked against them, which is exactly what happens inside one request.
+
+    Args:
+        fold: Which fold to read.
+        scheme: How the Conversation is cut.
+        reranker: The Relevance judge, already loaded.
+        candidates: How many of the ranked Chunks are carried.
+
+    Raises:
+        FileNotFoundError: If a Conversation of the fold is not cached.
+    """
+    measurements: list[QuestionMeasurement] = []
+
+    for transcript_id, rows in conversations_in_fold(fold):
+        sentences = chunk_conversation(transcript_cache.read(transcript_id), scheme)
+
+        for row in rows:
+            started = time.perf_counter()
+            reranked = reranker.rerank(row["question"], sentences)[:candidates]
+            elapsed = time.perf_counter() - started
+
+            measurements.append(
+                QuestionMeasurement(
+                    question_id=row["question_id"],
+                    transcript_id=transcript_id,
+                    question_type=row["question_type"],
+                    answer=row["answer"] == "yes",
+                    relevance=(
+                        reranked[0].relevance if reranked else NOTHING_RETRIEVED
+                    ),
+                    judging_seconds=elapsed,
+                )
+            )
+
+    return tuple(measurements)
+
+
+def candidate_thresholds(
+    measurements: Sequence[QuestionMeasurement], count: int = CANDIDATE_COUNT
+) -> tuple[float, ...]:
+    """Candidate cut points drawn from the scores actually observed.
+
+    A fixed grid over [0, 1] would spend most of its rows where no Question
+    scored: the reranker's sigmoid saturates, and what separates the Question
+    types sits in the gaps between the observed values. So the candidates are
+    evenly spaced quantiles of the observed Relevance instead, which puts them
+    where the decisions are.
+
+    Returns:
+        The distinct candidates, ascending. A threshold *equal* to an observed
+        score keeps that Question — the comparison is ``>=`` — so the lowest
+        candidate answers everything retrieved yes.
+    """
+    scores = sorted(
+        measurement.relevance
+        for measurement in measurements
+        if measurement.relevance > NOTHING_RETRIEVED
+    )
+
+    if not scores:
+        return (0.0,)
+
+    positions = [
+        round(index * (len(scores) - 1) / (count - 1)) for index in range(count)
+    ]
+
+    return tuple(sorted({scores[position] for position in positions}))
+
+
+def report_threshold(
+    measurements: Sequence[QuestionMeasurement],
+    threshold: float,
+    resampled: Sequence[Sequence[QuestionMeasurement]],
+) -> ThresholdReport:
+    """Score one candidate threshold on the fold and on its resamples."""
+    return ThresholdReport(
+        threshold=threshold,
+        off_topic_accuracy=_accuracy_of_type(measurements, threshold, "off_topic"),
+        hard_negative_accuracy=_accuracy_of_type(
+            measurements, threshold, "hard_negative"
+        ),
+        true_positive_rate=rate(
+            [
+                _predicted(measurement, threshold)
+                for measurement in measurements
+                if measurement.answer
+            ]
+        ),
+        true_negative_rate=rate(
+            [
+                not _predicted(measurement, threshold)
+                for measurement in measurements
+                if not measurement.answer
+            ]
+        ),
+        accuracy=_accuracy(measurements, threshold),
+        off_topic_interval=interval(
+            [
+                _accuracy_of_type(resample, threshold, "off_topic")
+                for resample in resampled
+            ]
+        ),
+        accuracy_interval=interval(
+            [_accuracy(resample, threshold) for resample in resampled]
+        ),
+    )
+
+
+def sweep(
+    fold: FoldName,
+    scheme: SentenceScheme,
+    reranker: Reranker,
+    candidates: int,
+    thresholds: Sequence[float] | None = None,
+) -> ThresholdSweep:
+    """Measure one fold once and score every candidate threshold on it.
+
+    Args:
+        fold: Which fold to read.
+        scheme: The Chunk granularities to cut at.
+        reranker: The Relevance judge, already loaded.
+        candidates: How deep a BM25 ranking the reranker is handed.
+        thresholds: Candidates to score. Defaults to quantiles of the observed
+            Relevance.
+
+    Raises:
+        FileNotFoundError: If a Conversation of the fold is not cached.
+        ValueError: If the fold holds no Questions, which would leave every
+            threshold scored over nothing.
+    """
+    measurements = measure_fold(fold, scheme, reranker, candidates)
+
+    if not measurements:
+        raise ValueError(
+            f"The {fold} fold holds no Questions, so there is nothing to "
+            "choose a Relevance threshold against."
+        )
+
+    resampled = resamples(measurements)
+    reports = tuple(
+        report_threshold(measurements, threshold, resampled)
+        for threshold in (thresholds or candidate_thresholds(measurements))
+    )
+
+    return ThresholdSweep(
+        fold=fold,
+        conversations=len({m.transcript_id for m in measurements}),
+        questions=len(measurements),
+        reports=reports,
+        chosen=choose(reports),
+        mean_judging_seconds=sum(m.judging_seconds for m in measurements)
+        / len(measurements),
+        worst_judging_seconds=max(m.judging_seconds for m in measurements),
+    )
+
+
+def choose(reports: Sequence[ThresholdReport]) -> ThresholdReport:
+    """The candidate to ship, out of the ones that were scored.
+
+    The highest lower bound on Off-Topic accuracy under resampling, ties going
+    to the one that keeps the most Positives — which, since Off-Topic accuracy
+    rises with the threshold and TPR falls with it, is the lowest threshold
+    that rejects Off-Topic Questions dependably. Everything above that is
+    bought from the Positives, and everything it leaves behind is a Hard
+    Negative, which is the Entailment judge's to reject.
+
+    Raises:
+        ValueError: If no candidate was scored.
+    """
+    if not reports:
+        raise ValueError("No candidate thresholds were scored.")
+
+    return max(
+        reports,
+        key=lambda report: (report.off_topic_interval[0], report.true_positive_rate),
+    )
+
+
+def _predicted(measurement: QuestionMeasurement, threshold: float) -> bool:
+    """What the Answerer answers this Question at this threshold."""
+    return measurement.relevance >= threshold
+
+
+def _accuracy(measurements: Sequence[QuestionMeasurement], threshold: float) -> float:
+    return rate(
+        [
+            _predicted(measurement, threshold) == measurement.answer
+            for measurement in measurements
+        ]
+    )
+
+
+def _accuracy_of_type(
+    measurements: Sequence[QuestionMeasurement], threshold: float, question_type: str
+) -> float:
+    return _accuracy(
+        [
+            measurement
+            for measurement in measurements
+            if measurement.question_type == question_type
+        ],
+        threshold,
+    )
