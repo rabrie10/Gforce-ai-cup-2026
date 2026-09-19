@@ -19,10 +19,8 @@ from harness.answer_sweep import (
     chosen,
     grid,
     outcome,
-    paddings,
     sweep,
 )
-from medapp.span_refiner import SpanPadding, WordEdges
 from medapp.types import Chunk, Word
 
 WORDS = tuple(
@@ -35,7 +33,6 @@ WORDS = tuple(
         ("today", 1.6),
     )
 )
-EDGES = WordEdges.of(WORDS)
 
 
 def _chunk(first: int, last: int) -> Chunk:
@@ -69,7 +66,6 @@ def _recording(
         relevance=relevance,
         chunks=CHUNKS,
         entailments=entailments,
-        edges=EDGES,
     )
 
 
@@ -79,7 +75,6 @@ def _candidate(**overrides) -> Candidate:
             "relevance_threshold": 0.3,
             "entailment_threshold": 0.5,
             "entail_depth": 1,
-            "padding": SpanPadding(),
             **overrides,
         }
     )
@@ -129,13 +124,11 @@ class TestTheReplay:
             CHUNKS[1].end,
         ), "the span comes from the Chunk that entailed, not the most relevant"
 
-    def test_the_span_is_padded_and_snapped_to_a_word_edge(self):
-        answered = outcome(
-            _recording(entailments=(0.9,)),
-            _candidate(padding=SpanPadding(start_seconds=0.5)),
-        )
+    def test_the_span_is_the_cited_chunks_own_boundaries(self):
+        """Nothing is padded: a Chunk is a sentence and its edges are real ones."""
+        answered = outcome(_recording(entailments=(0.9,)), _candidate())
 
-        assert answered.predicted[0] in {word.start for word in WORDS}
+        assert answered.predicted == (CHUNKS[0].start, CHUNKS[0].end)
 
     def test_a_question_whose_truth_is_no_carries_no_tiou(self):
         answered = outcome(
@@ -152,14 +145,10 @@ class TestTheGrid:
             relevance_thresholds=(0.1, 0.2),
             entailment_thresholds=(0.5,),
             depths=(1, 2, 3),
-            paddings=(SpanPadding(), SpanPadding(start_seconds=1.0)),
         )
 
-        assert len(candidates) == 2 * 1 * 3 * 2
+        assert len(candidates) == 2 * 1 * 3
         assert len(set(candidates)) == len(candidates)
-
-    def test_paddings_sweep_both_ends_independently(self):
-        assert len(paddings((0.0, 1.0), (0.0, 0.5))) == 2 * 2 * 2 * 2
 
 
 class TestChoosing:
@@ -196,7 +185,7 @@ class TestChoosing:
         assert chosen([better, careful]) is better
 
     def test_a_candidate_that_regresses_a_question_type_is_refused(self):
-        reference = self._report(lower=0.55, missed=2, hard=0.86)
+        reference = {"positive": 0.9, "hard_negative": 0.86}
         buys_tiou_with_hard_negatives = self._report(lower=0.70, missed=1, hard=0.70)
         holds_the_slice = self._report(lower=0.60, missed=1, hard=0.85)
 
@@ -209,7 +198,7 @@ class TestChoosing:
         )
 
     def test_a_regression_inside_the_floor_is_allowed(self):
-        reference = self._report(lower=0.55, missed=2, hard=0.86)
+        reference = {"positive": 0.9, "hard_negative": 0.86}
         slightly_worse = self._report(lower=0.70, missed=1, hard=0.84)
 
         assert chosen([slightly_worse], reference=reference) is slightly_worse
@@ -235,7 +224,7 @@ class TestChoosing:
             chosen([self._report(lower=0.6, missed=1, resampled=False)])
 
     def test_every_candidate_regressing_a_slice_is_refused_rather_than_chosen(self):
-        reference = self._report(lower=0.55, missed=2, hard=0.9)
+        reference = {"positive": 0.9, "hard_negative": 0.9}
 
         with pytest.raises(ValueError, match="regresses"):
             chosen([self._report(lower=0.7, missed=1, hard=0.1)], reference=reference)
@@ -251,7 +240,6 @@ class TestTheSweep:
             relevance_thresholds=(0.1, 0.5),
             entailment_thresholds=(0.2, 0.8),
             depths=(1,),
-            paddings=(SpanPadding(),),
         )
 
         reports = sweep(recordings, candidates, shortlist=2)
@@ -266,7 +254,6 @@ class TestTheSweep:
                 relevance_thresholds=(0.1, 0.9),
                 entailment_thresholds=(0.5,),
                 depths=(1,),
-                paddings=(SpanPadding(),),
             ),
             shortlist=0,
         )
@@ -283,9 +270,8 @@ class TestTheReplayAgreesWithTheShippedAnswerer:
     would choose knobs for a system nobody runs."""
 
     def test_every_verdict_matches_the_answerer_over_the_same_chunks(self):
-        from medapp.answerer import RerankEntailAnswerer, SpanRefiningAnswerer
+        from medapp.answerer import RerankEntailAnswerer
         from medapp.chunker import chunk_conversation
-        from medapp.retrieval import Bm25Index
         from tests.test_answerer import (
             CONVERSATION,
             SCHEME,
@@ -294,32 +280,26 @@ class TestTheReplayAgreesWithTheShippedAnswerer:
             _RelevanceOf,
         )
 
-        index = Bm25Index(chunk_conversation(CONVERSATION, SCHEME))
-        words = tuple(word for segment in CONVERSATION for word in segment.words)
+        sentences = chunk_conversation(CONVERSATION, SCHEME)
 
         questions = [
             "Was the blood pressure 135/88?",
             "Is there any mention of a concert?",
             "Was the dose two tablets?",
         ]
-        padding = SpanPadding(start_seconds=0.3, end_seconds=0.2, start_fraction=-0.1)
         reranker, rewriter = _RelevanceOf(), _ClaimIs()
 
         for depth, threshold, gate in ((1, 0.5, 0.1), (3, 0.5, 0.1), (3, 0.9, None)):
             judge = _EntailmentOf({}, default=0.7)
-            served = SpanRefiningAnswerer(
-                RerankEntailAnswerer(
-                    scheme=SCHEME,
-                    candidates=5,
-                    index_factory=Bm25Index,
-                    reranker=reranker,
-                    rewriter=rewriter,
-                    judge=judge,
-                    relevance_threshold=gate,
-                    entailment_threshold=threshold,
-                    entail_depth=depth,
-                ),
-                padding,
+            served = RerankEntailAnswerer(
+                scheme=SCHEME,
+                candidates=5,
+                reranker=reranker,
+                rewriter=rewriter,
+                judge=judge,
+                relevance_threshold=gate,
+                entailment_threshold=threshold,
+                entail_depth=depth,
             )
             verdicts = list(served.answer(CONVERSATION, questions))
 
@@ -327,12 +307,11 @@ class TestTheReplayAgreesWithTheShippedAnswerer:
                 relevance_threshold=gate,
                 entailment_threshold=threshold,
                 entail_depth=depth,
-                padding=padding,
             )
 
             for question, verdict in zip(questions, verdicts, strict=True):
-                reranked = reranker.rerank(question, index.rank(question, 5))
-                chunks = tuple(scored.chunk for scored in reranked)
+                reranked = reranker.rerank(question, sentences)
+                chunks = tuple(scored.chunk for scored in reranked)[:5]
                 judged = judge.judge(rewriter.rewrite(question).text, chunks[:depth])
                 replayed = outcome(
                     Recording(
@@ -344,7 +323,6 @@ class TestTheReplayAgreesWithTheShippedAnswerer:
                         relevance=reranked[0].relevance if reranked else 0.0,
                         chunks=chunks,
                         entailments=tuple(j.entailment for j in judged),
-                        edges=WordEdges.of(words),
                     ),
                     candidate,
                 )

@@ -1,9 +1,8 @@
 """The Answerer seam: one Verdict per Question, and the Settings that name it.
 
-The placeholder Answerer is the tracer bullet that lights the protocol seam up
-before any retrieval exists. What is under test is the seam's contract — a
-Verdict per Question, carrying the Chunks it was chosen from — and that a
-strategy nothing implements fails loudly at startup instead of being
+What is under test is the seam's contract — a Verdict per Question, carrying
+the Chunks it was chosen from and the one it read its Evidence Span off — and
+that a strategy nothing implements fails loudly at startup instead of being
 substituted.
 """
 
@@ -12,24 +11,33 @@ from collections.abc import Iterator
 import pytest
 
 from medapp.answerer import (
-    Bm25RetrievalAnswerer,
     CiteFirstSegmentAnswerer,
     RerankEntailAnswerer,
     RerankRelevanceAnswerer,
-    SpanRefiningAnswerer,
     build_answerer,
 )
-from medapp.chunker import ChunkScheme
+from medapp.chunker import SentenceScheme, chunk_conversation
 from medapp.claims import Claim
 from medapp.config import Settings
 from medapp.entailment import Judgement
 from medapp.normalizer import normalize_text
-from medapp.retrieval import Bm25Index
-from medapp.span_refiner import SpanPadding
-from medapp.types import ScoredChunk, Segment, Word
-from tests.test_chunker import CONVERSATION
+from medapp.types import Chunk, ScoredChunk, Segment, Word
+from tests.test_chunker import conversation
 
-SCHEME = ChunkScheme(word_lengths=(4, 8), stride_fraction=0.5)
+SCHEME = SentenceScheme(max_words=60)
+
+# Longer than the Chunker fixture: the depth tests need more sentences than a
+# Verdict cites, so that a Chunk further down the ranking is there to be judged.
+CONVERSATION = conversation(
+    "so there is cardiovascular disease in your family? yes there is. "
+    "your blood pressure is 135 over 88 today, which is fine. "
+    "take one hundred milligrams daily for two weeks and then stop. "
+    "the tablets go down after a meal, not before one. "
+    "your last reading was 128 over 84 in the spring. "
+    "we will see you again in six months to check on that. "
+    "any swelling in the ankles since we spoke? none at all. "
+    "good, then nothing else needs changing today."
+)
 
 SEGMENTS = (
     Segment(
@@ -82,70 +90,6 @@ def test_a_strategy_with_no_implementation_fails_rather_than_falling_back():
         build_answerer(Settings(answer_strategy="single_llm"))
 
 
-def test_the_bm25_answerer_cites_the_chunk_it_ranked_first():
-    answerer = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-
-    verdicts = list(answerer.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
-
-    assert verdicts[0].answer is True
-    assert verdicts[0].evidence == verdicts[0].candidates[0].span
-    assert "135/88" in verdicts[0].candidates[0].text
-
-
-def test_every_bm25_verdict_carries_the_ranking_it_was_chosen_from():
-    answerer = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=4)
-    questions = ["Was 100 mg prescribed?", "Is the course two weeks?"]
-
-    verdicts = list(answerer.answer(CONVERSATION, questions))
-
-    assert len(verdicts) == len(questions)
-    assert all(len(verdict.candidates) == 4 for verdict in verdicts)
-
-
-def test_a_question_nothing_can_be_retrieved_for_is_answered_no():
-    """A no, not a raise: the Questions after it are still worth answering."""
-    answerer = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-
-    verdicts = list(answerer.answer(CONVERSATION, ["And it is, or it is not?"]))
-
-    assert verdicts[0].answer is False
-    assert verdicts[0].evidence is None
-    assert verdicts[0].candidates == ()
-
-
-def test_the_verdicts_are_produced_lazily_so_the_deadline_is_checked_between_them():
-    answerer = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=1)
-
-    verdicts = answerer.answer(CONVERSATION, ["Was 100 mg prescribed?"] * 3)
-
-    assert next(iter(verdicts)).answer is True
-    assert isinstance(verdicts, Iterator)
-
-
-def test_a_conversation_that_transcribed_to_nothing_raises_rather_than_citing_nothing():
-    answerer = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-
-    with pytest.raises(ValueError):
-        list(answerer.answer((), ["Was 100 mg prescribed?"]))
-
-
-def test_settings_resolve_the_granularities_the_bm25_answerer_is_built_with():
-    answerer = build_answerer(
-        Settings(
-            answer_strategy="retrieve_bm25",
-            chunk_word_lengths=(3, 9),
-            chunk_stride_fraction=0.5,
-            retrieval_candidates=2,
-        )
-    )
-
-    verdicts = list(answerer.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
-
-    assert isinstance(answerer, Bm25RetrievalAnswerer)
-    assert len(verdicts[0].candidates) == 2
-    assert all(len(chunk.text.split()) <= 9 for chunk in verdicts[0].candidates)
-
-
 class _RelevanceOf:
     """A Relevance judge that scores by the words a Chunk shares with a Question.
 
@@ -173,21 +117,21 @@ class _RelevanceOf:
         )
 
 
-def rerank_answerer(threshold: float) -> RerankRelevanceAnswerer:
+def rerank_answerer(threshold: float, candidates: int = 5) -> RerankRelevanceAnswerer:
     return RerankRelevanceAnswerer(
         scheme=SCHEME,
-        candidates=5,
-        index_factory=Bm25Index,
+        candidates=candidates,
         reranker=_RelevanceOf(),
         threshold=threshold,
     )
 
 
+BLOOD_PRESSURE = "Was the blood pressure 135/88?"
+
+
 def test_the_reranked_answerer_cites_the_chunk_the_judge_ranked_first():
     verdicts = list(
-        rerank_answerer(threshold=0.1).answer(
-            CONVERSATION, ["Was the blood pressure 135/88?"]
-        )
+        rerank_answerer(threshold=0.1).answer(CONVERSATION, [BLOOD_PRESSURE])
     )
 
     assert verdicts[0].answer is True
@@ -195,11 +139,26 @@ def test_the_reranked_answerer_cites_the_chunk_the_judge_ranked_first():
     assert "135/88" in verdicts[0].candidates[0].text
 
 
+def test_every_sentence_is_scored_rather_than_a_retrieved_shortlist():
+    """A lexical prefilter can only drop the right sentence; measured, it did."""
+    scored = []
+
+    class _Recording(_RelevanceOf):
+        def rerank(self, question, chunks):
+            scored.append(len(chunks))
+            return super().rerank(question, chunks)
+
+    answerer = RerankRelevanceAnswerer(
+        scheme=SCHEME, candidates=5, reranker=_Recording(), threshold=0.1
+    )
+    list(answerer.answer(CONVERSATION, [BLOOD_PRESSURE]))
+
+    assert scored == [len(chunk_conversation(CONVERSATION, SCHEME))]
+
+
 def test_a_question_no_chunk_is_relevant_enough_for_is_answered_no_with_nulls():
     verdicts = list(
-        rerank_answerer(threshold=0.9).answer(
-            CONVERSATION, ["Was the blood pressure 135/88?"]
-        )
+        rerank_answerer(threshold=0.9).answer(CONVERSATION, [BLOOD_PRESSURE])
     )
 
     assert verdicts[0].answer is False
@@ -209,26 +168,26 @@ def test_a_question_no_chunk_is_relevant_enough_for_is_answered_no_with_nulls():
 def test_a_no_still_carries_the_candidates_it_was_judged_over():
     """The component metrics read them, and so will the Entailment judge."""
     verdicts = list(
-        rerank_answerer(threshold=0.9).answer(
-            CONVERSATION, ["Was the blood pressure 135/88?"]
-        )
+        rerank_answerer(threshold=0.9).answer(CONVERSATION, [BLOOD_PRESSURE])
     )
 
     assert len(verdicts[0].candidates) == 5
 
 
 def test_the_reranked_verdicts_are_produced_lazily():
-    verdicts = rerank_answerer(threshold=0.1).answer(
-        CONVERSATION, ["Was 100 mg prescribed?"] * 3
-    )
+    verdicts = rerank_answerer(threshold=0.1).answer(CONVERSATION, [BLOOD_PRESSURE] * 3)
 
     assert next(iter(verdicts)).answer is True
     assert isinstance(verdicts, Iterator)
 
 
-def test_a_conversation_that_transcribed_to_nothing_raises_rather_than_guessing():
-    with pytest.raises(ValueError):
-        list(rerank_answerer(threshold=0.1).answer((), ["Was 100 mg prescribed?"]))
+def test_a_conversation_that_transcribed_to_nothing_is_answered_no():
+    """A no, not a raise: one raise costs every Question about the Conversation."""
+    [verdict] = list(rerank_answerer(threshold=0.1).answer((), [BLOOD_PRESSURE]))
+
+    assert verdict.answer is False
+    assert verdict.evidence is None
+    assert verdict.candidates == ()
 
 
 class _ClaimIs:
@@ -278,7 +237,6 @@ def entail_answerer(
     return RerankEntailAnswerer(
         scheme=SCHEME,
         candidates=5,
-        index_factory=Bm25Index,
         reranker=_RelevanceOf(),
         rewriter=rewriter or _ClaimIs(),
         judge=judge,
@@ -288,14 +246,16 @@ def entail_answerer(
     )
 
 
-BLOOD_PRESSURE = "Was the blood pressure 135/88?"
+def ranked(question: str = BLOOD_PRESSURE) -> tuple[Chunk, ...]:
+    """The candidates as Relevance ranks them, for a test to reach into."""
+    return list(
+        entail_answerer(_EntailmentOf({}, default=0.9)).answer(CONVERSATION, [question])
+    )[0].candidates
 
 
 def top_chunk(question: str = BLOOD_PRESSURE) -> str:
     """What the Relevance judge ranks first for one Question."""
-    answerer = rerank_answerer(threshold=0.0)
-
-    return list(answerer.answer(CONVERSATION, [question]))[0].candidates[0].text
+    return ranked(question)[0].text
 
 
 def test_a_chunk_that_entails_the_claim_is_answered_yes_and_cited():
@@ -308,8 +268,7 @@ def test_a_chunk_that_entails_the_claim_is_answered_yes_and_cited():
 
 
 def test_a_relevant_chunk_that_does_not_entail_the_claim_is_answered_no():
-    """The Hard Negative: the right subject, and the Conversation does not say
-    it."""
+    """The Hard Negative: the right subject, and the Conversation does not say it."""
     judge = _EntailmentOf({}, default=0.2)
 
     verdicts = list(entail_answerer(judge).answer(CONVERSATION, [BLOOD_PRESSURE]))
@@ -330,16 +289,6 @@ def test_a_question_nothing_is_relevant_enough_for_never_reaches_the_judge():
 
     assert verdicts[0].answer is False
     assert judge.claims == []
-
-
-def test_only_the_chunk_the_evidence_span_comes_from_is_judged():
-    """Judging deeper would let the yes come from a Chunk the Verdict does not
-    cite."""
-    judge = _EntailmentOf({top_chunk(): 0.9})
-
-    list(entail_answerer(judge).answer(CONVERSATION, [BLOOD_PRESSURE]))
-
-    assert judge.judged == [(top_chunk(),)]
 
 
 def test_the_judge_reads_the_claim_the_question_was_rewritten_as():
@@ -375,11 +324,12 @@ def test_the_entailed_verdicts_are_produced_lazily():
     assert isinstance(verdicts, Iterator)
 
 
-def test_entailing_a_conversation_that_transcribed_to_nothing_raises():
+def test_entailing_a_conversation_that_transcribed_to_nothing_is_answered_no():
     judge = _EntailmentOf({}, default=0.9)
 
-    with pytest.raises(ValueError):
-        list(entail_answerer(judge).answer((), [BLOOD_PRESSURE]))
+    [verdict] = list(entail_answerer(judge).answer((), [BLOOD_PRESSURE]))
+
+    assert verdict.answer is False
 
 
 def test_settings_resolve_the_thresholds_the_entailing_answerer_is_built_with():
@@ -390,104 +340,36 @@ def test_settings_resolve_the_thresholds_the_entailing_answerer_is_built_with():
     assert isinstance(answerer, RerankEntailAnswerer)
 
 
-def test_settings_resolve_the_retriever_the_entailing_answerer_indexes_with():
-    """ADR-0001 adopts the dense half on measurement, so the mode is
-    configuration and the embedder is loaded only where it is named."""
-    answerer = build_answerer(
-        Settings(answer_strategy="retrieve_rerank_entail", retrieval_mode="bm25")
-    )
-
-    assert isinstance(answerer, RerankEntailAnswerer)
-
-
-def test_the_bm25_baseline_refuses_a_mode_it_does_not_rank_with():
-    """Serving it under another mode's name would report BM25's numbers as
-    that mode's."""
-    with pytest.raises(ValueError, match="retrieval mode"):
-        build_answerer(
-            Settings(answer_strategy="retrieve_bm25", retrieval_mode="hybrid")
-        )
-
-
-def test_the_span_refining_answerer_pads_a_yes_verdicts_evidence():
-    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(
-        inner, SpanPadding(start_seconds=0.3, end_seconds=0.3)
-    )
-
-    [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
-    [unrefined] = list(inner.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
-
-    assert verdict.answer is True
-    assert verdict.evidence[0] <= unrefined.evidence[0]
-    assert verdict.evidence[1] >= unrefined.evidence[1]
-
-
-def test_the_span_refining_answerer_leaves_a_no_verdict_untouched():
-    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(
-        inner, SpanPadding(start_seconds=0.3, end_seconds=0.3)
-    )
-
-    [verdict] = list(wrapped.answer(CONVERSATION, ["And it is, or it is not?"]))
-
-    assert verdict.answer is False
-    assert verdict.evidence is None
-    assert verdict.candidates == ()
-
-
-def test_the_span_refining_answerer_leaves_the_candidates_untouched():
-    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(
-        inner, SpanPadding(start_seconds=0.3, end_seconds=0.3)
-    )
-
-    [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
-    [unrefined] = list(inner.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
-
-    assert verdict.candidates == unrefined.candidates
-
-
-def test_the_span_refining_answerer_never_returns_an_end_before_the_start():
-    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(
-        inner, SpanPadding(start_seconds=-999.0, end_seconds=-999.0)
-    )
-
-    [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
-
-    assert verdict.evidence[1] >= verdict.evidence[0]
-
-
 class TestEntailDepth:
     """The cited Chunk is the one that entailed, not the one Relevance ranked
     first — the answer and the Evidence Span are one decision."""
 
     def test_only_the_top_relevant_chunk_is_judged_at_depth_one(self):
         judge = _EntailmentOf({}, default=0.9)
-        answerer = entail_answerer(judge, entail_depth=1)
 
-        list(answerer.answer(CONVERSATION, [BLOOD_PRESSURE]))
+        list(
+            entail_answerer(judge, entail_depth=1).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )
 
         assert len(judge.judged[0]) == 1
 
     def test_the_configured_depth_of_chunks_is_judged(self):
         judge = _EntailmentOf({}, default=0.9)
-        answerer = entail_answerer(judge, entail_depth=4)
 
-        list(answerer.answer(CONVERSATION, [BLOOD_PRESSURE]))
+        list(
+            entail_answerer(judge, entail_depth=4).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )
 
         assert len(judge.judged[0]) == 4
 
     def test_the_best_entailing_chunk_is_cited_rather_than_the_most_relevant(self):
-        ranked = list(
-            entail_answerer(_EntailmentOf({}, default=0.9), entail_depth=1).answer(
-                CONVERSATION, [BLOOD_PRESSURE]
-            )
-        )[0].candidates
-        deeper = ranked[2]
-
+        deeper = ranked()[2]
         judge = _EntailmentOf({deeper.text: 0.99}, default=0.6)
+
         verdict = list(
             entail_answerer(judge, entail_depth=4).answer(
                 CONVERSATION, [BLOOD_PRESSURE]
@@ -495,41 +377,45 @@ class TestEntailDepth:
         )[0]
 
         assert verdict.answer is True
+        assert verdict.cited == deeper
         assert verdict.evidence == deeper.span
-        assert (
-            verdict.candidates[0] == deeper
-        ), "the ranking the Verdict exposes has to agree with the span it cites"
 
-    def test_a_chunk_deeper_down_can_carry_a_yes_the_top_chunk_would_not(self):
-        ranked = list(
-            entail_answerer(_EntailmentOf({}, default=0.9), entail_depth=1).answer(
+    def test_the_candidates_stay_the_ranking_rather_than_being_reordered(self):
+        """The span is read off the cited Chunk, so nothing has to be hoisted to
+        make the two agree — and hoisting is what let them disagree."""
+        deeper = ranked()[2]
+        judge = _EntailmentOf({deeper.text: 0.99}, default=0.6)
+
+        verdict = list(
+            entail_answerer(judge, entail_depth=4).answer(
                 CONVERSATION, [BLOOD_PRESSURE]
             )
-        )[0].candidates
+        )[0]
 
-        judge = _EntailmentOf({ranked[3].text: 0.8}, default=0.0)
+        assert verdict.candidates == ranked()[:5]
 
-        assert (
-            list(
-                entail_answerer(judge, entail_depth=1).answer(
-                    CONVERSATION, [BLOOD_PRESSURE]
-                )
-            )[0].answer
-            is False
-        )
-        assert (
-            list(
-                entail_answerer(judge, entail_depth=4).answer(
-                    CONVERSATION, [BLOOD_PRESSURE]
-                )
-            )[0].answer
-            is True
-        )
+    def test_a_chunk_deeper_down_can_carry_a_yes_the_top_chunk_would_not(self):
+        judge = _EntailmentOf({ranked()[3].text: 0.8}, default=0.0)
+
+        shallow = list(
+            entail_answerer(judge, entail_depth=1).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )[0]
+        deep = list(
+            entail_answerer(judge, entail_depth=4).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )[0]
+
+        assert shallow.answer is False
+        assert deep.answer is True
 
     def test_no_chunk_entailing_is_still_a_no_however_deep_it_is_judged(self):
         judge = _EntailmentOf({}, default=0.0)
+
         verdict = list(
-            entail_answerer(judge, entail_depth=6).answer(
+            entail_answerer(judge, entail_depth=5).answer(
                 CONVERSATION, [BLOOD_PRESSURE]
             )
         )[0]

@@ -1,26 +1,3 @@
-"""The Entailment judgement: does the Chunk establish what the Claim asserts?
-
-Relevance answers one failure and cannot answer the other. A Hard Negative's
-best Chunk scores very high on Relevance precisely because it is lexically
-near-identical to the truth — the right drug at the wrong dose is *about* the
-drug — so the threshold that would reject it would reject the Positives it
-exists to keep. What separates them is whether the passage actually establishes
-the Claim, which is the judgement a natural-language-inference model makes.
-
-The model returns three probabilities over one premise-hypothesis pair, and
-CONTEXT.md is explicit about how they are read: yes requires entailment;
-nothing less. A Hard Negative's Chunk either contradicts the Claim — the wrong
-dose is stated — or is silent on it, and a plausible detail that was never
-agreed is neutral rather than contradicted. Both are a no, so only the
-entailment probability is thresholded and the other two are carried for the
-error analysis rather than for the decision.
-
-The premise is the Chunk in the normalizer's written form and the hypothesis is
-the Claim reduced to the same form, so that "41 mmol/mol" written and *"41
-millimoles per mole"* spoken reach the model as one claim rather than two — the
-same reduction the reranker applies, for the same reason.
-"""
-
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol

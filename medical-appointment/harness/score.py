@@ -113,9 +113,8 @@ def outcomes_for_fold(
 
     Args:
         fold: Which fold to read.
-        answerer: The Answerer as it is served — including the
-            :class:`~medapp.answerer.SpanRefiningAnswerer` wrapper, since the
-            refined span is what the evaluator would be sent.
+        answerer: The Answerer as it is served, since its Verdicts are what
+            the evaluator would be sent.
 
     Raises:
         FileNotFoundError: If a Conversation of the fold is not cached.

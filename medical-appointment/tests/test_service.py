@@ -73,11 +73,11 @@ def _chunk(segment: Segment) -> Chunk:
 def _yes(segment: Segment) -> Verdict:
     chunk = _chunk(segment)
 
-    return Verdict(answer=True, evidence=chunk.span, candidates=(chunk,))
+    return Verdict(answer=True, cited=chunk, candidates=(chunk,))
 
 
 def _no() -> Verdict:
-    return Verdict(answer=False, evidence=None, candidates=())
+    return Verdict(answer=False, cited=None, candidates=())
 
 
 def _request(questions: list[str]) -> ASRQuestionRequestDto:

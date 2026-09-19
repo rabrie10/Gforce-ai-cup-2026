@@ -1,16 +1,3 @@
-"""Render every train and dev Question beside the transcript it is answered
-from, so the failure taxonomy is written from the data rather than guessed.
-
-Nothing here scores anything. It lays a Question next to the words the
-annotation points at — and, for a Question with no annotation, next to the
-passage of the Conversation it comes closest to — so that a person can read all
-of them and record what the Chunker, the normalizer and the judges will have to
-handle.
-
-Read on train and dev only. ADR-0002 transcribes the test fold but does not
-read it, and :func:`readable_fold` is where that is enforced for this module.
-"""
-
 import re
 from dataclasses import dataclass
 from functools import cache

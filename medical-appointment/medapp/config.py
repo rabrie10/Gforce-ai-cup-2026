@@ -1,15 +1,6 @@
-"""The one module that reads the environment.
-
-Device, compute type, model names, the per-request deadline, the Answer
-Strategy and the cache directories are resolved here and nowhere else, so no
-other module branches on platform. Defaults are the development-machine values;
-the deployment VM overrides them:
-
-    MEDAPP_DEVICE=cuda MEDAPP_COMPUTE_TYPE=float16 python api.py
-"""
-
+import os
 from pathlib import Path
-from typing import Literal, cast, get_args
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -26,11 +17,8 @@ Device = Literal["cpu", "cuda"]
 # everywhere or admit it where it raises.
 TorchDevice = Literal["auto", "cpu", "cuda", "mps"]
 ComputeType = Literal["int8", "int8_float16", "float16", "float32"]
-RetrievalMode = Literal["bm25", "dense", "hybrid"]
-RETRIEVAL_MODES: tuple[RetrievalMode, ...] = get_args(RetrievalMode)
 AnswerStrategy = Literal[
     "cite_first_segment",
-    "retrieve_bm25",
     "retrieve_rerank",
     "retrieve_rerank_entail",
     "single_llm",
@@ -53,11 +41,14 @@ class Settings(BaseSettings):
             saves. It is wired correctly anyway, because a machine whose
             batches are larger would see the win and because "cannot be
             selected" is a worse answer than "measured and did not help".
-        cpu_threads: How many threads CTranslate2 decodes with. Zero leaves its
-            own default, which is conservative on a many-core machine: on the
-            11-core dev machine setting it to 10 took the worst-case decode from
-            49.0 s to 37.8 s, which is the single cheapest latency win
-            available and needs no change of model.
+        cpu_threads: How many threads CTranslate2 decodes with. Zero resolves
+            to one fewer than the machine has, leaving a core for the event
+            loop; CTranslate2's own default is a fixed 4, which leaves most of
+            a many-core machine idle. On the 11-core dev machine this took the
+            worst-case decode from 49.0 s to 37.8 s — the cheapest latency win
+            available, and one that needs no change of model. Resolved rather
+            than set to a literal so the number is right on whatever machine
+            serves, instead of right here and wrong elsewhere.
         answer_strategy: Which Answerer is constructed at startup. Candidates
             are compared by running the system twice, not by a runtime switch.
             A strategy no Answerer implements yet fails at startup rather than
@@ -85,34 +76,16 @@ class Settings(BaseSettings):
             enters the prompt otherwise sustains itself.
         beam_size: Worst-case latency scales with it, so it is tuned on the dev
             fold against timing error rather than taken on faith.
-        chunk_word_lengths: The ladder of Chunk lengths, in normalized tokens.
-            Tuned on the dev fold against oracle-selected tIoU.
-        chunk_stride_fraction: How far apart the Chunks of one length start, as
-            a fraction of that length. Below 1 they overlap, which annotated
-            Evidence Spans require.
-        retrieval_candidates: How many ranked Chunks a Verdict carries. The
-            judges downstream read them and the component metrics are computed
-            from them, so it is deeper than the one Chunk cited. It is also the
-            k the reranker is handed: every candidate the retriever ranks is
-            rescored.
-        retrieval_mode: Which retriever ranks the Chunks a Question is answered
-            from — BM25 alone, the dense embedder alone, or the two fused.
-            ADR-0001 builds BM25 first and adopts fusion only where it wins on
-            Hard-Negative accuracy as well as recall; the embedder is
-            constructed only when this names it, so a mode that lost costs the
-            request path nothing.
-        dense_batch_size: How many Chunks are embedded at once. The whole
-            Conversation is embedded once per request, not once per Question.
-        fusion_depth: How deep each retriever's ranking is read before the two
-            are fused. Deeper than the candidates carried, because a Chunk one
-            retriever ranks shallowly is exactly what the other is there to
-            rescue.
-        fusion_rank_constant: Reciprocal Rank Fusion's constant, the ``k`` in
-            ``1 / (k + rank)``. It sets how much a top rank outweighs a deep
-            one; 60 is the value the method was published with.
+        chunk_max_words: Where a run of Words the Transcriber punctuated
+            nowhere is cut into a Chunk anyway. A guard, not a granularity: a
+            Chunk is one sentence.
+        retrieval_candidates: How many ranked Chunks a Verdict carries. Every
+            sentence of the Conversation is scored; this is how many of them
+            the Verdict exposes, which the judges downstream read and the
+            component metrics are computed from.
         rerank_batch_size: How many Question-Chunk pairs go through the
-            cross-encoder at once. One Question's whole candidate list fits in
-            one batch at the default k.
+            cross-encoder at once. A Conversation's sentences are scored in one
+            call, in batches of this size.
         rerank_max_tokens: Where a Question-Chunk pair is truncated, counted in
             the model's subwords rather than in the words the Chunk ladder is
             cut at. Slack rather than a limit, and well under the model's 8192,
@@ -142,19 +115,6 @@ class Settings(BaseSettings):
             Question before Entailment is judged. Kept only because the
             ablation the same script runs measured Off-Topic accuracy dropping
             without it.
-        span_pad_start_seconds: Seconds the returned Evidence Span's start is
-            extended earlier by, before it is snapped back to a Word edge.
-            Chosen on the dev fold for mean tIoU over annotated Positives by
-            ``python -m scripts.span_padding``.
-        span_pad_end_seconds: The same, for the end. Chosen alongside
-            ``span_pad_start_seconds`` by the same sweep.
-        span_pad_start_fraction: A further extension of the start, as a
-            fraction of the cited Chunk's own duration. A fixed offset cannot
-            suit every Chunk — annotated Evidence Spans run from 0.16 s to
-            14.2 s and the Chunk ladder from one token to forty-eight — so the
-            padding is fixed plus proportional, and both parts are swept
-            against the competition score by ``python -m scripts.tune``.
-        span_pad_end_fraction: The same, for the end.
     """
 
     model_config = SettingsConfigDict(
@@ -170,30 +130,31 @@ class Settings(BaseSettings):
     compute_type: ComputeType = "int8"
     cpu_threads: int = Field(default=0, ge=0)
 
-    whisper_model: str = "large-v3"
+    # Measured on the dev machine against 'large-v3' on the same 39
+    # Conversations. Worst-case decode 140.2 s to 37.8 s — 'large-v3' cannot
+    # serve a 60-second budget on a CPU at all — and the score does not pay for
+    # the speed: 0.642 against 0.626 on dev, with the annotated-boundary
+    # distance a word edge can reach *halved* at the median, 0.120 s to
+    # 0.060 s, which is the floor under every tIoU this system can score.
+    whisper_model: str = "mobiuslabsgmbh/faster-whisper-large-v3-turbo"
     whisper_language: str = "en"
     vad_filter: bool = True
     condition_on_previous_text: bool = False
-    beam_size: int = Field(default=5, ge=1, le=10)
+    # One, not five. On 'large-v3-turbo' the wider beam bought nothing
+    # measurable and cost 11 s of the worst-case decode (49.0 s against
+    # 37.8 s at ten threads), which is latency margin this budget has better
+    # uses for.
+    beam_size: int = Field(default=1, ge=1, le=10)
 
     rerank_model: str = "BAAI/bge-reranker-v2-m3"
     nli_model: str = "cross-encoder/nli-deberta-v3-base"
-    dense_model: str = "BAAI/bge-small-en-v1.5"
 
-    chunk_word_lengths: tuple[int, ...] = (1, 2, 3, 4, 6, 8, 11, 15, 20, 27, 36, 48)
-    chunk_stride_fraction: float = Field(default=0.2, gt=0, le=1)
+    # The supplied Conversations run a median of five Words to the sentence
+    # and a longest of fifty-nine, so this fires in none of them. It is the
+    # guard against a Conversation the Transcriber punctuates sparsely, where
+    # one Chunk would otherwise cover the whole audio.
+    chunk_max_words: int = Field(default=60, ge=1)
     retrieval_candidates: int = Field(default=10, ge=1)
-
-    # Measured on dev by ``python -m scripts.retrieval_modes``, 16
-    # Conversations and 160 Questions, every mode answered end to end through
-    # the shipped Answerer. BM25 0.855 Hard-Negative accuracy at recall@5
-    # 0.667; dense 0.790 at 0.733; fused 0.823 at 0.707. Both candidates raise
-    # recall and lower the gate, which is the trade ADR-0001 named in advance,
-    # so the baseline stands and the embedder does not load here.
-    retrieval_mode: RetrievalMode = "bm25"
-    dense_batch_size: int = Field(default=64, ge=1)
-    fusion_depth: int = Field(default=50, ge=1)
-    fusion_rank_constant: float = Field(default=60.0, gt=0)
 
     # Judging one Question — ranking plus the cross-encoder over 10 candidates
     # — measured on dev at 180 ms on average and 308 ms worst on the Mac's CPU,
@@ -203,61 +164,42 @@ class Settings(BaseSettings):
     # The longest Question-Chunk pair on dev is 92 subwords: 69 for the top
     # rung of the Chunk ladder and 23 for the Question. Nothing is truncated.
     rerank_max_tokens: int = Field(default=128, ge=1)
-    # Measured on dev, 16 Conversations and 160 Questions: Off-Topic accuracy
-    # 1.000 (90% interval [1.000, 1.000]), Positive TPR 0.907, TNR 0.776,
-    # overall accuracy 0.838 [0.787, 0.887]. Higher candidates score better
-    # overall — 0.863 at 0.79 — entirely by rejecting Hard Negatives, at 0.12
-    # of Positive TPR.
-    # Held at the value the Relevance sweep chose. The joint sweep in
-    # ``python -m scripts.tune`` can score higher by raising it, but only by
-    # trading Hard-Negative accuracy for mean tIoU, which the slice floor
-    # refuses: Off-Topic accuracy is 1.000 either way and there is nothing here
-    # to buy.
-    relevance_threshold: float = 0.3
+    # Chosen jointly with the Entailment threshold and depth by
+    # ``python -m scripts.tune``, over train and dev together — 24
+    # Conversations and 240 Questions, not the 16 the earlier value was read
+    # off. It is far lower than the 0.4 the word-ladder Chunker wanted, and for
+    # a reason rather than by drift: a Chunk cut at one to four tokens scores
+    # high on a cross-encoder for a Question it shares those tokens with, so
+    # the ladder needed a high bar to reject anything. A sentence is a whole
+    # utterance and scores lower on the same match, and holding the ladder's
+    # bar against it rejected 33 of 122 Positives.
+    relevance_threshold: float = 0.1
 
     nli_batch_size: int = Field(default=16, ge=1)
     # The Claim is a rewrite of the Question and no longer, and the premise is
     # one Chunk, so the pair fits well inside the reranker's own limit.
     nli_max_tokens: int = Field(default=128, ge=1)
-    # Measured on dev, 16 Conversations and 160 Questions: Hard-Negative
-    # accuracy 0.855 (90% interval [0.787, 0.918]) against 0.694 with
-    # Relevance alone, Positive accuracy 0.867 against 0.907 — the floor the
-    # sweep holds is 0.851, the bottom of ticket 08's interval — Off-Topic
-    # 1.000, TNR 0.894, overall accuracy 0.881 [0.831, 0.925] against 0.838.
-    # The value is small because the NLI model's softmax saturates: most pairs
-    # score within 1e-3 of zero on entailment, and what separates a Positive
-    # from a Hard Negative sits in that tail rather than near 0.5.
-    # Held at the value the Hard-Negative sweep chose, for the same reason the
-    # Relevance threshold is: lowering it scores 0.628 against 0.626 by letting
-    # Hard-Negative accuracy fall to 0.790, and buying two thousandths of the
-    # score with six hundredths of the judgement the case is about is not a
-    # trade worth making on a fold of 16 Conversations.
-    entailment_threshold: float = 0.000394
-    # Chosen at 2 by ``python -m scripts.tune``, jointly with the thresholds
-    # and the pads, on dev: score 0.626 (90% interval [0.578, 0.674]) against
-    # 0.618 at depth 1, with Positive accuracy 0.867 to 0.893, missed Positives
-    # 10 to 8 and mean tIoU 0.443 to 0.451. Both halves move, which is the
-    # point: judging two Chunks and citing the one that entailed makes the
-    # answer and the Evidence Span one decision, and the Chunk Relevance ranks
-    # first is often not the one that states the Claim.
-    entail_depth: int = Field(default=2, ge=1)
-    # Ablated at that threshold on dev: Off-Topic accuracy 1.000 with the gate
-    # and 0.000 without it. Entailment does not reject an Off-Topic Question on
+    # Chosen by the same joint sweep. The value is small because the NLI
+    # model's softmax saturates: most pairs score within 1e-3 of zero on
+    # entailment, and what separates a Positive from a Hard Negative sits in
+    # that tail rather than near 0.5. It is a real boundary in that tail and
+    # not a formality — over train and dev it is worth 0.906 Hard-Negative
+    # accuracy against 0.765 at a threshold of zero, at no cost in Positives.
+    entailment_threshold: float = 0.0002
+    # One, chosen by the same sweep. Judging the second-most Relevant sentence
+    # as well raises Positive accuracy — 0.861 against 0.844 — and loses more
+    # than it gains on the tIoU half, 0.430 against 0.459, because the Chunk it
+    # cites when it wins is the one Relevance ranked second. With a Chunk per
+    # sentence rather than a dozen overlapping windows per stretch, the top
+    # Relevant Chunk is already the one that states the Claim where any of them
+    # does.
+    entail_depth: int = Field(default=1, ge=1)
+    # Ablated on train and dev: Off-Topic accuracy 1.000 with the gate and
+    # 0.000 without it. Entailment does not reject an Off-Topic Question on
     # its own — the best Chunk of an unrelated Conversation still entails a
     # loosely-worded Claim often enough — so the gate stays, at 0.093 of
     # Positive accuracy.
     relevance_gate: bool = True
-
-    # Chosen by the same joint sweep, and no longer fixed offsets alone. A
-    # fixed pad has to suit both a Chunk cut at one token and one cut at
-    # forty-eight, and it cannot: the fractions come out negative against
-    # positive seconds, which is the sweep saying "extend every Chunk by about
-    # a word, and trim the long ones back in proportion". Mean tIoU 0.468
-    # against 0.443 for the best purely fixed padding, on the same recording.
-    span_pad_start_seconds: float = 0.75
-    span_pad_end_seconds: float = 0.30
-    span_pad_start_fraction: float = -0.20
-    span_pad_end_fraction: float = -0.10
 
     answer_strategy: AnswerStrategy = "retrieve_rerank_entail"
     route_suffix: str = ""
@@ -271,6 +213,22 @@ class Settings(BaseSettings):
 
     model_cache_dir: Path = PROJECT_ROOT / "models"
     transcript_cache_dir: Path = PROJECT_ROOT / "transcripts"
+
+
+def resolved_cpu_threads(cpu_threads: int) -> int:
+    """How many threads to decode with on this machine.
+
+    Args:
+        cpu_threads: The configured count. Zero means resolve it here.
+
+    Returns:
+        The configured count, or one fewer than this machine's cores when it
+        was zero. At least one, so a single-core machine still decodes.
+    """
+    if cpu_threads > 0:
+        return cpu_threads
+
+    return max(1, (os.cpu_count() or 2) - 1)
 
 
 def resolved_torch_device(device: TorchDevice) -> str:
@@ -302,23 +260,6 @@ def resolved_torch_device(device: TorchDevice) -> str:
         return "cuda"
 
     return "cpu"
-
-
-def checked_retrieval_mode(mode: str) -> RetrievalMode:
-    """The mode name, checked where it arrives as free text.
-
-    Raises:
-        ValueError: If it names no retrieval mode. A typo that reached
-            ``build_index_factory`` would be measured as whichever mode the
-            fall-through built and reported under the name that was typed.
-    """
-    if mode not in RETRIEVAL_MODES:
-        raise ValueError(
-            f"{mode!r} is not a retrieval mode: the modes are "
-            f"{', '.join(RETRIEVAL_MODES)}."
-        )
-
-    return cast(RetrievalMode, mode)
 
 
 settings = Settings()

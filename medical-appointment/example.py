@@ -9,7 +9,7 @@ not bind the port until that import returns.
 import logging
 
 from dtos import ASRQuestionRequestDto, ASRQuestionResponseDto
-from medapp.answerer import SpanRefiningAnswerer, build_answerer, span_padding
+from medapp.answerer import build_answerer
 from medapp.config import settings
 from medapp.service import PredictionService
 from medapp.transcriber import Transcriber
@@ -27,7 +27,7 @@ logger.info(
 _transcriber = Transcriber(settings)
 _transcriber.warm_up()
 
-_answerer = SpanRefiningAnswerer(build_answerer(settings), span_padding(settings))
+_answerer = build_answerer(settings)
 _service = PredictionService(_transcriber, _answerer, settings)
 
 logger.info("Ready.")

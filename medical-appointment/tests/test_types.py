@@ -1,4 +1,4 @@
-"""The data types are frozen, and a Verdict's answer and evidence agree."""
+"""The data types are frozen, and a Verdict's answer and cited Chunk agree."""
 
 import dataclasses
 
@@ -32,7 +32,7 @@ def test_chunk_boundaries_cannot_be_edited_after_construction():
     [
         Word(text="one", start=1.0, end=1.4, probability=0.98),
         Segment(start=1.0, end=1.9, text="one hundred", words=_words()),
-        Verdict(answer=False, evidence=None, candidates=()),
+        Verdict(answer=False, cited=None, candidates=()),
     ],
 )
 def test_every_type_is_frozen(instance):
@@ -43,23 +43,27 @@ def test_every_type_is_frozen(instance):
 
 
 def test_a_no_verdict_points_at_nothing():
-    verdict = Verdict(answer=False, evidence=None, candidates=())
+    verdict = Verdict(answer=False, cited=None, candidates=())
 
     assert verdict.evidence is None
 
 
 @pytest.mark.parametrize(
-    ("answer", "evidence"),
-    [(True, None), (False, (1.0, 1.9))],
+    ("answer", "cited"),
+    [
+        (True, None),
+        (False, Chunk(text="one hundred", start=1.0, end=1.9, words=_words())),
+    ],
 )
-def test_a_verdict_answer_and_its_evidence_are_one_decision(answer, evidence):
+def test_a_verdict_answer_and_its_cited_chunk_are_one_decision(answer, cited):
     with pytest.raises(ValueError):
-        Verdict(answer=answer, evidence=evidence, candidates=())
+        Verdict(answer=answer, cited=cited, candidates=())
 
 
-def test_a_yes_verdict_carries_the_span_it_was_read_from():
-    chunk = Chunk(text="one hundred", start=1.0, end=1.9, words=_words())
+def test_a_yes_verdict_reads_its_span_off_the_chunk_it_cited():
+    cited = Chunk(text="one hundred", start=1.0, end=1.9, words=_words())
+    other = Chunk(text="daily", start=4.0, end=4.5, words=_words())
 
-    verdict = Verdict(answer=True, evidence=chunk.span, candidates=(chunk,))
+    verdict = Verdict(answer=True, cited=cited, candidates=(other, cited))
 
     assert verdict.evidence == (1.0, 1.9)

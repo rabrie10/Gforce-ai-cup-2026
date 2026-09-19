@@ -1,12 +1,3 @@
-"""The protocol seam: one Conversation in, a scorable body out, every time.
-
-The endpoint's contract is unusual in that a raised exception is the one
-outcome with no partial credit: the evaluator scores every Question about the
-Conversation wrong, not just the one that failed, and a guess is worth half a
-mark on average. So every stage here is wrapped, and every guard activation is
-logged at error level with its reason.
-"""
-
 import logging
 import math
 import threading

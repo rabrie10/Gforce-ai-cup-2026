@@ -70,17 +70,19 @@ returned as Word timings and a token that has lost its Words cannot back one.
 
 ## Chunk
 
-A candidate Evidence Span: a short, contiguous stretch of the Conversation,
-built from timed words rather than from Segment boundaries, and carrying the
-word timings that let it be returned as an Evidence Span unchanged.
+A candidate Evidence Span: **one spoken sentence**, built from timed words
+rather than from Segment boundaries, and carrying the word timings that let it
+be returned as an Evidence Span unchanged.
 
-Chunks **overlap** one another and come in **several lengths**, because
-annotated Evidence Spans run from 0.16 to 14.2 seconds. Annotated Evidence Spans overlap in the supplied
-data, so a partition of the Conversation cannot represent them — a Chunk scheme
-that does not overlap makes some correct answers structurally unreachable.
+Chunks do not overlap and come in one kind. A scheme of overlapping windows at
+a ladder of lengths represents more annotated Evidence Spans — its oracle is
+higher — and cites worse ones, because a dozen views of the same stretch differ
+only in their boundaries and nothing downstream ranks boundaries. ADR-0004
+records the measurement. Coverage the Answerer cannot select within is not
+coverage.
 
-Chunk is not a synonym for Segment. A Segment is what the Transcriber produced;
-a Chunk is what the Answerer considers.
+Chunk is not a synonym for Segment. A Segment is what the Transcriber produced
+and runs several sentences long; a Chunk is what the Answerer considers.
 
 ## Score
 
@@ -117,10 +119,15 @@ Relevance and Entailment are distinct judgements answering distinct failures. A
 single score cannot do both: the threshold that rejects an Off-Topic Question
 would have to reject the very Chunks that make Positive Questions true.
 
-Entailment is judged over the top few Relevant Chunks, not the top one, and the
-Chunk that entails is the Chunk cited. That is the same statement as the
-Answerer's: the answer and the Evidence Span are one decision. Relevance ranks
-by what a passage is *about*, and among a dozen overlapping Chunks of the same
-stretch it has no reason to prefer the one that actually states the Claim —
-which is the one the yes is true of, and the one the Evidence Span is measured
-against.
+The Chunk that entails is the Chunk cited. That is the same statement as the
+Answerer's: the answer and the Evidence Span are one decision, and a Verdict
+carries the Chunk it read the answer from rather than a span beside a ranking,
+so the two cannot drift apart.
+
+How many of the top Relevant Chunks are judged is a measured quantity rather
+than a principle. With overlapping Chunks it had to be more than one, because
+Relevance ranks by what a passage is *about* and among a dozen views of one
+stretch it has no reason to prefer the one that states the Claim. With one
+Chunk per sentence the top Relevant Chunk is already that one wherever any of
+them is, and judging deeper costs more tIoU than the Positives it rescues are
+worth.

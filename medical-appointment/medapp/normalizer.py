@@ -1,25 +1,3 @@
-"""One canonical written form for Questions and for transcribed speech.
-
-A Question writes every clinical value in symbol form and the Conversation
-speaks it in full: "41 mmol/mol" against *"41 millimoles per mole"*, "135/88"
-against *"135 over 88"*, "100 mg" against *"100 milligrams"*. The error analysis
-found 13 of 122 Positives unreachable for that reason alone, and 33 of 85 Hard
-Negatives turning on the one number inside an otherwise identical sentence. Both
-sides are therefore normalized by the same function, so that the same claim
-spoken and written reduces to the same tokens.
-
-Normalization is token-aligned rather than string-to-string: a transcript token
-carries the Words it came from, including the several Words a merged token
-covers, because an Evidence Span is returned as Word timings and a token that
-has lost its Words cannot back one.
-
-Whisper's English normalizer does the general work — casing, punctuation,
-contractions, spelled-out numbers, fractions and decimals — and is vendored in
-``medapp.vendor.whisper_english``. What this module adds is the clinical
-vocabulary the error analysis listed, and the alignment the vendored normalizer
-cannot provide because it works on whole strings.
-"""
-
 import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass

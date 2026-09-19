@@ -1,6 +1,6 @@
 # The deployable unit. Weights are baked in at build time and the container
 # never reaches the hub afterwards — HF_HUB_OFFLINE is set below and every
-# model medapp/reranker.py, medapp/entailment.py and medapp/dense.py load is
+# model medapp/reranker.py and medapp/entailment.py load is
 # already local_files_only. See docs/deployment.md for the VM runbook this
 # image is built for.
 #

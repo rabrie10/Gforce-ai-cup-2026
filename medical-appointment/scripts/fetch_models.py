@@ -26,39 +26,21 @@ from medapp.config import settings as default_settings
 WEIGHT_PATTERNS = ["*.json", "*.txt", "*.model", "*.safetensors"]
 
 
-def models_to_fetch(settings: Settings, every: bool = False) -> tuple[str, ...]:
+def models_to_fetch(settings: Settings) -> tuple[str, ...]:
     """The hub repositories to fill the cache with.
 
-    The reranker and the Entailment judge always; the dense embedder only where
-    the retrieval mode ranks with one. ADR-0001 adopts the dense half on
-    measurement, so fetching weights the request path will not read would put
-    them into the image for nothing.
+    Every model the request path loads and no others: the reranker, which ranks
+    a Conversation's sentences, and the Entailment judge behind it.
 
     Args:
         settings: The resolved environment.
-        every: Fetch every model Settings names, whatever the mode. The
-            measurement that decides the mode has to load the ones the request
-            path does not, and ADR-0002 commits to re-running it at every
-            retrieval change, so there has to be a way to ask for them without
-            editing Settings.
     """
-    models = (settings.rerank_model, settings.nli_model)
-
-    if every or settings.retrieval_mode != "bm25":
-        return (*models, settings.dense_model)
-
-    return models
+    return (settings.rerank_model, settings.nli_model)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Fetch every model Settings names, including the ones the "
-        "current retrieval mode does not load. The mode comparison needs them.",
-    )
-    arguments = parser.parse_args()
+    parser.parse_args()
 
     print(f"{default_settings.whisper_model} -> {default_settings.model_cache_dir}")
     path = download_model(
@@ -67,7 +49,7 @@ def main() -> None:
     )
     print(f"  {path}")
 
-    for repository in models_to_fetch(default_settings, every=arguments.all):
+    for repository in models_to_fetch(default_settings):
         print(f"{repository} -> {default_settings.model_cache_dir}")
         path = snapshot_download(
             repository,

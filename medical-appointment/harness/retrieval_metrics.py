@@ -1,36 +1,9 @@
-"""The two gates ADR-0002 puts in front of everything downstream.
-
-The Chunker's gate is **oracle-selected tIoU**: the mean, over every annotated
-Evidence Span, of the best tIoU any Chunk of that Conversation achieves. It is
-the ceiling on 0.6 of the score. Nothing the Relevance or Entailment judge does
-can raise it, because they choose among Chunks rather than making new ones.
-
-The retriever's gate is **recall@k**: the fraction of annotated Evidence Spans
-for which the ranking's top k holds a Chunk that overlaps the annotation more
-than it misses it. A span not retrieved is unreachable by every judge
-downstream, whatever their thresholds.
-
-The two are reported side by side because they fail differently and are fixed
-in different modules. Oracle tIoU short of the gate is the Chunker's ladder;
-recall short of it with oracle tIoU above it is the retriever's ranking.
-
-Both are read at the ranking the system actually returns. Where a reranker is
-supplied, that is the reranked order: ADR-0002 states the gate at 5 and
-requires it re-measured after each component that changes the ranking, so
-measuring BM25's order while the endpoint returns the cross-encoder's would
-report a gate the shipped system is not held to.
-
-Read on train and dev only. ADR-0002 transcribes the test fold but does not read
-it until tuning ends.
-"""
-
 from dataclasses import dataclass
 
 from harness import transcript_cache
 from harness.folds import FoldName, conversations_in_fold
-from medapp.chunker import ChunkScheme, chunk_conversation
+from medapp.chunker import SentenceScheme, chunk_conversation
 from medapp.reranker import Reranker
-from medapp.retrieval import Bm25Index
 from medapp.types import Chunk
 from utils import Span, gold_evidence, temporal_iou
 
@@ -69,7 +42,7 @@ class FoldMeasurement:
 
     Attributes:
         chunk_counts: How many Chunks each Conversation of the fold produced,
-            which is the per-request index size the gates are bought at.
+            which is the candidate count the gates are bought at.
     """
 
     spans: tuple[SpanMeasurement, ...]
@@ -82,7 +55,7 @@ class RetrievalReport:
 
     Attributes:
         reranked: Whether the ranking measured is the reranker's or BM25's.
-        chunks_per_conversation: The mean size of the per-request index, which
+        chunks_per_conversation: The mean candidate count per Conversation, which
             is the cost the gates are bought at.
         recall: Fraction of spans found, per depth.
         oracle_tiou: Mean best-achievable tIoU over every Chunk — the Chunker's
@@ -125,19 +98,18 @@ def measure_span(
 
 
 def measure_fold(
-    fold: FoldName, scheme: ChunkScheme, reranker: Reranker | None = None
+    fold: FoldName, scheme: SentenceScheme, reranker: Reranker
 ) -> FoldMeasurement:
     """Measure every annotated Evidence Span of one fold.
 
-    The Chunks and the index are built once per Conversation and every Question
+    The Chunks are built once per Conversation and every Question
     of it is ranked against them, which is exactly what happens inside one
     request.
 
     Args:
         fold: Which fold to read.
         scheme: The Chunk granularities to measure.
-        reranker: Rescores the retrieved Chunks before they are measured.
-            Omitted, the ranking measured is BM25's alone.
+        reranker: Ranks the Chunks before they are measured.
 
     Raises:
         FileNotFoundError: If a Conversation of the fold is not cached.
@@ -149,7 +121,6 @@ def measure_fold(
     for transcript_id, rows in conversations_in_fold(fold):
         chunks = chunk_conversation(transcript_cache.read(transcript_id), scheme)
         chunk_counts.append(len(chunks))
-        index = Bm25Index(chunks)
 
         for row in rows:
             annotated = gold_evidence(row)
@@ -157,13 +128,10 @@ def measure_fold(
             if annotated is None:
                 continue
 
-            ranked = index.rank(row["question"], depth)
-
-            if reranker is not None:
-                ranked = tuple(
-                    candidate.chunk
-                    for candidate in reranker.rerank(row["question"], ranked)
-                )
+            ranked = tuple(
+                candidate.chunk
+                for candidate in reranker.rerank(row["question"], chunks)[:depth]
+            )
 
             oracle, at_depth = measure_span(chunks, ranked, annotated)
             spans.append(
@@ -179,7 +147,7 @@ def measure_fold(
 
 
 def report(
-    fold: FoldName, scheme: ChunkScheme, reranker: Reranker | None = None
+    fold: FoldName, scheme: SentenceScheme, reranker: Reranker
 ) -> RetrievalReport:
     """Summarise one fold against both gates.
 

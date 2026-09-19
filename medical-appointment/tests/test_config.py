@@ -25,23 +25,21 @@ def test_defaults_resolve_without_any_environment(monkeypatch):
     assert settings.device == "cpu"
     assert settings.compute_type == "int8"
     assert settings.answer_strategy == "retrieve_rerank_entail"
-    assert settings.relevance_threshold == 0.3
-    assert settings.entail_depth == 2
+    assert settings.relevance_threshold == 0.1
+    assert settings.entail_depth == 1
+    assert settings.whisper_model == "mobiuslabsgmbh/faster-whisper-large-v3-turbo"
+    assert settings.beam_size == 1
     assert settings.relevance_gate is True
-    assert settings.entailment_threshold == 0.000394
-    assert settings.chunk_word_lengths == (1, 2, 3, 4, 6, 8, 11, 15, 20, 27, 36, 48)
-    assert settings.chunk_stride_fraction == 0.2
+    assert settings.entailment_threshold == 0.0002
+    assert settings.chunk_max_words == 60
     assert settings.retrieval_candidates == 10
-    assert settings.retrieval_mode == "bm25"
-    assert settings.fusion_depth == 50
-    assert settings.fusion_rank_constant == 60.0
     assert settings.route_suffix == ""
     assert settings.deadline_seconds == 50.0
     assert settings.transcript_cache_dir.name == "transcripts"
     assert settings.whisper_language == "en"
     assert settings.vad_filter is True
     assert settings.condition_on_previous_text is False
-    assert settings.beam_size == 5
+    assert settings.beam_size == 1
 
 
 def test_environment_overrides_every_deployment_value(monkeypatch):

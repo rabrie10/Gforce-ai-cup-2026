@@ -1,19 +1,3 @@
-"""The development transcript cache: one JSON file per Conversation.
-
-ADR-0002 pays the ASR cost once so that every later tuning iteration runs
-offline. The cache belongs to the evaluation harness and to it alone — nothing
-under ``medapp`` imports this module, because a cached transcript reaching the
-request path would silently make the dev loop's shortcut into production
-behaviour.
-
-Two properties make it safe to tune against. The on-disk form round-trips: what
-:func:`read` returns equals what the Transcriber produced, Word timings
-included. And every file records the decoding settings that produced it, which
-are checked on the way back in — a transcript decoded by a smaller model or a
-different beam size is refused rather than quietly measured, because a stale
-cache is invisible in every number computed from it.
-"""
-
 import json
 import os
 from pathlib import Path

@@ -23,7 +23,7 @@ import argparse
 
 from harness.folds import FoldName
 from harness.retrieval_metrics import RECALL_DEPTHS, RetrievalReport, report
-from medapp.chunker import ChunkScheme
+from medapp.chunker import SentenceScheme
 from medapp.config import settings
 from medapp.reranker import CrossEncoderReranker
 
@@ -78,41 +78,15 @@ def _gate_mark(gated: bool, value: float, gate: float) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--lengths",
-        help="Comma-separated Chunk lengths in normalized tokens.",
-    )
-    parser.add_argument(
-        "--stride",
-        type=float,
-        help="How far apart the Chunks of one length start, as a fraction of it.",
-    )
-    parser.add_argument(
-        "--rerank",
-        action="store_true",
-        help="Measure the reranked ranking rather than BM25's own.",
-    )
-    arguments = parser.parse_args()
+    parser.parse_args()
 
-    scheme = ChunkScheme(
-        word_lengths=(
-            tuple(int(length) for length in arguments.lengths.split(","))
-            if arguments.lengths
-            else settings.chunk_word_lengths
-        ),
-        stride_fraction=arguments.stride or settings.chunk_stride_fraction,
-    )
-
-    reranker = None
-
-    if arguments.rerank:
-        reranker = CrossEncoderReranker(settings)
-        reranker.warm_up()
+    scheme = SentenceScheme(max_words=settings.chunk_max_words)
+    reranker = CrossEncoderReranker(settings)
+    reranker.warm_up()
 
     print(
-        f"Chunks at lengths {list(scheme.word_lengths)}, "
-        f"stride {scheme.stride_fraction:g} of each, ranked by "
-        f"{'BM25 then ' + settings.rerank_model if reranker else 'BM25'}."
+        f"One Chunk per sentence, cut at {scheme.max_words} Words at the "
+        f"longest, ranked by {settings.rerank_model}."
     )
     print(format_header())
 

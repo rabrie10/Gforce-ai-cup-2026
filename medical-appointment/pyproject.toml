@@ -13,8 +13,6 @@ dependencies = [
   "pydantic>=2.7,<3",
   "pydantic-settings>=2.4",
   "faster-whisper>=1.1",
-  "bm25s>=0.2",
-  "PyStemmer>=2.2",
   "sentence-transformers>=3.0",
   "torch>=2.4",
   "numpy>=1.26",
@@ -82,12 +80,6 @@ disallow_untyped_defs = false
 # faster-whisper ships no py.typed marker; the shapes this project depends on
 # are pinned by Protocols in medapp/transcriber.py instead.
 module = ["faster_whisper.*"]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-# Neither ships a py.typed marker. The surface used here is three calls wide
-# (index, retrieve, stemWords) and is exercised by tests/test_retrieval.py.
-module = ["bm25s.*", "Stemmer.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

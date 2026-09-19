@@ -28,7 +28,7 @@ from harness.relevance_threshold import (
     JUDGING_BUDGET_SECONDS,
     QUESTIONS_PER_CONVERSATION,
 )
-from medapp.chunker import ChunkScheme
+from medapp.chunker import SentenceScheme
 from medapp.claims import ClaimRewriter
 from medapp.config import settings
 from medapp.entailment import NliEntailmentJudge
@@ -149,10 +149,7 @@ def main() -> None:
         format_sweep(
             sweep(
                 fold=arguments.fold,
-                scheme=ChunkScheme(
-                    word_lengths=settings.chunk_word_lengths,
-                    stride_fraction=settings.chunk_stride_fraction,
-                ),
+                scheme=SentenceScheme(max_words=settings.chunk_max_words),
                 reranker=reranker,
                 rewriter=ClaimRewriter(),
                 judge=judge,

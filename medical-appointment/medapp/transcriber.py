@@ -1,22 +1,3 @@
-"""The one Transcriber: faster-whisper, configured entirely from Settings.
-
-Not an interface and not a set of interchangeable backends. The only realistic
-change is model size, device or a decoding knob, and configuration already
-covers all three — which is why this module never asks what hardware it is on.
-
-Word timestamps come from the same decoding pass as the Segments, so the timings
-the Chunker builds on cost an alignment step rather than a second traversal of
-the audio. Segments are kept apart: joining them into one string throws away the
-only thing that makes an Evidence Span returnable.
-
-Decoding is bounded by a wall clock. faster-whisper yields Segments as it
-decodes them, so a budget is spent by consuming that generator rather than by
-interrupting it: what has been decoded when the budget runs out is a real
-transcript of the opening of the Conversation, not a degraded stand-in for one.
-The alternative is not a better transcript — it is a request that answers past
-the service's 60-second timeout and scores every one of its ten Questions wrong.
-"""
-
 import array
 import io
 import logging
@@ -28,7 +9,7 @@ from typing import Protocol
 
 from faster_whisper import WhisperModel
 
-from medapp.config import Settings
+from medapp.config import Settings, resolved_cpu_threads
 from medapp.config import settings as default_settings
 from medapp.types import Segment, Word
 
@@ -185,7 +166,7 @@ def _load_model(settings: Settings) -> WhisperModel:
         settings.whisper_model,
         device=settings.device,
         compute_type=settings.compute_type,
-        cpu_threads=settings.cpu_threads,
+        cpu_threads=resolved_cpu_threads(settings.cpu_threads),
         download_root=str(settings.model_cache_dir),
     )
 

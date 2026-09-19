@@ -18,7 +18,7 @@ import logging
 
 from harness.folds import FoldName, checked_fold_name
 from harness.score import ScoreReport, report
-from medapp.answerer import SpanRefiningAnswerer, build_answerer, span_padding
+from medapp.answerer import build_answerer
 from medapp.config import settings
 
 READABLE_FOLDS: tuple[FoldName, ...] = ("train", "dev")
@@ -31,7 +31,6 @@ def format_report(measurement: ScoreReport) -> str:
         f"{measurement.questions} Questions, {measurement.positives} annotated "
         "Positives",
         f"  answer strategy      {settings.answer_strategy}",
-        f"  retrieval mode       {settings.retrieval_mode}",
         "",
         f"  score                {measurement.score:.3f}  "
         f"{_format(measurement.score_interval)}",
@@ -106,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    answerer = SpanRefiningAnswerer(build_answerer(settings), span_padding(settings))
+    answerer = build_answerer(settings)
 
     print(format_report(report(fold, answerer)))
 
