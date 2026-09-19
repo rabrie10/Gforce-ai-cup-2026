@@ -185,6 +185,7 @@ def _load_model(settings: Settings) -> WhisperModel:
         settings.whisper_model,
         device=settings.device,
         compute_type=settings.compute_type,
+        cpu_threads=settings.cpu_threads,
         download_root=str(settings.model_cache_dir),
     )
 

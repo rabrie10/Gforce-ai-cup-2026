@@ -25,7 +25,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
-from medapp.config import Settings
+from medapp.config import Settings, resolved_torch_device
 from medapp.config import settings as default_settings
 from medapp.normalizer import normalize_text
 from medapp.types import Chunk
@@ -190,7 +190,7 @@ def load_model(settings: Settings | None = None) -> NliModel:
 
     model: NliModel = CrossEncoder(
         settings.nli_model,
-        device=settings.device,
+        device=resolved_torch_device(settings.torch_device),
         cache_folder=str(settings.model_cache_dir),
         local_files_only=True,
         max_length=settings.nli_max_tokens,

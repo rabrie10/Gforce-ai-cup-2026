@@ -14,7 +14,17 @@ from typing import Literal, cast, get_args
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# CTranslate2's device set, which the Transcriber runs on. Metal is not in it:
+# the shipped ctranslate2 wheels build a CPU and a CUDA backend and nothing
+# else, so on Apple Silicon the Transcriber is a CPU program however many GPU
+# cores the machine has. ``cpu_threads`` is what tunes it there, not a device.
 Device = Literal["cpu", "cuda"]
+# PyTorch's device set, which the cross-encoders run on. Wider than
+# CTranslate2's by exactly one entry, which is why it cannot be the same
+# setting: "mps" is valid for the reranker and the NLI judge and invalid for
+# the Transcriber, and one Literal covering both would either forbid it
+# everywhere or admit it where it raises.
+TorchDevice = Literal["auto", "cpu", "cuda", "mps"]
 ComputeType = Literal["int8", "int8_float16", "float16", "float32"]
 RetrievalMode = Literal["bm25", "dense", "hybrid"]
 RETRIEVAL_MODES: tuple[RetrievalMode, ...] = get_args(RetrievalMode)
@@ -33,6 +43,21 @@ class Settings(BaseSettings):
     """Every value the system resolves from its environment.
 
     Attributes:
+        device: Where the Transcriber decodes — CTranslate2's device set, which
+            has no Metal entry. See :data:`Device`.
+        torch_device: Where the cross-encoders run. ``auto`` resolves to the
+            best available at startup, which is Metal on Apple Silicon. Measured
+            rather than assumed: on the dev machine it is worth about 2% over
+            CPU, because ten Question-Chunk pairs of under a hundred subwords do
+            not fill a GPU and the kernel launches cost what the arithmetic
+            saves. It is wired correctly anyway, because a machine whose
+            batches are larger would see the win and because "cannot be
+            selected" is a worse answer than "measured and did not help".
+        cpu_threads: How many threads CTranslate2 decodes with. Zero leaves its
+            own default, which is conservative on a many-core machine: on the
+            11-core dev machine setting it to 10 took the worst-case decode from
+            49.0 s to 37.8 s, which is the single cheapest latency win
+            available and needs no change of model.
         answer_strategy: Which Answerer is constructed at startup. Candidates
             are compared by running the system twice, not by a runtime switch.
             A strategy no Answerer implements yet fails at startup rather than
@@ -141,7 +166,9 @@ class Settings(BaseSettings):
     )
 
     device: Device = "cpu"
+    torch_device: TorchDevice = "auto"
     compute_type: ComputeType = "int8"
+    cpu_threads: int = Field(default=0, ge=0)
 
     whisper_model: str = "large-v3"
     whisper_language: str = "en"
@@ -244,6 +271,37 @@ class Settings(BaseSettings):
 
     model_cache_dir: Path = PROJECT_ROOT / "models"
     transcript_cache_dir: Path = PROJECT_ROOT / "transcripts"
+
+
+def resolved_torch_device(device: TorchDevice) -> str:
+    """The PyTorch device to load a cross-encoder on.
+
+    ``auto`` picks the best backend the machine actually has, checked at
+    startup rather than inferred from the platform name: a Mac without a
+    working Metal build and a Linux box without a visible GPU both have to fall
+    back to CPU, and asking torch is the only way to know.
+
+    Args:
+        device: The configured device, possibly ``auto``.
+
+    Returns:
+        A device string torch accepts.
+    """
+    if device != "auto":
+        return device
+
+    # Imported here rather than at module scope: importing torch costs seconds
+    # and every module reads Settings, including the ones that never load a
+    # model.
+    import torch
+
+    if torch.backends.mps.is_available():
+        return "mps"
+
+    if torch.cuda.is_available():
+        return "cuda"
+
+    return "cpu"
 
 
 def checked_retrieval_mode(mode: str) -> RetrievalMode:

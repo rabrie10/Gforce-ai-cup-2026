@@ -29,7 +29,7 @@ from typing import Any, Protocol
 import numpy as np
 from numpy.typing import NDArray
 
-from medapp.config import Settings
+from medapp.config import Settings, resolved_torch_device
 from medapp.config import settings as default_settings
 from medapp.normalizer import normalize_text
 from medapp.types import Chunk
@@ -182,7 +182,7 @@ def load_model(settings: Settings | None = None) -> Embedder:
 
     model: Embedder = SentenceTransformer(
         settings.dense_model,
-        device=settings.device,
+        device=resolved_torch_device(settings.torch_device),
         cache_folder=str(settings.model_cache_dir),
         local_files_only=True,
     )

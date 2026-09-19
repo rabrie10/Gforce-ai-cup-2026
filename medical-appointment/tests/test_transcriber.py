@@ -226,3 +226,25 @@ def test_no_budget_decodes_the_whole_conversation():
     )
 
     assert len(transcriber.transcribe(b"mp3")) == len(_segments()) * 4
+
+
+def test_the_decoder_is_constructed_with_the_configured_thread_count(monkeypatch):
+    """``cpu_threads`` is the cheapest latency knob the Transcriber has — on the
+    dev machine it took the worst-case decode from 49.0 s to 37.8 s — and it is
+    only worth anything if it actually reaches CTranslate2."""
+    constructed = {}
+
+    class _Recorder:
+        def __init__(self, model, **options):
+            constructed["model"] = model
+            constructed.update(options)
+
+    monkeypatch.setattr("medapp.transcriber.WhisperModel", _Recorder)
+
+    from medapp.transcriber import _load_model
+
+    _load_model(Settings(cpu_threads=10, whisper_model="tiny.en"))
+
+    assert constructed["model"] == "tiny.en"
+    assert constructed["cpu_threads"] == 10
+    assert constructed["device"] == "cpu"
