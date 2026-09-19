@@ -1,0 +1,133 @@
+{
+  "refused": [],
+  "per_class": {
+    "jammer": {
+      "visible": 2,
+      "proposal": 2,
+      "track": 2,
+      "class_ok": 0,
+      "emitted": 0,
+      "appearances": 13
+    },
+    "large_launcher": {
+      "visible": 8,
+      "proposal": 6,
+      "track": 23,
+      "class_ok": 23,
+      "emitted": 14,
+      "appearances": 25
+    },
+    "mine_roller": {
+      "visible": 1,
+      "proposal": 1,
+      "track": 1,
+      "class_ok": 0,
+      "emitted": 0,
+      "appearances": 2
+    },
+    "spacecraft": {
+      "visible": 10,
+      "proposal": 9,
+      "track": 18,
+      "class_ok": 17,
+      "emitted": 15,
+      "appearances": 23
+    },
+    "condor": {
+      "visible": 3,
+      "proposal": 3,
+      "track": 7,
+      "class_ok": 7,
+      "emitted": 6,
+      "appearances": 11
+    },
+    "small_plane": {
+      "visible": 3,
+      "proposal": 3,
+      "track": 5,
+      "class_ok": 4,
+      "emitted": 3,
+      "appearances": 9
+    },
+    "small_launcher": {
+      "visible": 10,
+      "proposal": 10,
+      "track": 13,
+      "class_ok": 10,
+      "emitted": 9,
+      "appearances": 25
+    },
+    "tank": {
+      "visible": 1,
+      "proposal": 2,
+      "track": 4,
+      "class_ok": 3,
+      "emitted": 1,
+      "appearances": 25
+    },
+    "helicopter": {
+      "visible": 12,
+      "proposal": 11,
+      "track": 16,
+      "class_ok": 16,
+      "emitted": 17,
+      "appearances": 19
+    },
+    "small_tower": {
+      "visible": 12,
+      "proposal": 12,
+      "track": 18,
+      "class_ok": 17,
+      "emitted": 17,
+      "appearances": 20
+    },
+    "ta-ta": {
+      "visible": 2,
+      "proposal": 3,
+      "track": 3,
+      "class_ok": 0,
+      "emitted": 0,
+      "appearances": 25
+    },
+    "jet_plane": {
+      "visible": 4,
+      "proposal": 4,
+      "track": 9,
+      "class_ok": 9,
+      "emitted": 6,
+      "appearances": 22
+    },
+    "large_tower": {
+      "visible": 0,
+      "proposal": 0,
+      "track": 0,
+      "class_ok": 0,
+      "emitted": 0,
+      "appearances": 19
+    },
+    "medium_launcher": {
+      "visible": 0,
+      "proposal": 0,
+      "track": 0,
+      "class_ok": 0,
+      "emitted": 0,
+      "appearances": 10
+    },
+    "hangar": {
+      "visible": 0,
+      "proposal": 0,
+      "track": 0,
+      "class_ok": 0,
+      "emitted": 0,
+      "appearances": 6
+    },
+    "medium_plane": {
+      "visible": 0,
+      "proposal": 0,
+      "track": 0,
+      "class_ok": 0,
+      "emitted": 0,
+      "appearances": 5
+    }
+  }
+}

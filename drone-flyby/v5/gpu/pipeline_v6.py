@@ -194,18 +194,17 @@ class V6Pipeline:
                         t.target = float(target_p); t.feat = res[1]
                     st.tracks.append(t); used.add(t.id); observed.append(t.id)
 
-        # 5. update global drift estimate from residuals (median), causal EMA
+        # 5. update global drift estimate. residual = observed - predicted = (true - gvx)*gap,
+        #    so the correction is ADDITIVE: gvx += alpha * residual/gap  (converges to true drift).
         if residuals:
             rdx = float(np.median([d[0] for d in residuals])) / max(1, gap)
             rdy = float(np.median([d[1] for d in residuals])) / max(1, gap)
-            if not st.g_init:
-                st.gvx, st.gvy, st.g_init = rdx, rdy, True
-            else:
-                st.gvx = 0.7*st.gvx + 0.3*rdx; st.gvy = 0.7*st.gvy + 0.3*rdy
-            # per-track residual velocity (relative to global) small correction
+            alpha = 0.7 if not st.g_init else 0.5
+            st.gvx += alpha * rdx; st.gvy += alpha * rdy
+            st.g_init = True
             for t in st.tracks:
                 if t.id in observed:
-                    t.vx *= 0.5; t.vy *= 0.5  # damp; global handles bulk motion
+                    t.vx *= 0.5; t.vy *= 0.5  # damp per-track; global handles bulk motion
 
         # 6. misses + expiry
         alive = []
@@ -255,31 +254,32 @@ class V6Pipeline:
         from dtos import RequestedViewDto
         cur = st.cam_level
         allowed = ALLOWED_RESOLUTION_LEVELS[cur]
-        # choose next level progressing toward goal_level through legal transitions
-        if goal_level in allowed:
-            nl = goal_level
-        else:
-            # step through L1 (hub)
-            nl = 1 if 1 in allowed else cur
+        nl = goal_level if goal_level in allowed else (1 if 1 in allowed else cur)
         if nl == 0:
             st.cam_level, st.cam_cx, st.cam_cy = 0, FULL_FRAME_CENTER[0], FULL_FRAME_CENTER[1]
             return RequestedViewDto(resolution_level=0, center_x=FULL_FRAME_CENTER[0], center_y=FULL_FRAME_CENTER[1])
-        limit = MAXIMUM_CENTER_DELTA_PIXELS[cur] - 3.0  # safe margin vs strict evaluator limit
-        mnx, mxx, mny, myy = center_bounds(nl)
-        # clamp goal into legal bounds FIRST, then cap the step to the limit
-        tcx = min(max(goal_cx, mnx), mxx); tcy = min(max(goal_cy, mny), myy)
-        dx, dy = tcx - st.cam_cx, tcy - st.cam_cy
-        d = (dx*dx + dy*dy) ** 0.5
-        if d > limit:
-            f = limit / d
-            tcx = st.cam_cx + dx * f; tcy = st.cam_cy + dy * f
-        icx = int(round(min(max(tcx, mnx), mxx))); icy = int(round(min(max(tcy, mny), myy)))
-        # guarantee within limit after rounding
-        while ((icx - st.cam_cx) ** 2 + (icy - st.cam_cy) ** 2) ** 0.5 > MAXIMUM_CENTER_DELTA_PIXELS[cur] - 1:
-            icx = int(round(st.cam_cx + (icx - st.cam_cx) * 0.98))
-            icy = int(round(st.cam_cy + (icy - st.cam_cy) * 0.98))
-        st.cam_level, st.cam_cx, st.cam_cy = nl, icx, icy
-        return RequestedViewDto(resolution_level=nl, center_x=icx, center_y=icy)
+        cx, cy = st.cam_cx, st.cam_cy
+        limit = MAXIMUM_CENTER_DELTA_PIXELS[cur]
+
+        def feasible(nlvl):
+            mnx, mxx, mny, myy = center_bounds(nlvl)
+            gx = min(max(goal_cx, mnx), mxx); gy = min(max(goal_cy, mny), myy)
+            # farthest point on segment cam->goal that is IN bounds AND within (limit-2)
+            best = None
+            for i in range(20, -1, -1):
+                t = i / 20.0
+                px = int(round(cx + t * (gx - cx))); py = int(round(cy + t * (gy - cy)))
+                if mnx <= px <= mxx and mny <= py <= myy and ((px-cx)**2 + (py-cy)**2) ** 0.5 <= limit - 2:
+                    best = (px, py); break
+            return best
+
+        pt = feasible(nl)
+        if pt is None:  # cannot legally reach nl this frame; keep current level, best legal move toward goal
+            nl = cur; pt = feasible(cur)
+        if pt is None:  # no move possible: stay put (legal no-op)
+            pt = (cx, cy)
+        st.cam_level, st.cam_cx, st.cam_cy = nl, pt[0], pt[1]
+        return RequestedViewDto(resolution_level=nl, center_x=pt[0], center_y=pt[1])
 
     def _plan_camera(self, st, r, observed):
         # sync camera state to what the evaluator actually applied
