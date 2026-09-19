@@ -29,6 +29,10 @@ Default policy set: stage with no predators -> do_nothing, random, heuristic,
 oracle_nearest, oracle_value. Stage with predators -> do_nothing, random,
 heuristic, oracle_nearest, oracle_evade. Override with --policies.
 
+--mask-spawn simulates the fix for the "blocked reproduction still costs 100 energy" issue
+(stages 1-3). "wasted_spawn/ep" = spawn requests per episode that cost 100 energy (or would
+have, when masked) without creating a child. See spawn_hook.py.
+
 Death causes are counted exactly (kill_agent with energy > 0 = predator,
 energy <= 0 = starvation; same trick as reward.py / rule_based instrumentation).
 "ext_by_pred%" = share of EXTINCT episodes whose last death was a predator kill.
@@ -68,6 +72,7 @@ from src.utils.controllers.heuristic_policy import action_decision as heuristic_
 from training.RL.curriculum import get_stage
 from training.RL.env_wrapper import CurriculumEnv, decode_action
 from training.RL.reward import begin_tick, compute_rewards
+from training.RL.spawn_hook import hook_spawn
 
 CHUNK = 10
 POLICIES = ("do_nothing", "random", "heuristic", "oracle_nearest", "oracle_value", "oracle_evade", "approach")
@@ -173,7 +178,7 @@ def _hook_death_causes(env, counts):
 
 
 def _run_chunk(job):
-    policy, seed, n_eps, stage_name = job
+    policy, seed, n_eps, stage_name, mask_spawn = job
     stage = get_stage(stage_name)
     cenv = CurriculumEnv(stage, seed=seed)
     rng = random.Random(seed)
@@ -184,6 +189,8 @@ def _run_chunk(job):
         env = sim.env
         counts = {"pred": 0, "starve": 0, "last": None}
         _hook_death_causes(env, counts)
+        spawn_counts = {"wasted": 0}
+        hook_spawn(env, spawn_counts, mask_spawn)
         start_agents = len(env.agents)
         while True:
             actions = _actions(policy, env, sim.dt, rng)
@@ -193,7 +200,7 @@ def _run_chunk(job):
             if len(env.agents) == 0 or env.time >= stage.max_sim_time:
                 break
         out.append((policy, float(env.time), len(env.agents), start_agents,
-                    counts["pred"], counts["starve"], counts["last"] or ""))
+                    counts["pred"], counts["starve"], counts["last"] or "", spawn_counts["wasted"]))
     return out
 
 
@@ -214,6 +221,9 @@ def main():
     ap.add_argument("--policies", default=None, help="comma list; default depends on whether the stage has predators")
     ap.add_argument("--workers", type=int, default=max(1, mp.cpu_count() - 2))
     ap.add_argument("--seed-base", type=int, default=777000)
+    ap.add_argument("--mask-spawn", action="store_true",
+                    help="Simulate the FIX for the blocked-reproduction energy charge: force spawn_agent=False "
+                         "(stages 1-3 only). Without it, blocked spawn requests still cost 100 energy (current behaviour).")
     ap.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "eval_results"))
     args = ap.parse_args()
 
@@ -227,7 +237,9 @@ def main():
         sys.exit(f"unknown policies: {bad}; choose from {POLICIES}")
 
     n_chunks = math.ceil(args.episodes / CHUNK)
-    jobs = [(p, args.seed_base + c, CHUNK, args.stage) for p in policies for c in range(n_chunks)]
+    if args.mask_spawn and stage.reproduction:
+        sys.exit(f"--mask-spawn is only meaningful for stages with reproduction disabled; {args.stage} has it enabled.")
+    jobs = [(p, args.seed_base + c, CHUNK, args.stage, args.mask_spawn) for p in policies for c in range(n_chunks)]
     print(f"{len(jobs)} jobs ({len(policies)} policies x {n_chunks} chunks x {CHUNK} eps), {args.workers} workers", flush=True)
 
     res = defaultdict(list)
@@ -241,29 +253,31 @@ def main():
                 el = time.time() - t0
                 print(f"[{i}/{len(jobs)}] elapsed={el/60:.1f}m eta={el/i*(len(jobs)-i)/60:.1f}m", flush=True)
 
-    print(f"\n=== Baselines on {args.stage} (cap {stage.max_sim_time:.0f}s, {args.episodes} eps each) ===")
+    print(f"\n=== Baselines on {args.stage} (cap {stage.max_sim_time:.0f}s, {args.episodes} eps each, "
+          f"spawn charge {'MASKED (fixed behaviour)' if args.mask_spawn else 'ACTIVE (current behaviour)'}) ===")
     print(f"{'policy':<15} {'survive%':>8} {'95% CI':>10} {'all-alive%':>10} {'mean_t':>7} {'median_t':>8} "
-          f"{'mean_alive':>10} {'pred_d/ep':>9} {'starv_d/ep':>10} {'ext_by_pred%':>12}")
+          f"{'mean_alive':>10} {'pred_d/ep':>9} {'starv_d/ep':>10} {'ext_by_pred%':>12} {'wasted_spawn/ep':>15}")
     os.makedirs(args.out, exist_ok=True)
     stamp = time.strftime("%Y%m%d_%H%M%S")
     raw = os.path.join(args.out, f"{args.stage}_baselines_raw_{stamp}.csv")
     with open(raw, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["policy", "sim_time", "final_agents", "start_agents", "predator_deaths", "starvation_deaths", "last_death_cause"])
+        w.writerow(["policy", "sim_time", "final_agents", "start_agents", "predator_deaths", "starvation_deaths", "last_death_cause", "wasted_spawn"])
         for p in policies:
             eps = res[p]
             n = len(eps)
-            k = sum(1 for _, a, _, _, _, _ in eps if a > 0)
-            k_all = sum(1 for _, a, s, _, _, _ in eps if a == s)
+            k = sum(1 for e in eps if e[1] > 0)
+            k_all = sum(1 for e in eps if e[1] == e[2])
             lo, hi = wilson(k, n)
             ts = [e[0] for e in eps]
             extinct = [e for e in eps if e[1] == 0]
             ext_pred = 100 * sum(1 for e in extinct if e[5] == "pred") / len(extinct) if extinct else float("nan")
             print(f"{p:<15} {100*k/n:8.1f} [{100*lo:3.0f},{100*hi:3.0f}] {100*k_all/n:10.1f} "
                   f"{np.mean(ts):7.1f} {np.median(ts):8.1f} {np.mean([e[1] for e in eps]):10.2f} "
-                  f"{np.mean([e[3] for e in eps]):9.2f} {np.mean([e[4] for e in eps]):10.2f} {ext_pred:12.1f}")
-            for t, a, s, pd, sd, last in eps:
-                w.writerow([p, t, a, s, pd, sd, last])
+                  f"{np.mean([e[3] for e in eps]):9.2f} {np.mean([e[4] for e in eps]):10.2f} {ext_pred:12.1f} "
+                  f"{np.mean([e[6] for e in eps]):15.2f}")
+            for t, a, s, pd, sd, last, wsp in eps:
+                w.writerow([p, t, a, s, pd, sd, last, wsp])
     print(f"\nRaw episodes: {raw}")
 
 

@@ -49,9 +49,12 @@ K_PREDATOR = 3
 K_TREE = 3
 K_EDGE = 3
 
-# Own-scalar block: energy, age, speed, sprint_speed, hearing_radius,
-# vision_range, vision_angle -- all normalized to [0, 1]-ish.
-N_OWN = 7
+# Own-scalar block: energy, age, speed, sprint_speed, max_energy, hearing_radius,
+# vision_range, vision_angle -- all normalized to [0, 1]-ish. vision_range is
+# needed because every object distance is divided by the agent's OWN
+# vision_range (see encode_observation); without it absolute distances are
+# unrecoverable once mutation makes vision_range differ between agents.
+N_OWN = 8
 
 # Per-slot field counts (this many normalized floats per slot, the LAST of
 # which is always the presence flag -- 0.0 for a padded/empty slot).
@@ -154,6 +157,7 @@ def encode_observation(agent_state: dict) -> np.ndarray:
         # constant (200, comfortably above the default hearing_radius=50
         # and the observed chunk_size/4=100 cap) and clip to 1.0.
         min(agent_state["hearing_radius"] / 200.0, 1.0),
+        min(agent_state["vision_range"] / 200.0, 1.0),
         agent_state["vision_angle"] / MAX_CONE_ANGLE,
     ]
 
@@ -262,6 +266,9 @@ class CurriculumEnv:
         self.sim: Optional[SimulationCore] = None
         self._last_state: Optional[dict] = None
         self._build()
+        # __init__ already built episode #1; the first reset() must reuse it
+        # instead of building (and drawing seeds for) a second env.
+        self._fresh = True
 
     def _build(self) -> None:
         # Every monkeypatch below (spawn_predator/spawn_agent/kill_agent
@@ -323,7 +330,10 @@ class CurriculumEnv:
         self.episode_stats = {"fruit_energy": 0.0, "predator_deaths": 0, "starvation_deaths": 0}
 
     def reset(self) -> Dict[int, np.ndarray]:
-        self._build()
+        if self._fresh:
+            self._fresh = False
+        else:
+            self._build()
         return self._current_observations()
 
     def _current_observations(self) -> Dict[int, np.ndarray]:

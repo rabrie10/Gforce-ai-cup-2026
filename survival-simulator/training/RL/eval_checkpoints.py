@@ -11,6 +11,9 @@ them, so you can pick the best one instead of trusting `*_final.pt`.
     stoch = sampled actions (how training/goal-check ran; what stage 2 will
             start from)
     det   = tanh-mean action (what inference.py ships)
+- --mask-spawn simulates the fix for the "blocked reproduction still costs 100 energy" issue
+  (stages 1-3); "wasted spawn/ep" counts spawn requests that cost (or would have cost) 100
+  energy with no child created. See spawn_hook.py.
 - Two passes: pass 1 = cheap screen of all candidates; pass 2 = extra
   episodes for the top-K only (ranked by mean survive-rate over both modes),
   merged with pass 1.
@@ -42,13 +45,14 @@ import torch
 from training.RL.curriculum import get_stage
 from training.RL.env_wrapper import CurriculumEnv, OBS_DIM
 from training.RL.network import ACTION_DIM, ActorCritic
+from training.RL.spawn_hook import hook_spawn
 
 CHUNK = 10  # episodes per job (amortizes env construction)
 MODES = ("stoch", "det")
 
 
 def _run_chunk(job):
-    ckpt, mode, seed, n_eps, stage_name = job
+    ckpt, mode, seed, n_eps, stage_name, mask_spawn = job
     torch.set_num_threads(1)
     torch.manual_seed(seed)
     stage = get_stage(stage_name)
@@ -60,6 +64,8 @@ def _run_chunk(job):
     out = []
     for _ in range(n_eps):
         obs = env.reset()
+        spawn_counts = {"wasted": 0}
+        hook_spawn(env.sim.env, spawn_counts, mask_spawn)
         info = {"sim_time": 0.0, "num_agents": 0}
         while obs:
             ids = sorted(obs.keys())
@@ -69,7 +75,7 @@ def _run_chunk(job):
             obs, _, done, info = env.step({aid: act_np[i] for i, aid in enumerate(ids)})
             if done:
                 break
-        out.append((ckpt, mode, float(info["sim_time"]), int(info["num_agents"])))
+        out.append((ckpt, mode, float(info["sim_time"]), int(info["num_agents"]), spawn_counts["wasted"]))
     return out
 
 
@@ -83,7 +89,7 @@ def wilson(k, n, z=1.96):
     return ((c - m) / d, (c + m) / d)
 
 
-def pick_checkpoints(ckpt_dir, stage, ranges, include_final):
+def pick_checkpoints(ckpt_dir, stage, ranges, include_final, files=None):
     pat = re.compile(rf"^{re.escape(stage)}_iter(\d+)\.pt$")
     found = {}
     for f in os.listdir(ckpt_dir):
@@ -99,6 +105,8 @@ def pick_checkpoints(ckpt_dir, stage, ranges, include_final):
         for it, p in found.items():
             if lo <= it <= hi:
                 chosen[p] = f"iter{it}"
+    for fp in (files or []):
+        chosen[os.path.abspath(fp)] = os.path.basename(fp).replace('.pt', '')
     if include_final:
         fp = os.path.join(ckpt_dir, f"{stage}_final.pt")
         if os.path.exists(fp):
@@ -113,8 +121,8 @@ def run_jobs(jobs, workers, label):
     ctx = mp.get_context("fork")
     with ctx.Pool(workers) as pool:
         for chunk in pool.imap_unordered(_run_chunk, jobs):
-            for ckpt, mode, t, n_agents in chunk:
-                results[(ckpt, mode)].append((t, n_agents))
+            for ckpt, mode, t, n_agents, wasted in chunk:
+                results[(ckpt, mode)].append((t, n_agents, wasted))
             done_jobs += 1
             if done_jobs % 20 == 0 or done_jobs == len(jobs):
                 el = time.time() - t0
@@ -123,13 +131,13 @@ def run_jobs(jobs, workers, label):
     return results
 
 
-def make_jobs(ckpts, n_eps, seed_base, stage):
+def make_jobs(ckpts, n_eps, seed_base, stage, mask_spawn=False):
     n_chunks = math.ceil(n_eps / CHUNK)
     jobs = []
     for ckpt in ckpts:
         for mode in MODES:
             for c in range(n_chunks):
-                jobs.append((ckpt, mode, seed_base + c, CHUNK, stage))
+                jobs.append((ckpt, mode, seed_base + c, CHUNK, stage, mask_spawn))
     return jobs
 
 
@@ -138,12 +146,13 @@ def summarize(results, names):
     by_ckpt = defaultdict(dict)
     for (ckpt, mode), eps in results.items():
         n = len(eps)
-        k = sum(1 for _, a in eps if a > 0)
+        k = sum(1 for e in eps if e[1] > 0)
         lo, hi = wilson(k, n)
         by_ckpt[ckpt][mode] = dict(
             n=n, rate=k / n, lo=lo, hi=hi,
-            mean_t=float(np.mean([t for t, _ in eps])),
-            mean_alive=float(np.mean([a for _, a in eps])),
+            mean_t=float(np.mean([e[0] for e in eps])),
+            mean_alive=float(np.mean([e[1] for e in eps])),
+            wasted=float(np.mean([e[2] for e in eps])),
         )
     for ckpt, d in by_ckpt.items():
         score = float(np.mean([d[m]["rate"] for m in MODES if m in d]))
@@ -154,11 +163,11 @@ def summarize(results, names):
 
 def print_table(rows, title):
     print(f"\n=== {title} ===")
-    print(f"{'checkpoint':<10} {'avg':>5} | {'stoch surv%':>11} {'95% CI':>13} {'mean_t':>7} | {'det surv%':>9} {'95% CI':>13} {'mean_t':>7} | n(each)")
+    print(f"{'checkpoint':<10} {'avg':>5} | {'stoch surv%':>11} {'95% CI':>13} {'mean_t':>7} | {'det surv%':>9} {'95% CI':>13} {'mean_t':>7} | {'wasted spawn/ep (stoch, det)':>28} | n(each)")
     for score, name, _, d in rows:
         s, t = d["stoch"], d["det"]
         print(f"{name:<10} {score*100:5.1f} | {s['rate']*100:11.1f} [{s['lo']*100:4.0f},{s['hi']*100:4.0f}]   {s['mean_t']:7.1f} | "
-              f"{t['rate']*100:9.1f} [{t['lo']*100:4.0f},{t['hi']*100:4.0f}]   {t['mean_t']:7.1f} | {s['n']}")
+              f"{t['rate']*100:9.1f} [{t['lo']*100:4.0f},{t['hi']*100:4.0f}]   {t['mean_t']:7.1f} | {s['wasted']:12.2f} {t['wasted']:>15.2f} | {s['n']}")
 
 
 def main():
@@ -167,15 +176,22 @@ def main():
     ap.add_argument("--ckpt-dir", default=os.path.join(os.path.dirname(__file__), "checkpoints"))
     ap.add_argument("--iters", default="400-520,1180-1340", help="comma list of iteration ranges, e.g. 400-520,1180-1340")
     ap.add_argument("--include-final", action="store_true")
+    ap.add_argument("--files", default="", help="comma list of extra checkpoint .pt paths (e.g. bc / best files)")
     ap.add_argument("--episodes", type=int, default=100, help="pass-1 episodes per (checkpoint, mode)")
     ap.add_argument("--refine-top", type=int, default=4)
     ap.add_argument("--refine-episodes", type=int, default=300)
     ap.add_argument("--workers", type=int, default=max(1, mp.cpu_count() - 2))
     ap.add_argument("--seed-base", type=int, default=777000)
+    ap.add_argument("--mask-spawn", action="store_true",
+                    help="Simulate the FIX for the blocked-reproduction energy charge (force spawn_agent=False; "
+                         "stages 1-3 only). Default: current behaviour (blocked spawn requests still cost 100 energy).")
     ap.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "eval_results"))
     args = ap.parse_args()
 
-    names = pick_checkpoints(args.ckpt_dir, args.stage, args.iters, args.include_final)
+    if args.mask_spawn and get_stage(args.stage).reproduction:
+        sys.exit(f"--mask-spawn is only meaningful for stages with reproduction disabled; {args.stage} has it enabled.")
+    print(f"spawn charge: {'MASKED (fixed behaviour)' if args.mask_spawn else 'ACTIVE (current behaviour)'}", flush=True)
+    names = pick_checkpoints(args.ckpt_dir, args.stage, args.iters, args.include_final, [f for f in args.files.split(',') if f])
     if not names:
         sys.exit("No checkpoints matched.")
     ckpts = sorted(names)
@@ -186,7 +202,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     stamp = time.strftime("%Y%m%d_%H%M%S")
 
-    res1 = run_jobs(make_jobs(ckpts, args.episodes, args.seed_base, args.stage), args.workers, "pass1")
+    res1 = run_jobs(make_jobs(ckpts, args.episodes, args.seed_base, args.stage, args.mask_spawn), args.workers, "pass1")
     rows1 = summarize(res1, names)
     print_table(rows1, f"PASS 1 ({args.episodes} eps per checkpoint per mode)")
 
@@ -197,7 +213,7 @@ def main():
     if args.refine_top > 0 and args.refine_episodes > 0:
         top = [r[2] for r in rows1[: args.refine_top]]
         print(f"\nRefining top {len(top)}: {[names[c] for c in top]}", flush=True)
-        res2 = run_jobs(make_jobs(top, args.refine_episodes, args.seed_base + 100000, args.stage), args.workers, "pass2")
+        res2 = run_jobs(make_jobs(top, args.refine_episodes, args.seed_base + 100000, args.stage, args.mask_spawn), args.workers, "pass2")
         for k, v in res2.items():
             merged[k].extend(v)
         rows2 = summarize({k: v for k, v in merged.items() if k[0] in top}, names)
@@ -208,10 +224,10 @@ def main():
     raw_path = os.path.join(args.out, f"{args.stage}_eval_raw_{stamp}.csv")
     with open(raw_path, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["checkpoint", "mode", "sim_time", "final_num_agents"])
+        w.writerow(["checkpoint", "mode", "sim_time", "final_num_agents", "wasted_spawn"])
         for (ckpt, mode), eps in merged.items():
-            for t, a in eps:
-                w.writerow([names[ckpt], mode, t, a])
+            for t, a, wsp in eps:
+                w.writerow([names[ckpt], mode, t, a, wsp])
     print(f"\nRaw episodes: {raw_path}")
 
 

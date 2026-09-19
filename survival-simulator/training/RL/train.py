@@ -55,11 +55,12 @@ GAMMA = 0.99
 GAE_LAMBDA = 0.95
 CLIP_EPS = 0.2
 VF_COEF = 0.5
-ENT_COEF = 0.01
+ENT_COEF = 0.001  # was 0.01: with a state-independent std it pinned log_std at its cap
 MAX_GRAD_NORM = 0.5
 LR = 3e-4
 PPO_EPOCHS = 4
 MINIBATCH_SIZE = 256
+LR_FINAL_FRAC = 0.1  # LR decays linearly to LR * this over --iterations (0/1 style: pass --no-lr-decay to disable)
 
 
 @dataclass
@@ -200,6 +201,11 @@ def _worker_loop(rank: int, stage_name: str, seed: Optional[int], rollout_steps:
     """
     torch.set_num_threads(1)
     worker_seed = None if seed is None else seed + rank
+    # Forked workers inherit the parent's torch/numpy RNG state -> identical
+    # action-noise streams in every worker. Re-seed each one differently.
+    rng_seed = (int.from_bytes(os.urandom(4), "little") if seed is None else seed * 1000 + 17) + 7919 * rank
+    torch.manual_seed(rng_seed % (2**31))
+    np.random.seed(rng_seed % (2**31))
     stage = get_stage(stage_name)
     env = CurriculumEnv(stage, seed=worker_seed)
     obs = env.reset()
@@ -266,6 +272,7 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
 
     n = obs_t.shape[0]
     last_policy_loss = last_value_loss = last_entropy = 0.0
+    kls, clipfracs = [], []
     for _ in range(PPO_EPOCHS):
         perm = torch.randperm(n)
         for start in range(0, n, MINIBATCH_SIZE):
@@ -279,6 +286,11 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
             entropy_loss = -entropy.mean()
             loss = policy_loss + VF_COEF * value_loss + ENT_COEF * entropy_loss
 
+            with torch.no_grad():
+                log_ratio = new_logprob - old_logprob_t[idx]
+                kls.append(float(((ratio - 1) - log_ratio).mean()))
+                clipfracs.append(float(((ratio - 1).abs() > CLIP_EPS).float().mean()))
+
             optimizer.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), MAX_GRAD_NORM)
@@ -288,14 +300,22 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
             last_value_loss = float(value_loss.item())
             last_entropy = float(entropy.mean().item())
 
-    return {"policy_loss": last_policy_loss, "value_loss": last_value_loss, "entropy": last_entropy, "n_transitions": n}
+    return {"policy_loss": last_policy_loss, "value_loss": last_value_loss, "entropy": last_entropy,
+            "n_transitions": n, "approx_kl": float(np.mean(kls)), "clipfrac": float(np.mean(clipfracs))}
 
 
 def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[int],
           out_dir: str, log_every: int = 5, checkpoint_every: int = 20,
           resume_from: Optional[str] = None, workers: Optional[int] = None,
           ignore_goal: bool = False, success_window: Optional[int] = None,
-          success_threshold: Optional[float] = None) -> str:
+          success_threshold: Optional[float] = None, lr: float = LR,
+          lr_decay: bool = True, ent_coef: Optional[float] = None) -> str:
+    global ENT_COEF
+    if ent_coef is not None:
+        ENT_COEF = ent_coef
+    if seed is not None:
+        torch.manual_seed(seed)
+        np.random.seed(seed)
     device = torch.device("cpu")
     n_workers = _default_worker_count(workers)
     if n_workers > 1:
@@ -317,7 +337,7 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     if resume_from:
         net.load_state_dict(torch.load(resume_from, map_location=device))
         print(f"Resumed weights from {resume_from}")
-    optimizer = torch.optim.Adam(net.parameters(), lr=LR)
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
     os.makedirs(out_dir, exist_ok=True)
     log_path = os.path.join(out_dir, f"{stage_name}_episodes.csv")
@@ -328,6 +348,16 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
         "predator_deaths", "starvation_deaths",
     ])
     log_writer.writeheader()
+
+    iters_path = os.path.join(out_dir, f"{stage_name}_iters.csv")
+    iters_f = open(iters_path, "w", newline="")
+    iters_writer = csv.DictWriter(iters_f, fieldnames=[
+        "iteration", "lr", "policy_loss", "value_loss", "entropy", "approx_kl", "clipfrac",
+        "std_move_dist", "std_move_dir", "std_turn", "std_spawn", "roll_metric",
+    ])
+    iters_writer.writeheader()
+    best_metric = -float("inf")
+    best_path = os.path.join(out_dir, f"{stage_name}_best.pt")
 
     all_episode_scores: List[float] = []
     all_episodes: List[dict] = []  # full dicts, for check_goal()'s rolling window
@@ -376,6 +406,13 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
                 episode_log = []
                 trajs, obs = collect_rollout(env, net, obs, rollout_steps, device, episode_log)
 
+            if lr_decay:
+                cur_lr = lr * (1.0 - (1.0 - LR_FINAL_FRAC) * (it - 1) / max(1, iterations - 1))
+                for g in optimizer.param_groups:
+                    g["lr"] = cur_lr
+            else:
+                cur_lr = lr
+
             stats = ppo_update(net, optimizer, trajs, device)
 
             for ep in episode_log:
@@ -388,6 +425,30 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
             goal_met, goal_rate = (False, None) if (ignore_goal or not stage.success_metric) \
                 else check_goal(stage, all_episodes)
 
+            # Rolling metric for best-checkpoint saving: the stage's own goal rate
+            # when configured, else mean sim_time. Window = stage.success_window (>=50).
+            win = max(50, stage.success_window or 50)
+            roll = None
+            if len(all_episodes) >= win:
+                w_eps = all_episodes[-win:]
+                if stage.success_metric == "survive_rate":
+                    roll = sum(1 for e in w_eps if not e["extinct"]) / len(w_eps)
+                else:
+                    roll = float(np.mean([e["sim_time"] for e in w_eps]))
+                if roll > best_metric:
+                    best_metric = roll
+                    torch.save(net.state_dict(), best_path)
+            with torch.no_grad():
+                stds = net.log_std.clamp(-3.0, 0.0).exp().tolist()
+            iters_writer.writerow({
+                "iteration": it, "lr": cur_lr, "policy_loss": stats["policy_loss"],
+                "value_loss": stats["value_loss"], "entropy": stats["entropy"],
+                "approx_kl": stats["approx_kl"], "clipfrac": stats["clipfrac"],
+                "std_move_dist": stds[0], "std_move_dir": stds[1], "std_turn": stds[2], "std_spawn": stds[3],
+                "roll_metric": "" if roll is None else roll,
+            })
+            iters_f.flush()
+
             if it % log_every == 0 or it == 1:
                 recent = all_episode_scores[-20:] if all_episode_scores else [0.0]
                 elapsed = wallclock.time() - t0
@@ -396,7 +457,8 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
                     f"iter {it:4d}/{iterations}  episodes_so_far={len(all_episode_scores):4d}  "
                     f"mean_score(last20)={np.mean(recent):8.2f}  "
                     f"policy_loss={stats['policy_loss']:+.4f}  value_loss={stats['value_loss']:.4f}  "
-                    f"entropy={stats['entropy']:.4f}  transitions={stats['n_transitions']:5d}  "
+                    f"entropy={stats['entropy']:.4f}  kl={stats['approx_kl']:.4f}  clip={stats['clipfrac']:.2f}  "
+                    f"std={[round(x, 2) for x in stds]}  best={best_metric:.3f}  transitions={stats['n_transitions']:5d}  "
                     f"elapsed={elapsed:6.1f}s{goal_str}"
                 )
 
@@ -423,6 +485,7 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
             w["process"].join(timeout=5)
 
     log_f.close()
+    iters_f.close()
     final_path = os.path.join(out_dir, f"{stage_name}_final.pt")
     torch.save(net.state_dict(), final_path)
     print(f"Training done ({stop_reason}). Final weights: {final_path}")
@@ -449,6 +512,9 @@ def main():
                          help="Override the stage's rolling-window size (default: per-stage, 50).")
     parser.add_argument("--success-threshold", type=float, default=None,
                          help="Override the stage's success threshold (default: per-stage).")
+    parser.add_argument("--lr", type=float, default=LR)
+    parser.add_argument("--no-lr-decay", action="store_true", help="Constant LR (default: linear decay to 10%% over --iterations).")
+    parser.add_argument("--ent-coef", type=float, default=None, help=f"Entropy bonus (default {ENT_COEF}).")
     args = parser.parse_args()
 
     out_dir = args.out or os.path.join(os.path.dirname(__file__), "checkpoints")
@@ -465,6 +531,9 @@ def main():
         ignore_goal=args.ignore_goal,
         success_window=args.success_window,
         success_threshold=args.success_threshold,
+        lr=args.lr,
+        lr_decay=not args.no_lr_decay,
+        ent_coef=args.ent_coef,
     )
 
 

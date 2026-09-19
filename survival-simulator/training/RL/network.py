@@ -24,8 +24,8 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 ACTION_DIM = 4
-LOG_STD_MIN = -5.0
-LOG_STD_MAX = 1.0
+LOG_STD_MIN = -3.0   # std >= 0.05
+LOG_STD_MAX = 0.0    # std <= 1.0 (was e^1: heading noise swamped the signal)
 
 
 class ActorCritic(nn.Module):

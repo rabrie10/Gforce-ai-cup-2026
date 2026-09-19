@@ -282,6 +282,18 @@ def apply_curriculum_patches(env, stage: StageConfig) -> None:
             return original_spawn_agent(x=x, y=y, parent=parent)
         env.spawn_agent = types.MethodType(spawn_agent_hook, env)
 
+    if not stage.reproduction:
+        # Environment.agent_step() charges 100 energy whenever spawn_agent is
+        # requested and energy > 100, WITHOUT checking a child was created.
+        # With births blocked above that is a pure energy sink, so drop the
+        # request (the observable outcome of a blocked spawn is "nothing
+        # happens" and it should also cost nothing).
+        original_agent_step = env.agent_step
+
+        def agent_step_no_spawn(self, agent_id, move_distance, move_direction, turn_angle, spawn_agent=False):
+            return original_agent_step(agent_id, move_distance, move_direction, turn_angle, False)
+        env.agent_step = types.MethodType(agent_step_no_spawn, env)
+
     if not stage.aging:
         # Wraps whichever spawn_agent is currently bound (possibly the
         # reproduction-blocking hook just above), so both patches compose.
