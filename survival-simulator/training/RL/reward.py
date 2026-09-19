@@ -133,16 +133,53 @@ def _danger_potential(observation: Optional[List[dict]]) -> float:
     return -max(0.0, min(1.0, (DANGER_RADIUS - nearest) / DANGER_RADIUS))
 
 
+# Which predator information Phi uses:
+#   "perceived" (default, original behaviour): only predators in the agent's
+#       OWN last observation (vision cone / hearing radius).
+#   "true": the nearest AWAKE predator by true distance (privileged, reward-
+#       only -- it never enters the observation). Still a function of the full
+#       simulator state, so the Ng et al. invariance argument still holds. Use
+#       it if predators flanking out of the agent's vision cone make the
+#       perceived Phi jump to 0 while the threat is still closing in (see
+#       reward_sanity.py's popIn/popOut columns and encounter test).
+PHI_MODE = "perceived"
+
+
+def _danger_potential_true(env, agent) -> float:
+    nearest = None
+    for p in env.predators:
+        if getattr(p, "resting", False):
+            continue  # a sleeping predator is not a threat
+        d = ((p.x - agent.x) ** 2 + (p.y - agent.y) ** 2) ** 0.5
+        if nearest is None or d < nearest:
+            nearest = d
+    if nearest is None:
+        return 0.0
+    return -max(0.0, min(1.0, (DANGER_RADIUS - nearest) / DANGER_RADIUS))
+
+
+def _phi(env, agent, observation) -> float:
+    if PHI_MODE == "true":
+        return _danger_potential_true(env, agent)
+    return _danger_potential(observation)
+
+
 @dataclass
 class RewardState:
     weights: dict = field(default_factory=lambda: dict(DEFAULT_WEIGHTS))
     prev_energy: Dict[int, float] = field(default_factory=dict)
     prev_observations: Dict[int, List[dict]] = field(default_factory=dict)
+    prev_phi: Dict[int, float] = field(default_factory=dict)  # Phi(s) snapshot from begin_tick()
     died_this_tick: Dict[int, bool] = field(default_factory=dict)
     reproduced_this_tick: Dict[int, bool] = field(default_factory=dict)
     prev_score: float = 0.0
     predation_energy_this_tick: float = 0.0
     last_fruit_energy_tick: float = 0.0
+    # Per-tick death counts by cause (exact -- same energy>0-at-kill-time
+    # classification the predation-energy tracking uses). Reset every
+    # begin_tick(); env_wrapper.py folds them into per-episode totals.
+    predator_deaths_this_tick: int = 0
+    starvation_deaths_this_tick: int = 0
 
 
 def attach_reward_tracking(env, state: RewardState) -> None:
@@ -168,6 +205,9 @@ def attach_reward_tracking(env, state: RewardState) -> None:
         state.died_this_tick[agent.agent_id] = True
         if agent.energy > 0:
             state.predation_energy_this_tick += agent.energy
+            state.predator_deaths_this_tick += 1
+        else:
+            state.starvation_deaths_this_tick += 1
         return original_kill_agent(agent)
 
     def spawn_agent_hook(self, x=None, y=None, parent=None):
@@ -196,10 +236,16 @@ def begin_tick(env, state: RewardState) -> None:
         agent.agent_id: list(env.agent_observations.get(agent.agent_id, []))
         for agent in env.agents
     }
+    state.prev_phi = {
+        agent.agent_id: _phi(env, agent, state.prev_observations.get(agent.agent_id))
+        for agent in env.agents
+    } if state.weights.get("w_danger", 0.0) else {}
     state.prev_score = env.score
     state.died_this_tick = {}
     state.reproduced_this_tick = {}
     state.predation_energy_this_tick = 0.0
+    state.predator_deaths_this_tick = 0
+    state.starvation_deaths_this_tick = 0
 
 
 def compute_rewards(env, state: RewardState, dt: float) -> Dict[int, float]:
@@ -243,8 +289,8 @@ def compute_rewards(env, state: RewardState, dt: float) -> Dict[int, float]:
             r += w["w_repro"]
 
         if w_danger:
-            phi_prev = _danger_potential(state.prev_observations.get(agent.agent_id))
-            phi_curr = _danger_potential(env.agent_observations.get(agent.agent_id, []))
+            phi_prev = state.prev_phi.get(agent.agent_id, 0.0)
+            phi_curr = _phi(env, agent, env.agent_observations.get(agent.agent_id, []))
             r += w_danger * (SHAPING_GAMMA * phi_curr - phi_prev)
 
         rewards[agent.agent_id] = r
@@ -255,7 +301,7 @@ def compute_rewards(env, state: RewardState, dt: float) -> Dict[int, float]:
         r = rewards.get(agent_id, 0.0)
         r -= w["w_death"]
         if w_danger:
-            phi_prev = _danger_potential(state.prev_observations.get(agent_id))
+            phi_prev = state.prev_phi.get(agent_id, 0.0)
             r += w_danger * (SHAPING_GAMMA * 0.0 - phi_prev)
         rewards[agent_id] = r
 

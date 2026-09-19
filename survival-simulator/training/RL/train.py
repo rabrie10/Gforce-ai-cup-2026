@@ -95,19 +95,17 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
     episode_log (score, extinction_time/truncated, final_num_agents,
     starting_agents, fruit_energy_consumed).
 
-    Note: fruit_energy_consumed only accumulates ticks that fall within THIS
-    call's rollout window -- an episode that spans two collect_rollout calls
-    (runs longer than rollout_steps) will undercount it, since the
-    accumulator resets each call. This is a diagnostic metric only (see
-    reward.py's module docstring) and doesn't affect training itself, which
-    is why this approximation is acceptable rather than threading the
-    accumulator through env/reward_state instead.
+    Per-episode diagnostics (fruit_energy_consumed, predator_deaths,
+    starvation_deaths) come from env.episode_stats (see env_wrapper.py),
+    which accumulates over the WHOLE episode and resets in env.reset() --
+    so an episode that spans several rollout calls is counted correctly.
+    (An earlier version kept these as locals of this function and
+    undercounted every episode longer than rollout_steps.)
     """
     active: Dict[int, _Traj] = {}
     finished: List[_Traj] = []
 
     ep_start_time = wallclock.time()
-    ep_fruit_energy = 0.0
     starting_agents = env.stage.env_kwargs.get("starting_agents", 0)
 
     for _ in range(rollout_steps):
@@ -128,7 +126,6 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
 
         actions_norm = {aid: action_clipped_np[i] for i, aid in enumerate(agent_ids)}
         next_obs, rewards, done, info = env.step(actions_norm)
-        ep_fruit_energy += info.get("fruit_energy_tick", 0.0)
 
         for aid, r in rewards.items():
             if aid not in active:
@@ -158,6 +155,7 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
                         active[aid].bootstrap = float(rem_value_np[i])
                         finished.append(active.pop(aid))
 
+            ep_stats = info["episode_stats"]
             episode_log.append({
                 "score": info["score"],
                 "sim_time": info["sim_time"],
@@ -165,10 +163,11 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
                 "extinct": info["num_agents"] == 0,
                 "wall_seconds": wallclock.time() - ep_start_time,
                 "starting_agents": starting_agents,
-                "fruit_energy_consumed": ep_fruit_energy,
+                "fruit_energy_consumed": ep_stats["fruit_energy"],
+                "predator_deaths": ep_stats["predator_deaths"],
+                "starvation_deaths": ep_stats["starvation_deaths"],
             })
             ep_start_time = wallclock.time()
-            ep_fruit_energy = 0.0
             obs = env.reset()
 
     # Rollout window ended with some agents still mid-episode: bootstrap and
@@ -326,6 +325,7 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     log_writer = csv.DictWriter(log_f, fieldnames=[
         "iteration", "score", "sim_time", "final_num_agents", "extinct",
         "wall_seconds", "starting_agents", "fruit_energy_consumed",
+        "predator_deaths", "starvation_deaths",
     ])
     log_writer.writeheader()
 

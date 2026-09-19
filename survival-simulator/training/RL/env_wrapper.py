@@ -316,6 +316,12 @@ class CurriculumEnv:
         # curriculum stage installed (reward.py's module docstring).
         attach_reward_tracking(env, self.reward_state)
 
+        # Per-episode accumulators (fresh every _build(), i.e. every episode).
+        # Kept HERE, on the env, instead of as locals inside train.py's
+        # collect_rollout: an episode (up to 3000 ticks) spans many 512-tick
+        # rollout calls, and a per-call local silently undercounted it.
+        self.episode_stats = {"fruit_energy": 0.0, "predator_deaths": 0, "starvation_deaths": 0}
+
     def reset(self) -> Dict[int, np.ndarray]:
         self._build()
         return self._current_observations()
@@ -356,14 +362,22 @@ class CurriculumEnv:
         observations = self._current_observations()
 
         done = (len(env.agents) == 0) or (env.time >= self.stage.max_sim_time)
+
+        st = self.episode_stats
+        st["fruit_energy"] += self.reward_state.last_fruit_energy_tick
+        st["predator_deaths"] += self.reward_state.predator_deaths_this_tick
+        st["starvation_deaths"] += self.reward_state.starvation_deaths_this_tick
+
         info = {
             "sim_time": env.time,
             "score": env.score,
             "num_agents": len(env.agents),
             # Food-consumption diagnostic (reward.py's algebraic
-            # decomposition) -- train.py accumulates this per episode into
-            # the CSV log as fruit_energy_consumed. Not a reward term.
+            # decomposition). Not a reward term.
             "fruit_energy_tick": self.reward_state.last_fruit_energy_tick,
+            # Whole-episode running totals (correct across rollout-window
+            # boundaries) -- train.py logs these when done=True.
+            "episode_stats": dict(st),
         }
         self._last_state = state
         return observations, rewards, done, info

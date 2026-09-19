@@ -1,35 +1,47 @@
 """
-Scripted-policy baselines for one curriculum stage (default: stage1_foraging),
+Scripted-policy baselines for one curriculum stage (stage 1 or stage 2 etc.),
 to answer "what survive-rate is actually achievable here?" before judging the
 RL policy or picking a goal threshold.
 
 Policies:
-  do_nothing      stand still (pure energy drain). Floor: shows how much
-                  foraging matters at all.
+  do_nothing      stand still (pure energy drain). Floor.
   random          uniform random actions in the same normalized action space
                   the RL policy uses.
   heuristic       src/utils/controllers/heuristic_policy.py's action_decision
-                  (observation-only, exactly what a deployed agent sees).
-  oracle_nearest  PRIVILEGED: sees every fruit on the map, walks to the
+                  (observation-only, exactly what a deployed agent sees;
+                  includes its own predator-evasion rules).
+  oracle_nearest  PRIVILEGED forager: sees every fruit on the map, walks to the
                   nearest one at walking speed; if none exist, walks to the
-                  nearest tree older than 20s (trees only fruit at age>=20),
-                  else stands still.
-  oracle_value    PRIVILEGED: like oracle_nearest but picks the fruit with the
-                  best (energy - walking cost) per unit of travel time.
+                  nearest tree older than 20s, else stands still. Ignores
+                  predators entirely.
+  oracle_value    PRIVILEGED forager: picks the fruit with the best
+                  (energy - walking cost) per unit of travel time.
+  oracle_evade    PRIVILEGED: oracle_nearest foraging, but if an awake
+                  predator is within EVADE_RADIUS (true distance) it sprints
+                  straight away from it instead.
+  approach        PRIVILEGED, diagnostic only: walks toward the nearest
+                  predator (worst-case behaviour; used by reward_sanity.py).
 
 The oracles are greedy and ignore obstacles (the sim deflects collisions), so
 they are a strong reference, NOT a proof of the true optimum.
 
+Default policy set: stage with no predators -> do_nothing, random, heuristic,
+oracle_nearest, oracle_value. Stage with predators -> do_nothing, random,
+heuristic, oracle_nearest, oracle_evade. Override with --policies.
+
+Death causes are counted exactly (kill_agent with energy > 0 = predator,
+energy <= 0 = starvation; same trick as reward.py / rule_based instrumentation).
+"ext_by_pred%" = share of EXTINCT episodes whose last death was a predator kill.
+
 Uses the same CurriculumEnv (same patches, same stage config, same episode-seed
 scheme) as training and eval_checkpoints.py. With the default --seed-base
 (777000) and CHUNK=10, the first 100 episodes use the SAME maps as pass 1 of
-eval_checkpoints.py, so the numbers are directly comparable.
+eval_checkpoints.py, so numbers are directly comparable (per stage).
 
-Metric: survive = >=1 agent alive when the stage's max_sim_time is reached
-(same as the stage-1 goal in curriculum.py).
+Metric: survive = >=1 agent alive when the stage's max_sim_time is reached.
 
 Usage (repo root, venv active):
-    python3 -u training/RL/eval_baselines.py --stage stage1_foraging --episodes 200 --workers 14
+    python3 -u training/RL/eval_baselines.py --stage stage2_single_predator_evasion --episodes 200 --workers 14
 """
 import argparse
 import csv
@@ -39,6 +51,7 @@ import os
 import random
 import sys
 import time
+import types
 from collections import defaultdict
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -57,22 +70,32 @@ from training.RL.env_wrapper import CurriculumEnv, decode_action
 from training.RL.reward import begin_tick, compute_rewards
 
 CHUNK = 10
-POLICIES = ("do_nothing", "random", "heuristic", "oracle_nearest", "oracle_value")
+POLICIES = ("do_nothing", "random", "heuristic", "oracle_nearest", "oracle_value", "oracle_evade", "approach")
+DEFAULT_NO_PRED = ("do_nothing", "random", "heuristic", "oracle_nearest", "oracle_value")
+DEFAULT_PRED = ("do_nothing", "random", "heuristic", "oracle_nearest", "oracle_evade")
 WALK_COST = 0.05  # energy per unit distance while walking (environment.py)
+EVADE_RADIUS = 110.0  # oracle_evade flees awake predators closer than this (true distance)
 
 
 def _wrap(a):
     return (a + math.pi) % (2 * math.pi) - math.pi
 
 
-def _go_to(agent, tx, ty):
+def _go_to(agent, tx, ty, sprint=False):
     dx, dy = tx - agent.x, ty - agent.y
     dist = math.hypot(dx, dy)
     if dist < 1e-6:
-        return ActionRequest(agent_id=agent.agent_id, move_distance=0.0, move_direction=0.0,
-                             turn_angle=0.0, spawn_agent=False)
+        return _idle(agent)
     rel = _wrap(math.atan2(dy, dx) - agent.direction)
-    return ActionRequest(agent_id=agent.agent_id, move_distance=min(agent.speed, dist),
+    top = agent.sprint_speed if sprint else agent.speed
+    return ActionRequest(agent_id=agent.agent_id, move_distance=min(top, dist),
+                         move_direction=rel, turn_angle=0.0, spawn_agent=False)
+
+
+def _flee_from(agent, px, py):
+    dx, dy = agent.x - px, agent.y - py
+    rel = _wrap(math.atan2(dy, dx) - agent.direction)
+    return ActionRequest(agent_id=agent.agent_id, move_distance=agent.sprint_speed,
                          move_direction=rel, turn_angle=0.0, spawn_agent=False)
 
 
@@ -81,24 +104,44 @@ def _idle(agent):
                          turn_angle=0.0, spawn_agent=False)
 
 
-def _oracle_action(env, agent, dt, mode):
+def _nearest(items, agent):
+    return min(items, key=lambda o: (o.x - agent.x) ** 2 + (o.y - agent.y) ** 2)
+
+
+def _oracle_forage(env, agent, dt, mode):
     fruits = env.fruits
     if fruits:
-        if mode == "oracle_nearest":
-            f = min(fruits, key=lambda f: (f.x - agent.x) ** 2 + (f.y - agent.y) ** 2)
-        else:
+        if mode == "oracle_value":
             def value(f):
                 d = math.hypot(f.x - agent.x, f.y - agent.y)
                 gain = f.energy - WALK_COST * d
                 t = d * dt / max(agent.speed, 1e-6)  # seconds of walking
                 return gain / (t + 0.5)
             f = max(fruits, key=value)
+        else:
+            f = _nearest(fruits, agent)
         return _go_to(agent, f.x, f.y)
     trees = [t for t in env.trees if t.age >= 20]
     if trees:
-        t = min(trees, key=lambda t: (t.x - agent.x) ** 2 + (t.y - agent.y) ** 2)
+        t = _nearest(trees, agent)
         return _go_to(agent, t.x, t.y)
     return _idle(agent)
+
+
+def _oracle_action(env, agent, dt, mode):
+    if mode == "oracle_evade":
+        awake = [p for p in env.predators if not getattr(p, "resting", False)]
+        if awake:
+            p = _nearest(awake, agent)
+            if math.hypot(p.x - agent.x, p.y - agent.y) < EVADE_RADIUS:
+                return _flee_from(agent, p.x, p.y)
+        return _oracle_forage(env, agent, dt, "oracle_nearest")
+    if mode == "approach":
+        if env.predators:
+            p = _nearest(env.predators, agent)
+            return _go_to(agent, p.x, p.y)
+        return _idle(agent)
+    return _oracle_forage(env, agent, dt, mode)
 
 
 def _actions(policy, env, dt, rng):
@@ -116,6 +159,19 @@ def _actions(policy, env, dt, rng):
     return out
 
 
+def _hook_death_causes(env, counts):
+    """Count deaths by cause on this env instance (exact: energy>0 at kill time = predator)."""
+    orig = env.kill_agent
+
+    def hook(self, agent):
+        cause = "pred" if agent.energy > 0 else "starve"
+        counts[cause] += 1
+        counts["last"] = cause
+        return orig(agent)
+
+    env.kill_agent = types.MethodType(hook, env)
+
+
 def _run_chunk(job):
     policy, seed, n_eps, stage_name = job
     stage = get_stage(stage_name)
@@ -126,6 +182,8 @@ def _run_chunk(job):
         cenv.reset()
         sim = cenv.sim
         env = sim.env
+        counts = {"pred": 0, "starve": 0, "last": None}
+        _hook_death_causes(env, counts)
         start_agents = len(env.agents)
         while True:
             actions = _actions(policy, env, sim.dt, rng)
@@ -134,7 +192,8 @@ def _run_chunk(job):
             compute_rewards(env, cenv.reward_state, sim.dt)
             if len(env.agents) == 0 or env.time >= stage.max_sim_time:
                 break
-        out.append((policy, float(env.time), len(env.agents), start_agents))
+        out.append((policy, float(env.time), len(env.agents), start_agents,
+                    counts["pred"], counts["starve"], counts["last"] or ""))
     return out
 
 
@@ -152,13 +211,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="stage1_foraging")
     ap.add_argument("--episodes", type=int, default=200, help="episodes per policy")
-    ap.add_argument("--policies", default=",".join(POLICIES))
+    ap.add_argument("--policies", default=None, help="comma list; default depends on whether the stage has predators")
     ap.add_argument("--workers", type=int, default=max(1, mp.cpu_count() - 2))
     ap.add_argument("--seed-base", type=int, default=777000)
     ap.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "eval_results"))
     args = ap.parse_args()
 
-    policies = [p.strip() for p in args.policies.split(",") if p.strip()]
+    stage = get_stage(args.stage)
+    if args.policies:
+        policies = [p.strip() for p in args.policies.split(",") if p.strip()]
+    else:
+        policies = list(DEFAULT_NO_PRED if stage.predators == "off" else DEFAULT_PRED)
     bad = [p for p in policies if p not in POLICIES]
     if bad:
         sys.exit(f"unknown policies: {bad}; choose from {POLICIES}")
@@ -169,34 +232,38 @@ def main():
 
     res = defaultdict(list)
     t0 = time.time()
-    with mp.get_context("fork").Pool(args.workers) as pool:
+    ctx = mp.get_context("spawn") if sys.platform == "win32" else mp.get_context("fork")
+    with ctx.Pool(args.workers) as pool:
         for i, chunk in enumerate(pool.imap_unordered(_run_chunk, jobs), 1):
-            for p, t, alive, start in chunk:
-                res[p].append((t, alive, start))
+            for row in chunk:
+                res[row[0]].append(row[1:])
             if i % 10 == 0 or i == len(jobs):
                 el = time.time() - t0
                 print(f"[{i}/{len(jobs)}] elapsed={el/60:.1f}m eta={el/i*(len(jobs)-i)/60:.1f}m", flush=True)
 
-    stage = get_stage(args.stage)
     print(f"\n=== Baselines on {args.stage} (cap {stage.max_sim_time:.0f}s, {args.episodes} eps each) ===")
-    print(f"{'policy':<15} {'survive%':>8} {'95% CI':>13} {'all-alive%':>10} {'mean_t':>7} {'median_t':>8} {'mean_alive':>10}")
+    print(f"{'policy':<15} {'survive%':>8} {'95% CI':>10} {'all-alive%':>10} {'mean_t':>7} {'median_t':>8} "
+          f"{'mean_alive':>10} {'pred_d/ep':>9} {'starv_d/ep':>10} {'ext_by_pred%':>12}")
     os.makedirs(args.out, exist_ok=True)
     stamp = time.strftime("%Y%m%d_%H%M%S")
     raw = os.path.join(args.out, f"{args.stage}_baselines_raw_{stamp}.csv")
     with open(raw, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["policy", "sim_time", "final_agents", "start_agents"])
+        w.writerow(["policy", "sim_time", "final_agents", "start_agents", "predator_deaths", "starvation_deaths", "last_death_cause"])
         for p in policies:
             eps = res[p]
             n = len(eps)
-            k = sum(1 for _, a, _ in eps if a > 0)
-            k_all = sum(1 for _, a, s in eps if a == s)
+            k = sum(1 for _, a, _, _, _, _ in eps if a > 0)
+            k_all = sum(1 for _, a, s, _, _, _ in eps if a == s)
             lo, hi = wilson(k, n)
-            ts = [t for t, _, _ in eps]
-            print(f"{p:<15} {100*k/n:8.1f} [{100*lo:4.0f},{100*hi:4.0f}] {100*k_all/n:10.1f} "
-                  f"{np.mean(ts):7.1f} {np.median(ts):8.1f} {np.mean([a for _, a, _ in eps]):10.2f}")
-            for t, a, s in eps:
-                w.writerow([p, t, a, s])
+            ts = [e[0] for e in eps]
+            extinct = [e for e in eps if e[1] == 0]
+            ext_pred = 100 * sum(1 for e in extinct if e[5] == "pred") / len(extinct) if extinct else float("nan")
+            print(f"{p:<15} {100*k/n:8.1f} [{100*lo:3.0f},{100*hi:3.0f}] {100*k_all/n:10.1f} "
+                  f"{np.mean(ts):7.1f} {np.median(ts):8.1f} {np.mean([e[1] for e in eps]):10.2f} "
+                  f"{np.mean([e[3] for e in eps]):9.2f} {np.mean([e[4] for e in eps]):10.2f} {ext_pred:12.1f}")
+            for t, a, s, pd, sd, last in eps:
+                w.writerow([p, t, a, s, pd, sd, last])
     print(f"\nRaw episodes: {raw}")
 
 
