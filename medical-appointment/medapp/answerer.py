@@ -23,7 +23,7 @@ from medapp.dense import warm_up as warm_embedder
 from medapp.entailment import EntailmentJudge, NliEntailmentJudge
 from medapp.reranker import CrossEncoderReranker, Reranker
 from medapp.retrieval import Bm25Index, Retriever, build_index_factory
-from medapp.span_refiner import refine_span
+from medapp.span_refiner import SpanPadding, refine_span
 from medapp.types import Chunk, Segment, Verdict
 
 
@@ -235,9 +235,16 @@ class RerankEntailAnswerer:
     and a Chunk that is silent on it are both a no, so the entailment
     probability alone is thresholded.
 
-    Only the top Relevant Chunk is judged. It is the Chunk the Evidence Span
-    would be read from, so it is the one the yes has to be true of; judging
-    deeper would let the answer come from a Chunk the Verdict does not cite.
+    The top Relevant Chunks are judged and the Verdict cites the one that
+    entailed best, which is what keeps the answer and the Evidence Span one
+    decision rather than two. Judging only the top Chunk would leave the span
+    chosen by Relevance alone, and Relevance ranks by what a passage is *about*:
+    among a dozen overlapping Chunks of the same stretch it has no reason to
+    prefer the one that actually states the Claim, which is the one the answer
+    is true of and the one the tIoU is measured against. How deep to judge is
+    ``entail_depth``, swept against the competition score rather than assumed —
+    every extra Chunk judged is another chance for a Hard Negative to find
+    something that entails it.
     """
 
     def __init__(
@@ -250,6 +257,7 @@ class RerankEntailAnswerer:
         judge: EntailmentJudge,
         relevance_threshold: float | None,
         entailment_threshold: float,
+        entail_depth: int,
     ) -> None:
         """Fix the granularities, the retriever, the depth reranked and the bars.
 
@@ -270,7 +278,19 @@ class RerankEntailAnswerer:
                 against.
             entailment_threshold: The entailment probability that Chunk must
                 reach for a yes.
+            entail_depth: How many of the top Relevant Chunks are judged. The
+                Verdict cites the best-entailing of them.
+
+        Raises:
+            ValueError: If fewer than one Chunk would be judged, which leaves
+                every Question with no Entailment judgement to answer from.
         """
+        if entail_depth < 1:
+            raise ValueError(
+                f"At least one Chunk has to be judged for a yes to be "
+                f"entailed by anything: got entail_depth={entail_depth!r}."
+            )
+
         self._scheme = scheme
         self._candidates = candidates
         self._index_factory = index_factory
@@ -279,6 +299,7 @@ class RerankEntailAnswerer:
         self._judge = judge
         self._relevance_threshold = relevance_threshold
         self._entailment_threshold = entailment_threshold
+        self._entail_depth = entail_depth
 
     def answer(
         self, segments: tuple[Segment, ...], questions: Sequence[str]
@@ -314,17 +335,25 @@ class RerankEntailAnswerer:
                 continue
 
             claim = self._rewriter.rewrite(question)
-            judged = self._judge.judge(claim.text, candidates[:1])
+            judged = self._judge.judge(claim.text, candidates[: self._entail_depth])
+            best = max(judged, key=lambda judgement: judgement.entailment)
 
-            if judged[0].entailment < self._entailment_threshold:
-                # The passage is about the right subject and does not establish
-                # the Claim: it either contradicts it or is silent on it, and
-                # both are a no. This is the Hard Negative.
+            if best.entailment < self._entailment_threshold:
+                # No passage the Conversation is about the right subject in
+                # establishes the Claim: each either contradicts it or is
+                # silent on it, and both are a no. This is the Hard Negative.
                 yield Verdict(answer=False, evidence=None, candidates=candidates)
                 continue
 
+            # The cited Chunk is the one that entailed, not the one Relevance
+            # ranked first. It is carried to the front of the candidates so
+            # that the Evidence Span and the ranking the Verdict exposes agree
+            # about which Chunk the answer was read from.
             yield Verdict(
-                answer=True, evidence=candidates[0].span, candidates=candidates
+                answer=True,
+                evidence=best.chunk.span,
+                candidates=(best.chunk,)
+                + tuple(chunk for chunk in candidates if chunk is not best.chunk),
             )
 
 
@@ -339,19 +368,16 @@ class SpanRefiningAnswerer:
     duplicated inside each one.
     """
 
-    def __init__(self, answerer: Answerer, start_pad: float, end_pad: float) -> None:
+    def __init__(self, answerer: Answerer, padding: SpanPadding) -> None:
         """Wrap an Answerer with the padding Settings resolved.
 
         Args:
             answerer: The Answerer whose Verdicts are refined.
-            start_pad: Seconds to extend the Evidence Span's start earlier by,
-                before it is snapped back to a Word edge.
-            end_pad: Seconds to extend the Evidence Span's end later by, before
-                it is snapped back to a Word edge.
+            padding: How far each boundary is pushed out before it is snapped
+                back to a Word edge.
         """
         self._answerer = answerer
-        self._start_pad = start_pad
-        self._end_pad = end_pad
+        self._padding = padding
 
     def answer(
         self, segments: tuple[Segment, ...], questions: Sequence[str]
@@ -366,9 +392,7 @@ class SpanRefiningAnswerer:
 
             yield Verdict(
                 answer=True,
-                evidence=refine_span(
-                    verdict.candidates[0], words, self._start_pad, self._end_pad
-                ),
+                evidence=refine_span(verdict.candidates[0], words, self._padding),
                 candidates=verdict.candidates,
             )
 
@@ -414,7 +438,7 @@ def _build_rerank_relevance(settings: Settings) -> Answerer:
             stride_fraction=settings.chunk_stride_fraction,
         ),
         candidates=settings.retrieval_candidates,
-        index_factory=build_index_factory(settings, _embedder_for(settings)),
+        index_factory=build_index_factory(settings, embedder_for(settings)),
         reranker=reranker,
         threshold=settings.relevance_threshold,
     )
@@ -441,7 +465,7 @@ def _build_rerank_entail(settings: Settings) -> Answerer:
             stride_fraction=settings.chunk_stride_fraction,
         ),
         candidates=settings.retrieval_candidates,
-        index_factory=build_index_factory(settings, _embedder_for(settings)),
+        index_factory=build_index_factory(settings, embedder_for(settings)),
         reranker=reranker,
         rewriter=ClaimRewriter(),
         judge=judge,
@@ -449,11 +473,17 @@ def _build_rerank_entail(settings: Settings) -> Answerer:
             settings.relevance_threshold if settings.relevance_gate else None
         ),
         entailment_threshold=settings.entailment_threshold,
+        entail_depth=settings.entail_depth,
     )
 
 
-def _embedder_for(settings: Settings) -> Embedder | None:
-    """The bi-encoder, loaded and warmed, or None where no mode ranks with one."""
+def embedder_for(settings: Settings) -> Embedder | None:
+    """The bi-encoder, loaded and warmed, or None where no mode ranks with one.
+
+    Public because the measurement scripts build the same index factory the
+    request path does, and a sweep that quietly ranked with a different
+    retriever would report its numbers under the shipped configuration's name.
+    """
     if settings.retrieval_mode == "bm25":
         return None
 
@@ -492,3 +522,15 @@ def build_answerer(settings: Settings | None = None) -> Answerer:
         )
 
     return _ANSWERERS[strategy](settings)
+
+
+def span_padding(settings: Settings | None = None) -> SpanPadding:
+    """The Evidence Span padding, as Settings resolved it."""
+    settings = settings or default_settings
+
+    return SpanPadding(
+        start_seconds=settings.span_pad_start_seconds,
+        end_seconds=settings.span_pad_end_seconds,
+        start_fraction=settings.span_pad_start_fraction,
+        end_fraction=settings.span_pad_end_fraction,
+    )

@@ -8,6 +8,7 @@ logged at error level with its reason.
 """
 
 import logging
+import math
 import threading
 import time
 from collections.abc import Callable
@@ -38,7 +39,9 @@ class DeadlineExceeded(Exception):
 class Transcriber(Protocol):
     """The part of the Transcriber this module uses."""
 
-    def transcribe(self, audio_bytes: bytes) -> tuple[Segment, ...]: ...
+    def transcribe(
+        self, audio_bytes: bytes, budget_seconds: float | None = None
+    ) -> tuple[Segment, ...]: ...
 
 
 class PredictionService:
@@ -100,10 +103,14 @@ class PredictionService:
             )
             answered += [_GUESS] * (len(questions) - len(answered))
 
-        return ASRQuestionResponseDto(
-            answers=[answer for answer, _ in answered],
-            evidence_start=[span[0] if span else None for _, span in answered],
-            evidence_end=[span[1] if span else None for _, span in answered],
+        return scorable_response(
+            ASRQuestionResponseDto(
+                answers=[answer for answer, _ in answered],
+                evidence_start=[span[0] if span else None for _, span in answered],
+                evidence_end=[span[1] if span else None for _, span in answered],
+            ),
+            expected_count=len(questions),
+            filename=request.audio_filename,
         )
 
     def _answer_conversation(
@@ -123,7 +130,17 @@ class PredictionService:
 
         self._check_deadline(deadline, request.audio_filename, "decoding the audio")
 
-        segments = self._transcriber.transcribe(audio_bytes)
+        # Transcription is the one stage long enough to carry the request past
+        # the service's timeout on its own, and a deadline checked only after
+        # it returns is checked too late to help. So it is handed a budget: the
+        # time left, less what the ten Questions will need.
+        segments = self._transcriber.transcribe(
+            audio_bytes,
+            budget_seconds=max(
+                0.0,
+                deadline - self._clock() - self._settings.answering_reserve_seconds,
+            ),
+        )
 
         self._check_deadline(deadline, request.audio_filename, "transcription")
 
@@ -187,3 +204,86 @@ class PredictionService:
                 f"{filename}: the {self._settings.deadline_seconds:g} s deadline "
                 f"passed {-remaining:.1f} s ago, at {stage}."
             )
+
+
+def scorable_response(
+    response: ASRQuestionResponseDto, expected_count: int, filename: str
+) -> ASRQuestionResponseDto:
+    """The body, repaired to something the evaluator can read.
+
+    ``utils.validate_response`` raises on a body the evaluator would refuse,
+    which is the right thing in a test and the wrong thing in the request path:
+    a raised exception becomes a 500, and a 500 and an unparseable body are
+    scored identically — every Question about this Conversation wrong. Repairing
+    is therefore strictly better than either, because the repaired body still
+    carries whatever the Answerer did decide, and a guess is worth half a mark.
+
+    Everything above this function is written so that it has nothing to do. It
+    is here for the case that reasoning is wrong, and it logs at error level
+    when it fires so that the bug is not hidden by the recovery.
+
+    Args:
+        response: The body as it was assembled.
+        expected_count: How many Questions arrived.
+        filename: The Conversation, for the log line.
+
+    Returns:
+        The body unchanged where it was already scorable, and otherwise one of
+        the right shape: truncated or padded with a guess to the Question count,
+        with any interval the evaluator would score zero dropped to None.
+    """
+    answers = _fitted(list(response.answers or []), expected_count, _GUESS[0])
+    starts = _fitted(list(response.evidence_start or []), expected_count, None)
+    ends = _fitted(list(response.evidence_end or []), expected_count, None)
+
+    repaired = ASRQuestionResponseDto(
+        answers=[bool(answer) for answer in answers],
+        evidence_start=list(starts),
+        evidence_end=list(ends),
+    )
+
+    for position, (start, end) in enumerate(zip(starts, ends, strict=True)):
+        if not _scorable_interval(start, end):
+            repaired.evidence_start[position] = None
+            repaired.evidence_end[position] = None
+
+    if (
+        repaired.answers != list(response.answers or [])
+        or repaired.evidence_start != list(response.evidence_start or [])
+        or repaired.evidence_end != list(response.evidence_end or [])
+    ):
+        logger.error(
+            "%s: the assembled body was not scorable and was repaired to %d "
+            "Questions; this is a bug above the guard, not a recovery that "
+            "should ever be needed.",
+            filename,
+            expected_count,
+        )
+
+    return repaired
+
+
+def _fitted(values: list, expected_count: int, filler: object) -> list:
+    """The list cut or padded to exactly ``expected_count`` entries."""
+    return values[:expected_count] + [filler] * max(0, expected_count - len(values))
+
+
+def _scorable_interval(start: object, end: object) -> bool:
+    """Whether the evaluator would read this interval rather than score it zero.
+
+    A half-filled interval and an end before its start both score nothing, and
+    so does anything that is not a finite number of seconds.
+    """
+    if start is None and end is None:
+        return True
+
+    if start is None or end is None:
+        return False
+
+    if isinstance(start, bool) or isinstance(end, bool):
+        return False
+
+    if not isinstance(start, (int, float)) or not isinstance(end, (int, float)):
+        return False
+
+    return math.isfinite(start) and math.isfinite(end) and end >= start

@@ -16,14 +16,82 @@ retrieval per candidate.
 
 import bisect
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from medapp.types import Chunk, Word
 from utils import Span
 
 
-def refine_span(
-    chunk: Chunk, words: Sequence[Word], start_pad: float, end_pad: float
-) -> Span:
+@dataclass(frozen=True, slots=True)
+class SpanPadding:
+    """How far the cited Chunk's boundaries are pushed out before snapping.
+
+    A fixed offset in seconds and a fraction of the Chunk's own duration,
+    added. The fixed part alone cannot be right for every Chunk: annotated
+    Evidence Spans run from 0.16 s to 14.2 s, and three quarters of a second
+    added to the start of a Chunk cut at one token is most of a span, while the
+    same offset on a Chunk cut at forty-eight is noise. A fraction alone cannot
+    be right either — the Chunker's undershoot at a boundary is a Word or two
+    wherever it happens, which is an absolute quantity. So both are available
+    and both are swept; a fraction of zero is exactly the fixed padding this
+    started as.
+
+    Attributes:
+        start_seconds: Seconds added before the Chunk's start.
+        end_seconds: Seconds added after its end.
+        start_fraction: Fraction of the Chunk's duration added before its
+            start, on top of ``start_seconds``.
+        end_fraction: The same, after its end.
+    """
+
+    start_seconds: float = 0.0
+    end_seconds: float = 0.0
+    start_fraction: float = 0.0
+    end_fraction: float = 0.0
+
+    def before(self, chunk: Chunk) -> float:
+        """Seconds to extend this Chunk's start earlier by."""
+        return self.start_seconds + self.start_fraction * (chunk.end - chunk.start)
+
+    def after(self, chunk: Chunk) -> float:
+        """Seconds to extend this Chunk's end later by."""
+        return self.end_seconds + self.end_fraction * (chunk.end - chunk.start)
+
+
+@dataclass(frozen=True, slots=True)
+class WordEdges:
+    """The Conversation's Word boundaries, sorted, ready to snap against.
+
+    Built once per Conversation rather than once per span. A request refines at
+    most ten spans and would not notice, but a sweep refines the same
+    Conversation's spans tens of thousands of times over, and sorting several
+    thousand Words inside each of them is the whole cost of the sweep.
+
+    Attributes:
+        starts: Every Word's start, ascending.
+        ends: Every Word's end, ascending.
+    """
+
+    starts: tuple[float, ...]
+    ends: tuple[float, ...]
+
+    @classmethod
+    def of(cls, words: Sequence[Word]) -> "WordEdges":
+        """The edges of one Conversation's Words.
+
+        Raises:
+            ValueError: If there are no Words to snap a padded span against.
+        """
+        if not words:
+            raise ValueError("There are no Words to snap a padded span against.")
+
+        return cls(
+            starts=tuple(sorted(word.start for word in words)),
+            ends=tuple(sorted(word.end for word in words)),
+        )
+
+
+def refine_span(chunk: Chunk, words: Sequence[Word], padding: SpanPadding) -> Span:
     """Pad the winning Chunk's boundaries, then snap each to the nearest Word edge.
 
     Args:
@@ -31,10 +99,8 @@ def refine_span(
         words: Every Word of the Conversation the Chunk was cut from, in time
             order — wider than the Chunk's own Words so padding can reach into
             a neighbouring Word rather than stop at the Chunk's interior.
-        start_pad: Seconds to extend the start earlier by, before snapping.
-            Negative shrinks it instead.
-        end_pad: Seconds to extend the end later by, before snapping. Negative
-            shrinks it instead.
+        padding: How far to push each boundary out before snapping. Negative
+            values shrink the span instead.
 
     Returns:
         The padded, snapped span. Snapping to the nearest edge in a sorted list
@@ -45,14 +111,18 @@ def refine_span(
     Raises:
         ValueError: If there are no Words to snap a padded span against.
     """
-    if not words:
-        raise ValueError("There are no Words to snap a padded span against.")
+    return refine_span_against(chunk, WordEdges.of(words), padding)
 
-    starts = sorted(word.start for word in words)
-    ends = sorted(word.end for word in words)
 
-    start = _nearest(chunk.start - start_pad, starts)
-    end = _nearest(chunk.end + end_pad, ends)
+def refine_span_against(chunk: Chunk, edges: WordEdges, padding: SpanPadding) -> Span:
+    """The same refinement, against edges already sorted.
+
+    What :func:`refine_span` does once it has the edges. Separate so a sweep
+    can hoist the sort out of its inner loop and still run the arithmetic the
+    request path runs, rather than a copy of it that can drift from it.
+    """
+    start = _nearest(chunk.start - padding.before(chunk), edges.starts)
+    end = _nearest(chunk.end + padding.after(chunk), edges.ends)
 
     return (start, max(start, end))
 

@@ -25,7 +25,7 @@ from harness import transcript_cache
 from harness.bootstrap import interval, resamples
 from harness.folds import FoldName, conversations_in_fold
 from medapp.answerer import Answerer
-from medapp.span_refiner import refine_span
+from medapp.span_refiner import SpanPadding, refine_span
 from medapp.types import Chunk, Word
 from utils import Span, gold_evidence, temporal_iou
 
@@ -159,7 +159,11 @@ def score_measurement(
     if not measurement.answered_yes or measurement.chunk is None:
         return 0.0
 
-    refined = refine_span(measurement.chunk, measurement.words, start_pad, end_pad)
+    refined = refine_span(
+        measurement.chunk,
+        measurement.words,
+        SpanPadding(start_seconds=start_pad, end_seconds=end_pad),
+    )
 
     return temporal_iou(measurement.gold, refined)
 

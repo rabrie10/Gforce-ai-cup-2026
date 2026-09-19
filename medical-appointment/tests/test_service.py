@@ -10,8 +10,8 @@ import threading
 
 import pytest
 
-from dtos import ASRQuestionRequestDto
-from medapp.service import PredictionService
+from dtos import ASRQuestionRequestDto, ASRQuestionResponseDto
+from medapp.service import PredictionService, scorable_response
 from medapp.types import Chunk, Segment, Verdict, Word
 from utils import encode_audio, validate_response
 
@@ -37,9 +37,13 @@ class StubTranscriber:
     def __init__(self, segments: tuple[Segment, ...] = SEGMENTS) -> None:
         self.segments = segments
         self.calls: list[bytes] = []
+        self.budgets: list[float | None] = []
 
-    def transcribe(self, audio_bytes: bytes) -> tuple[Segment, ...]:
+    def transcribe(
+        self, audio_bytes: bytes, budget_seconds: float | None = None
+    ) -> tuple[Segment, ...]:
         self.calls.append(audio_bytes)
+        self.budgets.append(budget_seconds)
 
         return self.segments
 
@@ -101,7 +105,9 @@ def test_every_question_is_answered_in_the_order_it_arrived():
 class ExplodingTranscriber:
     """Fails the way a decoder fails on audio it cannot read."""
 
-    def transcribe(self, audio_bytes: bytes) -> tuple[Segment, ...]:
+    def transcribe(
+        self, audio_bytes: bytes, budget_seconds: float | None = None
+    ) -> tuple[Segment, ...]:
         raise RuntimeError("the decoder gave up")
 
 
@@ -216,7 +222,7 @@ def test_a_deadline_reached_between_questions_guesses_the_rest(caplog):
     service = PredictionService(
         StubTranscriber(),
         answerer,
-        settings=_settings(deadline_seconds=4.0),
+        settings=_settings(deadline_seconds=6.0, answering_reserve_seconds=0.0),
         clock=FakeClock(step=1.0),
     )
 
@@ -229,6 +235,36 @@ def test_a_deadline_reached_between_questions_guesses_the_rest(caplog):
     assert False in response.answers, "the questions answered before the deadline stand"
     assert "deadline" in caplog.text
     assert caplog.records and all(r.levelname == "ERROR" for r in caplog.records)
+
+
+def test_transcription_is_given_the_deadline_less_the_answering_reserve():
+    transcriber = StubTranscriber()
+    service = PredictionService(
+        transcriber,
+        StubAnswerer([_no()]),
+        settings=_settings(deadline_seconds=50.0, answering_reserve_seconds=12.0),
+        clock=FakeClock(step=0.0),
+    )
+
+    service.predict(_request(["Two tablets?"]))
+
+    assert transcriber.budgets == [
+        38.0
+    ], "decoding must stop in time for the Questions to still be answered"
+
+
+def test_a_transcription_budget_is_never_negative():
+    transcriber = StubTranscriber()
+    service = PredictionService(
+        transcriber,
+        StubAnswerer([_no()]),
+        settings=_settings(deadline_seconds=5.0, answering_reserve_seconds=12.0),
+        clock=FakeClock(step=0.0),
+    )
+
+    service.predict(_request(["Two tablets?"]))
+
+    assert transcriber.budgets == [0.0]
 
 
 def test_a_deadline_reached_before_transcription_guesses_every_question(caplog):
@@ -259,7 +295,9 @@ class BlockingTranscriber:
         self.release = threading.Event()
         self._guard = threading.Lock()
 
-    def transcribe(self, audio_bytes: bytes) -> tuple[Segment, ...]:
+    def transcribe(
+        self, audio_bytes: bytes, budget_seconds: float | None = None
+    ) -> tuple[Segment, ...]:
         with self._guard:
             self.events.append("enter")
 
@@ -292,3 +330,75 @@ def test_two_concurrent_requests_are_transcribed_one_after_the_other():
     second.join(timeout=5)
 
     assert transcriber.events == ["enter", "exit", "enter", "exit"]
+
+
+class TestScorableResponse:
+    """The last guard: a body the evaluator can read, whatever it was handed."""
+
+    def test_a_scorable_body_passes_through_unchanged(self, caplog):
+        body = ASRQuestionResponseDto(
+            answers=[True, False],
+            evidence_start=[1.0, None],
+            evidence_end=[2.0, None],
+        )
+
+        with caplog.at_level("ERROR"):
+            repaired = scorable_response(body, 2, "conversation_sample_4.mp3")
+
+        validate_response(repaired, expected_count=2)
+        assert repaired.answers == [True, False]
+        assert repaired.evidence_start == [1.0, None]
+        assert not caplog.records
+
+    def test_a_short_list_is_padded_with_a_guess_and_logged(self, caplog):
+        body = ASRQuestionResponseDto(
+            answers=[False], evidence_start=[None], evidence_end=[None]
+        )
+
+        with caplog.at_level("ERROR"):
+            repaired = scorable_response(body, 3, "conversation_sample_4.mp3")
+
+        validate_response(repaired, expected_count=3)
+        assert repaired.answers == [False, True, True]
+        assert caplog.records and all(r.levelname == "ERROR" for r in caplog.records)
+
+    def test_a_long_list_is_cut_to_the_question_count(self):
+        body = ASRQuestionResponseDto(
+            answers=[True] * 5, evidence_start=[None] * 5, evidence_end=[None] * 5
+        )
+
+        repaired = scorable_response(body, 2, "conversation_sample_4.mp3")
+
+        validate_response(repaired, expected_count=2)
+        assert repaired.answers == [True, True]
+
+    def test_a_half_filled_interval_is_dropped_rather_than_sent(self):
+        body = ASRQuestionResponseDto(
+            answers=[True], evidence_start=[1.0], evidence_end=[None]
+        )
+
+        repaired = scorable_response(body, 1, "conversation_sample_4.mp3")
+
+        validate_response(repaired, expected_count=1)
+        assert repaired.answers == [True], "the answer still stands on its own"
+        assert repaired.evidence_start == [None]
+
+    def test_a_reversed_interval_is_dropped_rather_than_sent(self):
+        body = ASRQuestionResponseDto(
+            answers=[True], evidence_start=[9.0], evidence_end=[2.0]
+        )
+
+        repaired = scorable_response(body, 1, "conversation_sample_4.mp3")
+
+        validate_response(repaired, expected_count=1)
+        assert repaired.evidence_start == [None] and repaired.evidence_end == [None]
+
+    def test_an_infinite_boundary_is_dropped_rather_than_sent(self):
+        body = ASRQuestionResponseDto(
+            answers=[True], evidence_start=[0.0], evidence_end=[float("inf")]
+        )
+
+        repaired = scorable_response(body, 1, "conversation_sample_4.mp3")
+
+        validate_response(repaired, expected_count=1)
+        assert repaired.evidence_end == [None]

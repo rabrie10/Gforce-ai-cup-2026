@@ -25,6 +25,7 @@ from medapp.config import Settings
 from medapp.entailment import Judgement
 from medapp.normalizer import normalize_text
 from medapp.retrieval import Bm25Index
+from medapp.span_refiner import SpanPadding
 from medapp.types import ScoredChunk, Segment, Word
 from tests.test_chunker import CONVERSATION
 
@@ -272,6 +273,7 @@ def entail_answerer(
     rewriter: _ClaimIs | None = None,
     relevance_threshold: float | None = 0.1,
     entailment_threshold: float = 0.5,
+    entail_depth: int = 1,
 ) -> RerankEntailAnswerer:
     return RerankEntailAnswerer(
         scheme=SCHEME,
@@ -282,6 +284,7 @@ def entail_answerer(
         judge=judge,
         relevance_threshold=relevance_threshold,
         entailment_threshold=entailment_threshold,
+        entail_depth=entail_depth,
     )
 
 
@@ -408,7 +411,9 @@ def test_the_bm25_baseline_refuses_a_mode_it_does_not_rank_with():
 
 def test_the_span_refining_answerer_pads_a_yes_verdicts_evidence():
     inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(inner, start_pad=0.3, end_pad=0.3)
+    wrapped = SpanRefiningAnswerer(
+        inner, SpanPadding(start_seconds=0.3, end_seconds=0.3)
+    )
 
     [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
     [unrefined] = list(inner.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
@@ -420,7 +425,9 @@ def test_the_span_refining_answerer_pads_a_yes_verdicts_evidence():
 
 def test_the_span_refining_answerer_leaves_a_no_verdict_untouched():
     inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(inner, start_pad=0.3, end_pad=0.3)
+    wrapped = SpanRefiningAnswerer(
+        inner, SpanPadding(start_seconds=0.3, end_seconds=0.3)
+    )
 
     [verdict] = list(wrapped.answer(CONVERSATION, ["And it is, or it is not?"]))
 
@@ -431,7 +438,9 @@ def test_the_span_refining_answerer_leaves_a_no_verdict_untouched():
 
 def test_the_span_refining_answerer_leaves_the_candidates_untouched():
     inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(inner, start_pad=0.3, end_pad=0.3)
+    wrapped = SpanRefiningAnswerer(
+        inner, SpanPadding(start_seconds=0.3, end_seconds=0.3)
+    )
 
     [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
     [unrefined] = list(inner.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
@@ -441,8 +450,93 @@ def test_the_span_refining_answerer_leaves_the_candidates_untouched():
 
 def test_the_span_refining_answerer_never_returns_an_end_before_the_start():
     inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
-    wrapped = SpanRefiningAnswerer(inner, start_pad=-999.0, end_pad=-999.0)
+    wrapped = SpanRefiningAnswerer(
+        inner, SpanPadding(start_seconds=-999.0, end_seconds=-999.0)
+    )
 
     [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
 
     assert verdict.evidence[1] >= verdict.evidence[0]
+
+
+class TestEntailDepth:
+    """The cited Chunk is the one that entailed, not the one Relevance ranked
+    first — the answer and the Evidence Span are one decision."""
+
+    def test_only_the_top_relevant_chunk_is_judged_at_depth_one(self):
+        judge = _EntailmentOf({}, default=0.9)
+        answerer = entail_answerer(judge, entail_depth=1)
+
+        list(answerer.answer(CONVERSATION, [BLOOD_PRESSURE]))
+
+        assert len(judge.judged[0]) == 1
+
+    def test_the_configured_depth_of_chunks_is_judged(self):
+        judge = _EntailmentOf({}, default=0.9)
+        answerer = entail_answerer(judge, entail_depth=4)
+
+        list(answerer.answer(CONVERSATION, [BLOOD_PRESSURE]))
+
+        assert len(judge.judged[0]) == 4
+
+    def test_the_best_entailing_chunk_is_cited_rather_than_the_most_relevant(self):
+        ranked = list(
+            entail_answerer(_EntailmentOf({}, default=0.9), entail_depth=1).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )[0].candidates
+        deeper = ranked[2]
+
+        judge = _EntailmentOf({deeper.text: 0.99}, default=0.6)
+        verdict = list(
+            entail_answerer(judge, entail_depth=4).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )[0]
+
+        assert verdict.answer is True
+        assert verdict.evidence == deeper.span
+        assert (
+            verdict.candidates[0] == deeper
+        ), "the ranking the Verdict exposes has to agree with the span it cites"
+
+    def test_a_chunk_deeper_down_can_carry_a_yes_the_top_chunk_would_not(self):
+        ranked = list(
+            entail_answerer(_EntailmentOf({}, default=0.9), entail_depth=1).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )[0].candidates
+
+        judge = _EntailmentOf({ranked[3].text: 0.8}, default=0.0)
+
+        assert (
+            list(
+                entail_answerer(judge, entail_depth=1).answer(
+                    CONVERSATION, [BLOOD_PRESSURE]
+                )
+            )[0].answer
+            is False
+        )
+        assert (
+            list(
+                entail_answerer(judge, entail_depth=4).answer(
+                    CONVERSATION, [BLOOD_PRESSURE]
+                )
+            )[0].answer
+            is True
+        )
+
+    def test_no_chunk_entailing_is_still_a_no_however_deep_it_is_judged(self):
+        judge = _EntailmentOf({}, default=0.0)
+        verdict = list(
+            entail_answerer(judge, entail_depth=6).answer(
+                CONVERSATION, [BLOOD_PRESSURE]
+            )
+        )[0]
+
+        assert verdict.answer is False
+        assert verdict.evidence is None
+
+    def test_a_depth_below_one_is_refused_rather_than_judging_nothing(self):
+        with pytest.raises(ValueError, match="entail_depth"):
+            entail_answerer(_EntailmentOf({}), entail_depth=0)

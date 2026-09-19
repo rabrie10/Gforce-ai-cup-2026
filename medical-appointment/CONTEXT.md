@@ -82,6 +82,18 @@ that does not overlap makes some correct answers structurally unreachable.
 Chunk is not a synonym for Segment. A Segment is what the Transcriber produced;
 a Chunk is what the Answerer considers.
 
+## Score
+
+What the attempt is graded on: `0.4 x Accuracy + 0.6 x mean tIoU`. Not a
+component metric and not an average of them. The tIoU half is averaged over
+every annotated Evidence Span whether the Question was answered yes or not, so
+a Positive answered no scores zero twice — once on each half — which makes
+rejecting a Positive about twice as expensive as accepting a Hard Negative.
+Every threshold is chosen against this, under the slice floor ADR-0003 records;
+the component measurements say which judgement moved, not whether the move was
+worth making.
+
+
 ## Relevance
 
 Whether a Chunk is *about* what a Question asks about. Low Relevance across
@@ -104,3 +116,11 @@ not contradicted, and is still a no. Yes requires entailment; nothing less.
 Relevance and Entailment are distinct judgements answering distinct failures. A
 single score cannot do both: the threshold that rejects an Off-Topic Question
 would have to reject the very Chunks that make Positive Questions true.
+
+Entailment is judged over the top few Relevant Chunks, not the top one, and the
+Chunk that entails is the Chunk cited. That is the same statement as the
+Answerer's: the answer and the Evidence Span are one decision. Relevance ranks
+by what a passage is *about*, and among a dozen overlapping Chunks of the same
+stretch it has no reason to prefer the one that actually states the Claim —
+which is the one the yes is true of, and the one the Evidence Span is measured
+against.

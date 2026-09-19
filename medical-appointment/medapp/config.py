@@ -41,6 +41,11 @@ class Settings(BaseSettings):
             endpoint sits at an unguessable route. Empty in development.
         deadline_seconds: Checked between stages and between Questions, and
             strictly under the service's 60-second request timeout.
+        answering_reserve_seconds: How much of the deadline is kept back from
+            transcription so the ten Questions can still be answered against
+            whatever was decoded. Decoding stops at the rest of the budget and
+            the Conversation is answered truncated, which scores something;
+            decoding until the request times out scores nothing on all ten.
         model_cache_dir: Where model weights live, pre-fetched into the image
             at build time rather than downloaded on first request.
         transcript_cache_dir: The development transcript cache. Written and
@@ -104,6 +109,10 @@ class Settings(BaseSettings):
             bootstrap resampling by ``python -m scripts.entailment_threshold``,
             on Hard-Negative accuracy with Positive accuracy held at its
             Relevance-only value.
+        entail_depth: How many of the top Relevant Chunks the Entailment judge
+            reads. The Verdict cites the best-entailing of them, which is what
+            makes the answer and the Evidence Span one decision. Swept against
+            the competition score by ``python -m scripts.entail_depth``.
         relevance_gate: Whether the Relevance threshold still rejects a
             Question before Entailment is judged. Kept only because the
             ablation the same script runs measured Off-Topic accuracy dropping
@@ -114,6 +123,13 @@ class Settings(BaseSettings):
             ``python -m scripts.span_padding``.
         span_pad_end_seconds: The same, for the end. Chosen alongside
             ``span_pad_start_seconds`` by the same sweep.
+        span_pad_start_fraction: A further extension of the start, as a
+            fraction of the cited Chunk's own duration. A fixed offset cannot
+            suit every Chunk — annotated Evidence Spans run from 0.16 s to
+            14.2 s and the Chunk ladder from one token to forty-eight — so the
+            padding is fixed plus proportional, and both parts are swept
+            against the competition score by ``python -m scripts.tune``.
+        span_pad_end_fraction: The same, for the end.
     """
 
     model_config = SettingsConfigDict(
@@ -165,6 +181,11 @@ class Settings(BaseSettings):
     # overall accuracy 0.838 [0.787, 0.887]. Higher candidates score better
     # overall — 0.863 at 0.79 — entirely by rejecting Hard Negatives, at 0.12
     # of Positive TPR.
+    # Held at the value the Relevance sweep chose. The joint sweep in
+    # ``python -m scripts.tune`` can score higher by raising it, but only by
+    # trading Hard-Negative accuracy for mean tIoU, which the slice floor
+    # refuses: Off-Topic accuracy is 1.000 either way and there is nothing here
+    # to buy.
     relevance_threshold: float = 0.3
 
     nli_batch_size: int = Field(default=16, ge=1)
@@ -179,7 +200,20 @@ class Settings(BaseSettings):
     # The value is small because the NLI model's softmax saturates: most pairs
     # score within 1e-3 of zero on entailment, and what separates a Positive
     # from a Hard Negative sits in that tail rather than near 0.5.
+    # Held at the value the Hard-Negative sweep chose, for the same reason the
+    # Relevance threshold is: lowering it scores 0.628 against 0.626 by letting
+    # Hard-Negative accuracy fall to 0.790, and buying two thousandths of the
+    # score with six hundredths of the judgement the case is about is not a
+    # trade worth making on a fold of 16 Conversations.
     entailment_threshold: float = 0.000394
+    # Chosen at 2 by ``python -m scripts.tune``, jointly with the thresholds
+    # and the pads, on dev: score 0.626 (90% interval [0.578, 0.674]) against
+    # 0.618 at depth 1, with Positive accuracy 0.867 to 0.893, missed Positives
+    # 10 to 8 and mean tIoU 0.443 to 0.451. Both halves move, which is the
+    # point: judging two Chunks and citing the one that entailed makes the
+    # answer and the Evidence Span one decision, and the Chunk Relevance ranks
+    # first is often not the one that states the Claim.
+    entail_depth: int = Field(default=2, ge=1)
     # Ablated at that threshold on dev: Off-Topic accuracy 1.000 with the gate
     # and 0.000 without it. Entailment does not reject an Off-Topic Question on
     # its own — the best Chunk of an unrelated Conversation still entails a
@@ -187,19 +221,26 @@ class Settings(BaseSettings):
     # Positive accuracy.
     relevance_gate: bool = True
 
-    # Measured on dev, 16 Conversations and 75 Positives, by
-    # ``python -m scripts.span_padding`` against the shipped
-    # 'retrieve_rerank_entail' Answerer: mean tIoU 0.443 (90% interval [0.393,
-    # 0.504]) against 0.424 unpadded. Chosen for the highest lower bound under
-    # resampling, not by argmax. The Chunker undershoots the annotated span's
-    # start more often than its end, which is why the padding is asymmetric.
+    # Chosen by the same joint sweep, and no longer fixed offsets alone. A
+    # fixed pad has to suit both a Chunk cut at one token and one cut at
+    # forty-eight, and it cannot: the fractions come out negative against
+    # positive seconds, which is the sweep saying "extend every Chunk by about
+    # a word, and trim the long ones back in proportion". Mean tIoU 0.468
+    # against 0.443 for the best purely fixed padding, on the same recording.
     span_pad_start_seconds: float = 0.75
-    span_pad_end_seconds: float = 0.15
+    span_pad_end_seconds: float = 0.30
+    span_pad_start_fraction: float = -0.20
+    span_pad_end_fraction: float = -0.10
 
     answer_strategy: AnswerStrategy = "retrieve_rerank_entail"
     route_suffix: str = ""
 
     deadline_seconds: float = Field(default=50.0, gt=0, lt=60)
+    # Judging one Question is 180 ms on average and 308 ms worst on dev, so ten
+    # cost about 3.1 s. The reserve is that, doubled for the Chunker and the
+    # per-request index built once ahead of them, and doubled again as margin
+    # against a Conversation longer than any supplied one.
+    answering_reserve_seconds: float = Field(default=12.0, ge=0)
 
     model_cache_dir: Path = PROJECT_ROOT / "models"
     transcript_cache_dir: Path = PROJECT_ROOT / "transcripts"
