@@ -23,6 +23,7 @@ from medapp.claims import Claim
 from medapp.config import Settings
 from medapp.entailment import Judgement
 from medapp.normalizer import normalize_text
+from medapp.retrieval import Bm25Index
 from medapp.types import ScoredChunk, Segment, Word
 from tests.test_chunker import CONVERSATION
 
@@ -174,6 +175,7 @@ def rerank_answerer(threshold: float) -> RerankRelevanceAnswerer:
     return RerankRelevanceAnswerer(
         scheme=SCHEME,
         candidates=5,
+        index_factory=Bm25Index,
         reranker=_RelevanceOf(),
         threshold=threshold,
     )
@@ -273,6 +275,7 @@ def entail_answerer(
     return RerankEntailAnswerer(
         scheme=SCHEME,
         candidates=5,
+        index_factory=Bm25Index,
         reranker=_RelevanceOf(),
         rewriter=rewriter or _ClaimIs(),
         judge=judge,
@@ -381,3 +384,22 @@ def test_settings_resolve_the_thresholds_the_entailing_answerer_is_built_with():
     )
 
     assert isinstance(answerer, RerankEntailAnswerer)
+
+
+def test_settings_resolve_the_retriever_the_entailing_answerer_indexes_with():
+    """ADR-0001 adopts the dense half on measurement, so the mode is
+    configuration and the embedder is loaded only where it is named."""
+    answerer = build_answerer(
+        Settings(answer_strategy="retrieve_rerank_entail", retrieval_mode="bm25")
+    )
+
+    assert isinstance(answerer, RerankEntailAnswerer)
+
+
+def test_the_bm25_baseline_refuses_a_mode_it_does_not_rank_with():
+    """Serving it under another mode's name would report BM25's numbers as
+    that mode's."""
+    with pytest.raises(ValueError, match="retrieval mode"):
+        build_answerer(
+            Settings(answer_strategy="retrieve_bm25", retrieval_mode="hybrid")
+        )

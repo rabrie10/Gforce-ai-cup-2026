@@ -92,15 +92,19 @@ class CrossEncoderReranker:
         return tuple(sorted(scored, key=lambda candidate: -candidate.relevance))
 
     def warm_up(self) -> None:
-        """Score one synthetic pair so no request pays the first forward pass.
+        """Score a synthetic batch so no request pays the first forward pass.
 
         Weights are memory-mapped and the first pass allocates the kernels for
         the batch shape, both of which would otherwise land inside a request
-        that has seconds to spare.
+        that has seconds to spare. The batch is a whole Question's candidate
+        list rather than one pair, because the allocation is per shape: warming
+        at one pair leaves the first real batch to pay for its own, which was
+        measured at seconds rather than milliseconds.
         """
         self._model.predict(
-            [("is the dose 100 mg", "take 100 mg daily for two weeks")],
-            batch_size=1,
+            [("is the dose 100 mg", "take 100 mg daily for two weeks")]
+            * self._settings.retrieval_candidates,
+            batch_size=self._settings.rerank_batch_size,
             show_progress_bar=False,
         )
 

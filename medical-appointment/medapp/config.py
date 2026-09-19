@@ -9,13 +9,15 @@ the deployment VM overrides them:
 """
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast, get_args
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Device = Literal["cpu", "cuda"]
 ComputeType = Literal["int8", "int8_float16", "float16", "float32"]
+RetrievalMode = Literal["bm25", "dense", "hybrid"]
+RETRIEVAL_MODES: tuple[RetrievalMode, ...] = get_args(RetrievalMode)
 AnswerStrategy = Literal[
     "cite_first_segment",
     "retrieve_bm25",
@@ -61,7 +63,23 @@ class Settings(BaseSettings):
         retrieval_candidates: How many ranked Chunks a Verdict carries. The
             judges downstream read them and the component metrics are computed
             from them, so it is deeper than the one Chunk cited. It is also the
-            k the reranker is handed: every candidate BM25 ranks is rescored.
+            k the reranker is handed: every candidate the retriever ranks is
+            rescored.
+        retrieval_mode: Which retriever ranks the Chunks a Question is answered
+            from — BM25 alone, the dense embedder alone, or the two fused.
+            ADR-0001 builds BM25 first and adopts fusion only where it wins on
+            Hard-Negative accuracy as well as recall; the embedder is
+            constructed only when this names it, so a mode that lost costs the
+            request path nothing.
+        dense_batch_size: How many Chunks are embedded at once. The whole
+            Conversation is embedded once per request, not once per Question.
+        fusion_depth: How deep each retriever's ranking is read before the two
+            are fused. Deeper than the candidates carried, because a Chunk one
+            retriever ranks shallowly is exactly what the other is there to
+            rescue.
+        fusion_rank_constant: Reciprocal Rank Fusion's constant, the ``k`` in
+            ``1 / (k + rank)``. It sets how much a top rank outweighs a deep
+            one; 60 is the value the method was published with.
         rerank_batch_size: How many Question-Chunk pairs go through the
             cross-encoder at once. One Question's whole candidate list fits in
             one batch at the default k.
@@ -117,6 +135,17 @@ class Settings(BaseSettings):
     chunk_stride_fraction: float = Field(default=0.2, gt=0, le=1)
     retrieval_candidates: int = Field(default=10, ge=1)
 
+    # Measured on dev by ``python -m scripts.retrieval_modes``, 16
+    # Conversations and 160 Questions, every mode answered end to end through
+    # the shipped Answerer. BM25 0.855 Hard-Negative accuracy at recall@5
+    # 0.667; dense 0.790 at 0.733; fused 0.823 at 0.707. Both candidates raise
+    # recall and lower the gate, which is the trade ADR-0001 named in advance,
+    # so the baseline stands and the embedder does not load here.
+    retrieval_mode: RetrievalMode = "bm25"
+    dense_batch_size: int = Field(default=64, ge=1)
+    fusion_depth: int = Field(default=50, ge=1)
+    fusion_rank_constant: float = Field(default=60.0, gt=0)
+
     # Judging one Question — ranking plus the cross-encoder over 10 candidates
     # — measured on dev at 180 ms on average and 308 ms worst on the Mac's CPU,
     # so a Conversation's ten Questions cost 3.1 s of the 15 s the latency
@@ -159,6 +188,23 @@ class Settings(BaseSettings):
 
     model_cache_dir: Path = PROJECT_ROOT / "models"
     transcript_cache_dir: Path = PROJECT_ROOT / "transcripts"
+
+
+def checked_retrieval_mode(mode: str) -> RetrievalMode:
+    """The mode name, checked where it arrives as free text.
+
+    Raises:
+        ValueError: If it names no retrieval mode. A typo that reached
+            ``build_index_factory`` would be measured as whichever mode the
+            fall-through built and reported under the name that was typed.
+    """
+    if mode not in RETRIEVAL_MODES:
+        raise ValueError(
+            f"{mode!r} is not a retrieval mode: the modes are "
+            f"{', '.join(RETRIEVAL_MODES)}."
+        )
+
+    return cast(RetrievalMode, mode)
 
 
 settings = Settings()

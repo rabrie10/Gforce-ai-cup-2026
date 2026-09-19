@@ -6,10 +6,13 @@ per-request budget before a Question was answered. So every model Settings
 names is fetched here, once, and the cache is baked into the image.
 
     python -m scripts.fetch_models
+    python -m scripts.fetch_models --all   # including what only measurement loads
 
 Run it again after changing a model name in Settings — a stale cache is what
 the offline load fails on, loudly, at startup.
 """
+
+import argparse
 
 from huggingface_hub import snapshot_download
 
@@ -22,18 +25,41 @@ from medapp.config import settings as default_settings
 WEIGHT_PATTERNS = ["*.json", "*.txt", "*.model", "*.safetensors"]
 
 
-def models_to_fetch(settings: Settings) -> tuple[str, ...]:
-    """The hub repositories the current configuration loads.
+def models_to_fetch(settings: Settings, every: bool = False) -> tuple[str, ...]:
+    """The hub repositories to fill the cache with.
 
-    The reranker and the Entailment judge. The dense model is named in Settings
-    but no component loads it yet, and fetching weights nothing reads would put
-    gigabytes into the image for nothing.
+    The reranker and the Entailment judge always; the dense embedder only where
+    the retrieval mode ranks with one. ADR-0001 adopts the dense half on
+    measurement, so fetching weights the request path will not read would put
+    them into the image for nothing.
+
+    Args:
+        settings: The resolved environment.
+        every: Fetch every model Settings names, whatever the mode. The
+            measurement that decides the mode has to load the ones the request
+            path does not, and ADR-0002 commits to re-running it at every
+            retrieval change, so there has to be a way to ask for them without
+            editing Settings.
     """
-    return (settings.rerank_model, settings.nli_model)
+    models = (settings.rerank_model, settings.nli_model)
+
+    if every or settings.retrieval_mode != "bm25":
+        return (*models, settings.dense_model)
+
+    return models
 
 
 def main() -> None:
-    for repository in models_to_fetch(default_settings):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Fetch every model Settings names, including the ones the "
+        "current retrieval mode does not load. The mode comparison needs them.",
+    )
+    arguments = parser.parse_args()
+
+    for repository in models_to_fetch(default_settings, every=arguments.all):
         print(f"{repository} -> {default_settings.model_cache_dir}")
         path = snapshot_download(
             repository,

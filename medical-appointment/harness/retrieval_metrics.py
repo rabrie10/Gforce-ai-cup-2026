@@ -27,7 +27,7 @@ it until tuning ends.
 from dataclasses import dataclass
 
 from harness import transcript_cache
-from harness.folds import FoldName, questions_in_fold
+from harness.folds import FoldName, conversations_in_fold
 from medapp.chunker import ChunkScheme, chunk_conversation
 from medapp.reranker import Reranker
 from medapp.retrieval import Bm25Index
@@ -146,7 +146,7 @@ def measure_fold(
     chunk_counts: list[int] = []
     depth = max(RECALL_DEPTHS)
 
-    for transcript_id, rows in _conversations_in(fold):
+    for transcript_id, rows in conversations_in_fold(fold):
         chunks = chunk_conversation(transcript_cache.read(transcript_id), scheme)
         chunk_counts.append(len(chunks))
         index = Bm25Index(chunks)
@@ -219,16 +219,6 @@ def report(
             for depth in RECALL_DEPTHS
         },
     )
-
-
-def _conversations_in(fold: FoldName) -> list[tuple[str, list[dict[str, str]]]]:
-    """The fold's Conversations with their Question rows, in CSV order."""
-    grouped: dict[str, list[dict[str, str]]] = {}
-
-    for row in questions_in_fold(fold):
-        grouped.setdefault(row["transcript_id"], []).append(row)
-
-    return list(grouped.items())
 
 
 def _mean(values: list[float]) -> float:
