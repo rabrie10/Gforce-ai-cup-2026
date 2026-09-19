@@ -36,6 +36,22 @@ def center_bounds(level):
     return (w // 2, W - w // 2, h // 2, H - h // 2)
 
 
+def command_is_legal(from_level, fcx, fcy, to_level, tcx, tcy):
+    """Independent final legality guard, mirroring local_evaluator.Camera.apply exactly:
+    allowed transition, destination bounds, and movement <= the CURRENT level's limit
+    (L0 full-frame reset is exempt from the delta limit)."""
+    if to_level not in ALLOWED_RESOLUTION_LEVELS[from_level]:
+        return False
+    mnx, mxx, mny, myy = center_bounds(to_level)
+    if not (mnx <= tcx <= mxx and mny <= tcy <= myy):
+        return False
+    if to_level == 0:
+        return (tcx, tcy) == tuple(FULL_FRAME_CENTER)  # full-view reset, delta-exempt
+    if ((tcx - fcx) ** 2 + (tcy - fcy) ** 2) ** 0.5 > MAXIMUM_CENTER_DELTA_PIXELS[from_level]:
+        return False
+    return True
+
+
 class Track:
     __slots__ = ("id", "cx", "cy", "w", "h", "vx", "vy", "ev", "target", "best_level",
                  "last_idx", "misses", "feat", "unc")
@@ -61,6 +77,11 @@ class State:
         self.cam_level = 0; self.cam_cx = FULL_FRAME_CENTER[0]; self.cam_cy = FULL_FRAME_CENTER[1]
         self.tour = 0
         self.region_seen = {}  # waypoint idx -> last frame idx observed
+        # believed = the evaluator's AUTHORITATIVE camera derived from our own issued-command
+        # chain (reconciled via camera_command_feedback), because the hosted evaluator applies
+        # commands asynchronously so r.view can be STALE relative to its true camera.
+        self.believed = None            # (level, cx, cy) or None (bootstrap from r.view)
+        self.last_issued = None         # (level, cx, cy) of our last emitted requested_view, or None (no-op)
 
 
 class Config:
@@ -281,22 +302,48 @@ class V6Pipeline:
         st.cam_level, st.cam_cx, st.cam_cy = nl, pt[0], pt[1]
         return RequestedViewDto(resolution_level=nl, center_x=pt[0], center_y=pt[1])
 
+    def _reconcile_believed(self, st, r):
+        """Update believed authoritative camera from our own issued-command chain.
+        The hosted evaluator applies commands asynchronously, so r.view can be stale;
+        the evaluator validates our command against the state AFTER applying our previous
+        (accepted) command. So believed = last_issued unless feedback says it was refused."""
+        if st.believed is None:
+            st.believed = (int(r.view.resolution_level), int(r.view.center_x), int(r.view.center_y))
+            return
+        if st.last_issued is None:
+            return  # we issued no move last time -> evaluator camera unchanged
+        rejected = False
+        fb = getattr(r, "camera_command_feedback", None)
+        rv = getattr(fb, "requested_view", None) if fb is not None else None
+        if rv is not None and (int(rv.resolution_level), int(rv.center_x), int(rv.center_y)) == st.last_issued:
+            rejected = True
+        if not rejected:
+            st.believed = st.last_issued  # applied in order by the evaluator
+
     def _plan_camera(self, st, r, observed):
-        # sync camera state to what the evaluator actually applied
-        st.cam_level = r.view.resolution_level
-        st.cam_cx = int(r.view.center_x); st.cam_cy = int(r.view.center_y)
+        # Plan against the BELIEVED authoritative camera (our issued chain), NOT the possibly
+        # stale r.view. Detection/tracking already uses r.view's region separately.
+        self._reconcile_believed(st, r)
+        st.cam_level, st.cam_cx, st.cam_cy = st.believed
         fi = r.frame_index
+        cmd = None
         # targeted L2 refine of the most uncertain/aging track with class mass, every 3rd frame
         if fi % 3 == 2:
             cands = [t for t in st.tracks if t.ev.sum() > 0]
             if cands:
                 refine = max(cands, key=lambda t: t.misses + 1.0 / (1.0 + float(t.ev.max())))
-                return self._legal_step(st, 2, int(refine.cx), int(refine.cy))
-        # 3. systematic coverage: alternate L1 broad tiles and L2 fine sub-tiles
-        wp = COVERAGE_WAYPOINTS[st.tour % len(COVERAGE_WAYPOINTS)]
-        lvl, gx, gy = wp
-        if st.cam_level == lvl and abs(st.cam_cx - gx) < 220 and abs(st.cam_cy - gy) < 220:
-            st.region_seen[st.tour % len(COVERAGE_WAYPOINTS)] = fi
-            st.tour += 1
-            lvl, gx, gy = COVERAGE_WAYPOINTS[st.tour % len(COVERAGE_WAYPOINTS)]
-        return self._legal_step(st, lvl, gx, gy)
+                cmd = self._legal_step(st, 2, int(refine.cx), int(refine.cy))
+        if cmd is None:
+            wp = COVERAGE_WAYPOINTS[st.tour % len(COVERAGE_WAYPOINTS)]
+            lvl, gx, gy = wp
+            if st.cam_level == lvl and abs(st.cam_cx - gx) < 220 and abs(st.cam_cy - gy) < 220:
+                st.region_seen[st.tour % len(COVERAGE_WAYPOINTS)] = fi
+                st.tour += 1
+                lvl, gx, gy = COVERAGE_WAYPOINTS[st.tour % len(COVERAGE_WAYPOINTS)]
+            cmd = self._legal_step(st, lvl, gx, gy)
+        # Independent final legality guard against the believed authoritative state.
+        bl, bx, by = st.believed
+        if cmd is not None and not command_is_legal(bl, bx, by, cmd.resolution_level, cmd.center_x, cmd.center_y):
+            cmd = None  # illegal -> no move (evaluator keeps its camera; always legal)
+        st.last_issued = None if cmd is None else (cmd.resolution_level, cmd.center_x, cmd.center_y)
+        return cmd
