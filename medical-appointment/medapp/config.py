@@ -108,6 +108,12 @@ class Settings(BaseSettings):
             Question before Entailment is judged. Kept only because the
             ablation the same script runs measured Off-Topic accuracy dropping
             without it.
+        span_pad_start_seconds: Seconds the returned Evidence Span's start is
+            extended earlier by, before it is snapped back to a Word edge.
+            Chosen on the dev fold for mean tIoU over annotated Positives by
+            ``python -m scripts.span_padding``.
+        span_pad_end_seconds: The same, for the end. Chosen alongside
+            ``span_pad_start_seconds`` by the same sweep.
     """
 
     model_config = SettingsConfigDict(
@@ -180,6 +186,15 @@ class Settings(BaseSettings):
     # loosely-worded Claim often enough — so the gate stays, at 0.093 of
     # Positive accuracy.
     relevance_gate: bool = True
+
+    # Measured on dev, 16 Conversations and 75 Positives, by
+    # ``python -m scripts.span_padding`` against the shipped
+    # 'retrieve_rerank_entail' Answerer: mean tIoU 0.443 (90% interval [0.393,
+    # 0.504]) against 0.424 unpadded. Chosen for the highest lower bound under
+    # resampling, not by argmax. The Chunker undershoots the annotated span's
+    # start more often than its end, which is why the padding is asymmetric.
+    span_pad_start_seconds: float = 0.75
+    span_pad_end_seconds: float = 0.15
 
     answer_strategy: AnswerStrategy = "retrieve_rerank_entail"
     route_suffix: str = ""
