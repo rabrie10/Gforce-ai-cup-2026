@@ -14,8 +14,10 @@ from collections.abc import Callable, Iterable, Iterator, Sequence
 from typing import Protocol
 
 from medapp.chunker import ChunkScheme, chunk_conversation
+from medapp.claims import ClaimRewriter, Rewriter
 from medapp.config import AnswerStrategy, Settings
 from medapp.config import settings as default_settings
+from medapp.entailment import EntailmentJudge, NliEntailmentJudge
 from medapp.reranker import CrossEncoderReranker, Reranker
 from medapp.retrieval import Bm25Index
 from medapp.types import Chunk, Segment, Verdict
@@ -209,6 +211,111 @@ class RerankRelevanceAnswerer:
             )
 
 
+class RerankEntailAnswerer:
+    """Relevance finds the passage; Entailment decides whether it says so.
+
+    The Relevance judge cannot separate a Positive from a Hard Negative — the
+    Hard Negative's best Chunk is lexically near-identical to the truth and
+    scores just as high — so it is asked only what it can answer: whether
+    *anything* in the Conversation is about what the Question asks about. That
+    is what an Off-Topic Question fails. Everything that clears it goes to the
+    Entailment judge, which reads the Question as the Claim a yes would be
+    agreeing with and decides whether the passage establishes it.
+
+    CONTEXT.md fixes the rule and it is not a blend of the two scores: yes
+    requires entailment, and nothing less. A Chunk that contradicts the Claim
+    and a Chunk that is silent on it are both a no, so the entailment
+    probability alone is thresholded.
+
+    Only the top Relevant Chunk is judged. It is the Chunk the Evidence Span
+    would be read from, so it is the one the yes has to be true of; judging
+    deeper would let the answer come from a Chunk the Verdict does not cite.
+    """
+
+    def __init__(
+        self,
+        scheme: ChunkScheme,
+        candidates: int,
+        reranker: Reranker,
+        rewriter: Rewriter,
+        judge: EntailmentJudge,
+        relevance_threshold: float | None,
+        entailment_threshold: float,
+    ) -> None:
+        """Fix the granularities, the depth reranked and the two bars.
+
+        Args:
+            scheme: The Chunk granularities, as Settings resolved them.
+            candidates: How many ranked Chunks are rescored and carried on the
+                Verdict.
+            reranker: Scores how far a Chunk is about what a Question asks
+                about.
+            rewriter: Turns a Question into the Claim a yes would agree with.
+            judge: Decides whether a Chunk establishes that Claim.
+            relevance_threshold: The Relevance the best Chunk must reach before
+                Entailment is judged at all, or None to judge every Question's
+                best Chunk. None is the ablation
+                ``python -m scripts.entailment_threshold`` measures the gate
+                against.
+            entailment_threshold: The entailment probability that Chunk must
+                reach for a yes.
+        """
+        self._scheme = scheme
+        self._candidates = candidates
+        self._reranker = reranker
+        self._rewriter = rewriter
+        self._judge = judge
+        self._relevance_threshold = relevance_threshold
+        self._entailment_threshold = entailment_threshold
+
+    def answer(
+        self, segments: tuple[Segment, ...], questions: Sequence[str]
+    ) -> Iterable[Verdict]:
+        """Answer each Question against the Chunks of one Conversation.
+
+        Raises:
+            ValueError: If the Conversation produced no Chunks, which leaves
+                every Question with nothing to read an answer from.
+        """
+        index = Bm25Index(chunk_conversation(segments, self._scheme))
+
+        return self._verdicts(index, questions)
+
+    def _verdicts(
+        self, index: Bm25Index, questions: Sequence[str]
+    ) -> Iterator[Verdict]:
+        """One Verdict per Question, judged as the caller consumes them."""
+        for question in questions:
+            reranked = self._reranker.rerank(
+                question, index.rank(question, self._candidates)
+            )
+            candidates = tuple(candidate.chunk for candidate in reranked)
+
+            if not reranked or (
+                self._relevance_threshold is not None
+                and reranked[0].relevance < self._relevance_threshold
+            ):
+                # Nothing the Conversation says comes close to what the
+                # Question asks about, which is what an Off-Topic Question
+                # looks like. There is no Claim worth judging against it.
+                yield Verdict(answer=False, evidence=None, candidates=candidates)
+                continue
+
+            claim = self._rewriter.rewrite(question)
+            judged = self._judge.judge(claim.text, candidates[:1])
+
+            if judged[0].entailment < self._entailment_threshold:
+                # The passage is about the right subject and does not establish
+                # the Claim: it either contradicts it or is silent on it, and
+                # both are a no. This is the Hard Negative.
+                yield Verdict(answer=False, evidence=None, candidates=candidates)
+                continue
+
+            yield Verdict(
+                answer=True, evidence=candidates[0].span, candidates=candidates
+            )
+
+
 def _build_bm25_retrieval(settings: Settings) -> Answerer:
     """The BM25 baseline, with the granularities Settings resolved."""
     return Bm25RetrievalAnswerer(
@@ -241,10 +348,40 @@ def _build_rerank_relevance(settings: Settings) -> Answerer:
     )
 
 
+def _build_rerank_entail(settings: Settings) -> Answerer:
+    """The reranked Answerer with the Entailment judgement behind it.
+
+    Both models are exercised once here rather than inside the first request,
+    for the reason the reranker alone already was: the first forward pass costs
+    seconds a request does not have.
+    """
+    reranker = CrossEncoderReranker(settings)
+    reranker.warm_up()
+
+    judge = NliEntailmentJudge(settings)
+    judge.warm_up()
+
+    return RerankEntailAnswerer(
+        scheme=ChunkScheme(
+            word_lengths=settings.chunk_word_lengths,
+            stride_fraction=settings.chunk_stride_fraction,
+        ),
+        candidates=settings.retrieval_candidates,
+        reranker=reranker,
+        rewriter=ClaimRewriter(),
+        judge=judge,
+        relevance_threshold=(
+            settings.relevance_threshold if settings.relevance_gate else None
+        ),
+        entailment_threshold=settings.entailment_threshold,
+    )
+
+
 _ANSWERERS: dict[AnswerStrategy, Callable[[Settings], Answerer]] = {
     "cite_first_segment": lambda _: CiteFirstSegmentAnswerer(),
     "retrieve_bm25": _build_bm25_retrieval,
     "retrieve_rerank": _build_rerank_relevance,
+    "retrieve_rerank_entail": _build_rerank_entail,
 }
 
 

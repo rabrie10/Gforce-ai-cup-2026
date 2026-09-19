@@ -25,11 +25,11 @@ WEIGHT_PATTERNS = ["*.json", "*.txt", "*.model", "*.safetensors"]
 def models_to_fetch(settings: Settings) -> tuple[str, ...]:
     """The hub repositories the current configuration loads.
 
-    Only the reranker so far: the Entailment and dense models are named in
-    Settings but no component loads them yet, and fetching weights nothing
-    reads would put gigabytes into the image for nothing.
+    The reranker and the Entailment judge. The dense model is named in Settings
+    but no component loads it yet, and fetching weights nothing reads would put
+    gigabytes into the image for nothing.
     """
-    return (settings.rerank_model,)
+    return (settings.rerank_model, settings.nli_model)
 
 
 def main() -> None:

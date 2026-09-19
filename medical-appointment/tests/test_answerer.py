@@ -14,11 +14,14 @@ import pytest
 from medapp.answerer import (
     Bm25RetrievalAnswerer,
     CiteFirstSegmentAnswerer,
+    RerankEntailAnswerer,
     RerankRelevanceAnswerer,
     build_answerer,
 )
 from medapp.chunker import ChunkScheme
+from medapp.claims import Claim
 from medapp.config import Settings
+from medapp.entailment import Judgement
 from medapp.normalizer import normalize_text
 from medapp.types import ScoredChunk, Segment, Word
 from tests.test_chunker import CONVERSATION
@@ -73,7 +76,7 @@ def test_settings_name_the_answerer_that_is_constructed():
 
 def test_a_strategy_with_no_implementation_fails_rather_than_falling_back():
     with pytest.raises(NotImplementedError):
-        build_answerer(Settings(answer_strategy="retrieve_rerank_entail"))
+        build_answerer(Settings(answer_strategy="single_llm"))
 
 
 def test_the_bm25_answerer_cites_the_chunk_it_ranked_first():
@@ -222,3 +225,159 @@ def test_the_reranked_verdicts_are_produced_lazily():
 def test_a_conversation_that_transcribed_to_nothing_raises_rather_than_guessing():
     with pytest.raises(ValueError):
         list(rerank_answerer(threshold=0.1).answer((), ["Was 100 mg prescribed?"]))
+
+
+class _ClaimIs:
+    """A rewriter that records what it was asked and returns a fixed Claim."""
+
+    def __init__(self, text: str = "the claim") -> None:
+        self.text = text
+        self.questions: list[str] = []
+
+    def rewrite(self, question):
+        self.questions.append(question)
+
+        return Claim(text=self.text, shape="declarative")
+
+
+class _EntailmentOf:
+    """An Entailment judge that scores by a fixed table, keyed on Chunk text."""
+
+    def __init__(self, scores: dict[str, float], default: float = 0.0) -> None:
+        self.scores = scores
+        self.default = default
+        self.claims: list[str] = []
+        self.judged: list[tuple[str, ...]] = []
+
+    def judge(self, claim, chunks):
+        self.claims.append(claim)
+        self.judged.append(tuple(chunk.text for chunk in chunks))
+
+        return tuple(
+            Judgement(
+                chunk=chunk,
+                entailment=self.scores.get(chunk.text, self.default),
+                neutral=0.0,
+                contradiction=0.0,
+            )
+            for chunk in chunks
+        )
+
+
+def entail_answerer(
+    judge: _EntailmentOf,
+    rewriter: _ClaimIs | None = None,
+    relevance_threshold: float | None = 0.1,
+    entailment_threshold: float = 0.5,
+) -> RerankEntailAnswerer:
+    return RerankEntailAnswerer(
+        scheme=SCHEME,
+        candidates=5,
+        reranker=_RelevanceOf(),
+        rewriter=rewriter or _ClaimIs(),
+        judge=judge,
+        relevance_threshold=relevance_threshold,
+        entailment_threshold=entailment_threshold,
+    )
+
+
+BLOOD_PRESSURE = "Was the blood pressure 135/88?"
+
+
+def top_chunk(question: str = BLOOD_PRESSURE) -> str:
+    """What the Relevance judge ranks first for one Question."""
+    answerer = rerank_answerer(threshold=0.0)
+
+    return list(answerer.answer(CONVERSATION, [question]))[0].candidates[0].text
+
+
+def test_a_chunk_that_entails_the_claim_is_answered_yes_and_cited():
+    judge = _EntailmentOf({top_chunk(): 0.9})
+
+    verdicts = list(entail_answerer(judge).answer(CONVERSATION, [BLOOD_PRESSURE]))
+
+    assert verdicts[0].answer is True
+    assert verdicts[0].evidence == verdicts[0].candidates[0].span
+
+
+def test_a_relevant_chunk_that_does_not_entail_the_claim_is_answered_no():
+    """The Hard Negative: the right subject, and the Conversation does not say
+    it."""
+    judge = _EntailmentOf({}, default=0.2)
+
+    verdicts = list(entail_answerer(judge).answer(CONVERSATION, [BLOOD_PRESSURE]))
+
+    assert verdicts[0].answer is False
+    assert verdicts[0].evidence is None
+    assert verdicts[0].candidates != ()
+
+
+def test_a_question_nothing_is_relevant_enough_for_never_reaches_the_judge():
+    judge = _EntailmentOf({}, default=1.0)
+
+    verdicts = list(
+        entail_answerer(judge, relevance_threshold=0.99).answer(
+            CONVERSATION, [BLOOD_PRESSURE]
+        )
+    )
+
+    assert verdicts[0].answer is False
+    assert judge.claims == []
+
+
+def test_only_the_chunk_the_evidence_span_comes_from_is_judged():
+    """Judging deeper would let the yes come from a Chunk the Verdict does not
+    cite."""
+    judge = _EntailmentOf({top_chunk(): 0.9})
+
+    list(entail_answerer(judge).answer(CONVERSATION, [BLOOD_PRESSURE]))
+
+    assert judge.judged == [(top_chunk(),)]
+
+
+def test_the_judge_reads_the_claim_the_question_was_rewritten_as():
+    rewriter = _ClaimIs("the blood pressure was 135/88")
+    judge = _EntailmentOf({top_chunk(): 0.9})
+
+    list(entail_answerer(judge, rewriter).answer(CONVERSATION, [BLOOD_PRESSURE]))
+
+    assert rewriter.questions == [BLOOD_PRESSURE]
+    assert judge.claims == ["the blood pressure was 135/88"]
+
+
+def test_the_relevance_gate_can_be_ablated_away():
+    """The ablation the threshold script measures runs the same Answerer with
+    the gate off."""
+    judge = _EntailmentOf({top_chunk(): 0.9})
+
+    verdicts = list(
+        entail_answerer(judge, relevance_threshold=None).answer(
+            CONVERSATION, [BLOOD_PRESSURE]
+        )
+    )
+
+    assert verdicts[0].answer is True
+
+
+def test_the_entailed_verdicts_are_produced_lazily():
+    judge = _EntailmentOf({}, default=0.9)
+
+    verdicts = entail_answerer(judge).answer(CONVERSATION, [BLOOD_PRESSURE] * 3)
+
+    assert next(iter(verdicts)).answer is True
+    assert isinstance(verdicts, Iterator)
+
+
+def test_entailing_a_conversation_that_transcribed_to_nothing_raises():
+    judge = _EntailmentOf({}, default=0.9)
+
+    with pytest.raises(ValueError):
+        list(entail_answerer(judge).answer((), [BLOOD_PRESSURE]))
+
+
+def test_settings_resolve_the_thresholds_the_entailing_answerer_is_built_with():
+    answerer = build_answerer(
+        Settings(answer_strategy="retrieve_rerank_entail", device="cpu")
+    )
+
+    assert isinstance(answerer, RerankEntailAnswerer)
