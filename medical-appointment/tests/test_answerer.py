@@ -16,6 +16,7 @@ from medapp.answerer import (
     CiteFirstSegmentAnswerer,
     RerankEntailAnswerer,
     RerankRelevanceAnswerer,
+    SpanRefiningAnswerer,
     build_answerer,
 )
 from medapp.chunker import ChunkScheme
@@ -403,3 +404,45 @@ def test_the_bm25_baseline_refuses_a_mode_it_does_not_rank_with():
         build_answerer(
             Settings(answer_strategy="retrieve_bm25", retrieval_mode="hybrid")
         )
+
+
+def test_the_span_refining_answerer_pads_a_yes_verdicts_evidence():
+    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
+    wrapped = SpanRefiningAnswerer(inner, start_pad=0.3, end_pad=0.3)
+
+    [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
+    [unrefined] = list(inner.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
+
+    assert verdict.answer is True
+    assert verdict.evidence[0] <= unrefined.evidence[0]
+    assert verdict.evidence[1] >= unrefined.evidence[1]
+
+
+def test_the_span_refining_answerer_leaves_a_no_verdict_untouched():
+    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
+    wrapped = SpanRefiningAnswerer(inner, start_pad=0.3, end_pad=0.3)
+
+    [verdict] = list(wrapped.answer(CONVERSATION, ["And it is, or it is not?"]))
+
+    assert verdict.answer is False
+    assert verdict.evidence is None
+    assert verdict.candidates == ()
+
+
+def test_the_span_refining_answerer_leaves_the_candidates_untouched():
+    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
+    wrapped = SpanRefiningAnswerer(inner, start_pad=0.3, end_pad=0.3)
+
+    [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
+    [unrefined] = list(inner.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
+
+    assert verdict.candidates == unrefined.candidates
+
+
+def test_the_span_refining_answerer_never_returns_an_end_before_the_start():
+    inner = Bm25RetrievalAnswerer(scheme=SCHEME, candidates=5)
+    wrapped = SpanRefiningAnswerer(inner, start_pad=-999.0, end_pad=-999.0)
+
+    [verdict] = list(wrapped.answer(CONVERSATION, ["Was the blood pressure 135/88?"]))
+
+    assert verdict.evidence[1] >= verdict.evidence[0]

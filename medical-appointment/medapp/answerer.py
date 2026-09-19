@@ -23,6 +23,7 @@ from medapp.dense import warm_up as warm_embedder
 from medapp.entailment import EntailmentJudge, NliEntailmentJudge
 from medapp.reranker import CrossEncoderReranker, Reranker
 from medapp.retrieval import Bm25Index, Retriever, build_index_factory
+from medapp.span_refiner import refine_span
 from medapp.types import Chunk, Segment, Verdict
 
 
@@ -324,6 +325,51 @@ class RerankEntailAnswerer:
 
             yield Verdict(
                 answer=True, evidence=candidates[0].span, candidates=candidates
+            )
+
+
+class SpanRefiningAnswerer:
+    """Pads and snaps the winning Chunk's boundaries, whichever Answerer chose it.
+
+    The yes/no decision and the ranked Chunks a Verdict carries are exactly the
+    wrapped Answerer's own; only the Evidence Span the caller sees is refined.
+    Refinement is generic span arithmetic tuned on dev against mean tIoU over
+    annotated Positives — see ``python -m scripts.span_padding`` — and applies
+    to whichever Answerer is configured, so it wraps here rather than being
+    duplicated inside each one.
+    """
+
+    def __init__(self, answerer: Answerer, start_pad: float, end_pad: float) -> None:
+        """Wrap an Answerer with the padding Settings resolved.
+
+        Args:
+            answerer: The Answerer whose Verdicts are refined.
+            start_pad: Seconds to extend the Evidence Span's start earlier by,
+                before it is snapped back to a Word edge.
+            end_pad: Seconds to extend the Evidence Span's end later by, before
+                it is snapped back to a Word edge.
+        """
+        self._answerer = answerer
+        self._start_pad = start_pad
+        self._end_pad = end_pad
+
+    def answer(
+        self, segments: tuple[Segment, ...], questions: Sequence[str]
+    ) -> Iterable[Verdict]:
+        """Refine each yes Verdict's Evidence Span as the wrapped Answerer yields it."""
+        words = tuple(word for segment in segments for word in segment.words)
+
+        for verdict in self._answerer.answer(segments, questions):
+            if not verdict.answer:
+                yield verdict
+                continue
+
+            yield Verdict(
+                answer=True,
+                evidence=refine_span(
+                    verdict.candidates[0], words, self._start_pad, self._end_pad
+                ),
+                candidates=verdict.candidates,
             )
 
 
