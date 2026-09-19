@@ -1,0 +1,3436 @@
+{
+  "schema_version": 1,
+  "seed": 20260919,
+  "source_size": [
+    3840,
+    2160
+  ],
+  "l0_size": [
+    960,
+    540
+  ],
+  "l0_render": "cv2.INTER_AREA after all source-resolution compositing",
+  "class_mapping": {
+    "0": "target"
+  },
+  "helsinki_target_view_split": {
+    "train_frames": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "eval_frames": [
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "caveat": "Views are held apart, but they depict the same physical instances; this is not instance generalization."
+  },
+  "hosted_background_split": {
+    "train_frame_ids": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60,
+      65,
+      70,
+      75,
+      80,
+      85,
+      90,
+      95,
+      100,
+      105,
+      110,
+      115,
+      120,
+      125,
+      130,
+      135,
+      140,
+      145
+    ],
+    "eval_frame_ids": [
+      150,
+      155,
+      160,
+      165,
+      170,
+      175,
+      180,
+      185,
+      190,
+      195,
+      200,
+      205,
+      210,
+      215,
+      220,
+      225,
+      230,
+      235,
+      240,
+      245
+    ],
+    "policy": "contiguous non-overlapping time blocks of the 5-frame sampled capture"
+  },
+  "hosted_usage": "low-pass scenery texture only; never an empty/target-free label; every hosted-derived sample has an inserted labelled target",
+  "compositing": {
+    "patch": "rectangular target/context crop",
+    "context_multipliers": [
+      1.0,
+      1.25,
+      1.5,
+      2.0,
+      4.0
+    ],
+    "edge": "raised-cosine feather up to 24 source pixels",
+    "placement": "uniform source-resolution fractional position",
+    "photometric": {
+      "contrast": [
+        0.65,
+        1.45
+      ],
+      "brightness_offset": [
+        -45,
+        45
+      ],
+      "saturation": [
+        0.55,
+        1.5
+      ],
+      "hue_opencv_units": [
+        -12,
+        12
+      ],
+      "value": [
+        0.75,
+        1.25
+      ],
+      "temperature": [
+        -0.18,
+        0.18
+      ],
+      "gaussian_blur_sigma": [
+        0.25,
+        1.4
+      ],
+      "mild_unsharp": true,
+      "jpeg_quality": [
+        35,
+        92
+      ]
+    }
+  },
+  "target_size_bins_l0": {
+    "lt8": [
+      4.0,
+      7.75
+    ],
+    "8to16": [
+      8.0,
+      16.0
+    ],
+    "gt16": [
+      16.25,
+      32.0
+    ]
+  },
+  "counts": {
+    "native_eval:native": 6,
+    "synthetic_eval:synthetic": 90,
+    "train:native": 19,
+    "train:synthetic": 90
+  },
+  "records": [
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000000",
+      "target_frame": 0,
+      "target_count": 11,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000001",
+      "target_frame": 1,
+      "target_count": 11,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000002",
+      "target_frame": 2,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000003",
+      "target_frame": 3,
+      "target_count": 11,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000004",
+      "target_frame": 4,
+      "target_count": 11,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000005",
+      "target_frame": 5,
+      "target_count": 11,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000006",
+      "target_frame": 6,
+      "target_count": 12,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000007",
+      "target_frame": 7,
+      "target_count": 12,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000008",
+      "target_frame": 8,
+      "target_count": 12,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000009",
+      "target_frame": 9,
+      "target_count": 11,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000010",
+      "target_frame": 10,
+      "target_count": 11,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000011",
+      "target_frame": 11,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000012",
+      "target_frame": 12,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000013",
+      "target_frame": 13,
+      "target_count": 9,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000014",
+      "target_frame": 14,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000015",
+      "target_frame": 15,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000016",
+      "target_frame": 16,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000017",
+      "target_frame": 17,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "native",
+      "name": "native_000018",
+      "target_frame": 18,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "native_eval",
+      "kind": "native",
+      "name": "native_000019",
+      "target_frame": 19,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "native_eval",
+      "kind": "native",
+      "name": "native_000020",
+      "target_frame": 20,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "native_eval",
+      "kind": "native",
+      "name": "native_000021",
+      "target_frame": 21,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "native_eval",
+      "kind": "native",
+      "name": "native_000022",
+      "target_frame": 22,
+      "target_count": 10,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "native_eval",
+      "kind": "native",
+      "name": "native_000023",
+      "target_frame": 23,
+      "target_count": 9,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "native_eval",
+      "kind": "native",
+      "name": "native_000024",
+      "target_frame": 24,
+      "target_count": 8,
+      "background_family": "helsinki_native"
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0000",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.816411833848065,
+      "target_frame": 0,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 0,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.379145,
+        0.981631
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0001",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.373799152901924,
+      "target_frame": 3,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 35,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.494021,
+        0.441413
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0002",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.5117049285933035,
+      "target_frame": 6,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 70,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.301216,
+        0.93268
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0003",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.11288622836841,
+      "target_frame": 9,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 105,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.221733,
+        0.020962
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0004",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.919813136253026,
+      "target_frame": 13,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 140,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.973903,
+        0.335318
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0005",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.90366113460729,
+      "target_frame": 17,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 25,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.738048,
+        0.738694
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0006",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.982853686566386,
+      "target_frame": 1,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 60,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.019006,
+        0.922405
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0007",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.898880656325872,
+      "target_frame": 5,
+      "source_class": "condor",
+      "background_family": "hosted_texture",
+      "background_frame": 95,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.093466,
+        0.48225
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0008",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.644179761709495,
+      "target_frame": 8,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 130,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.73698,
+        0.03329
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0009",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.725259854291323,
+      "target_frame": 11,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 15,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.272999,
+        0.737015
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0010",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.967726765024736,
+      "target_frame": 15,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 50,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.633037,
+        0.493891
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0011",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.084290714032704,
+      "target_frame": 0,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 85,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.981084,
+        0.763934
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0012",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.952799373814003,
+      "target_frame": 3,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 120,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.914016,
+        0.450136
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0013",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.286736164155059,
+      "target_frame": 7,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 5,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.822205,
+        0.753832
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0014",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.722787418337759,
+      "target_frame": 10,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 40,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.491255,
+        0.717551
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0015",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.58652601305613,
+      "target_frame": 13,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 75,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.214672,
+        0.223652
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0016",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.175242137249853,
+      "target_frame": 17,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 110,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.509265,
+        0.750021
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0017",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.3633563530680135,
+      "target_frame": 2,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 145,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.029606,
+        0.186436
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0018",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.638932492377023,
+      "target_frame": 5,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 30,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.018957,
+        0.609281
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0019",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.203133807264976,
+      "target_frame": 8,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 65,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.000835,
+        0.128944
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0020",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.725836329145977,
+      "target_frame": 12,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 100,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.6447,
+        0.200582
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0021",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.851297174363054,
+      "target_frame": 15,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 135,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.647309,
+        0.264819
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0022",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.806273049199149,
+      "target_frame": 0,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 20,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.263757,
+        0.488645
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0023",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.383216545079705,
+      "target_frame": 4,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 55,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.769384,
+        0.393626
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0024",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.237667673022202,
+      "target_frame": 7,
+      "source_class": "condor",
+      "background_family": "hosted_texture",
+      "background_frame": 90,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.064343,
+        0.916405
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0025",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.015154671565369,
+      "target_frame": 10,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 125,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.953151,
+        0.338463
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0026",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.54120083836807,
+      "target_frame": 14,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 10,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.280063,
+        0.294131
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0027",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.879179286080387,
+      "target_frame": 17,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 45,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.425314,
+        0.620891
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0028",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.7739270444726145,
+      "target_frame": 2,
+      "source_class": "small_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 80,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.305388,
+        0.76665
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0029",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.517258219031135,
+      "target_frame": 5,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 115,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.355751,
+        0.982955
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0000",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.860652971611898,
+      "target_frame": 1,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 15,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.16538,
+        0.936527
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0001",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.560666909220686,
+      "target_frame": 4,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 50,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.694962,
+        0.508706
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0002",
+      "size_bin": "8to16",
+      "target_short_side_l0": 11.05987506617896,
+      "target_frame": 7,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 85,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.409837,
+        0.911663
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0003",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.106907772087652,
+      "target_frame": 10,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 120,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.196695,
+        0.36035
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0004",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.012976059668745,
+      "target_frame": 14,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 5,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.804783,
+        0.800811
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0005",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.45494225305675,
+      "target_frame": 18,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 40,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.842736,
+        0.224966
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0006",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.646938377608706,
+      "target_frame": 2,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 75,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.300831,
+        0.700353
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0007",
+      "size_bin": "8to16",
+      "target_short_side_l0": 12.88579570118111,
+      "target_frame": 6,
+      "source_class": "condor",
+      "background_family": "hosted_texture",
+      "background_frame": 110,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.329898,
+        0.37154
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0008",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.320228658093129,
+      "target_frame": 9,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 145,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.755798,
+        0.427219
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0009",
+      "size_bin": "8to16",
+      "target_short_side_l0": 11.765587082991715,
+      "target_frame": 12,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 30,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.670569,
+        0.313091
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0010",
+      "size_bin": "8to16",
+      "target_short_side_l0": 8.246840864733741,
+      "target_frame": 16,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 65,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.770651,
+        0.852366
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0011",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.838169684144646,
+      "target_frame": 1,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 100,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.464859,
+        0.723247
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0012",
+      "size_bin": "8to16",
+      "target_short_side_l0": 12.295942679471011,
+      "target_frame": 4,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 135,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.814332,
+        0.565134
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0013",
+      "size_bin": "8to16",
+      "target_short_side_l0": 10.914009669398638,
+      "target_frame": 7,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 20,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.705838,
+        0.772194
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0014",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.863510899210837,
+      "target_frame": 11,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 55,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.276475,
+        0.926737
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0015",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.895779741626484,
+      "target_frame": 15,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 90,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.012251,
+        0.278341
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0016",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.031632062251902,
+      "target_frame": 18,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 125,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.79162,
+        0.709972
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0017",
+      "size_bin": "8to16",
+      "target_short_side_l0": 11.952328408523009,
+      "target_frame": 3,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 10,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.917699,
+        0.412844
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0018",
+      "size_bin": "8to16",
+      "target_short_side_l0": 12.937480769683873,
+      "target_frame": 6,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 45,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.465277,
+        0.758813
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0019",
+      "size_bin": "8to16",
+      "target_short_side_l0": 8.747098473770956,
+      "target_frame": 9,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 80,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.596198,
+        0.000878
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0020",
+      "size_bin": "8to16",
+      "target_short_side_l0": 11.68548444702833,
+      "target_frame": 13,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 115,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.318344,
+        0.938281
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0021",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.8890006425315,
+      "target_frame": 17,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 0,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.66447,
+        0.702272
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0022",
+      "size_bin": "8to16",
+      "target_short_side_l0": 8.098243907556935,
+      "target_frame": 1,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 35,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.535668,
+        0.624875
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0023",
+      "size_bin": "8to16",
+      "target_short_side_l0": 13.758625496676643,
+      "target_frame": 5,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 70,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.51635,
+        0.538914
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0024",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.15019215535439,
+      "target_frame": 8,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 105,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.743162,
+        0.302365
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0025",
+      "size_bin": "8to16",
+      "target_short_side_l0": 13.794449060715465,
+      "target_frame": 11,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 140,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.213222,
+        0.591147
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0026",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.863454598825967,
+      "target_frame": 15,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 25,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.157262,
+        0.413937
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0027",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.98670748665998,
+      "target_frame": 0,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 60,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.816952,
+        0.199352
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0028",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.192277135064629,
+      "target_frame": 3,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 95,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.041527,
+        0.863191
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0029",
+      "size_bin": "8to16",
+      "target_short_side_l0": 8.029657908888368,
+      "target_frame": 6,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 130,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.025943,
+        0.785086
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0000",
+      "size_bin": "gt16",
+      "target_short_side_l0": 31.477736510803652,
+      "target_frame": 2,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 30,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.769052,
+        0.108077
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0001",
+      "size_bin": "gt16",
+      "target_short_side_l0": 19.58388395010735,
+      "target_frame": 5,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 65,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.76423,
+        0.200062
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0002",
+      "size_bin": "gt16",
+      "target_short_side_l0": 23.535126098465838,
+      "target_frame": 8,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 100,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.882794,
+        0.399829
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0003",
+      "size_bin": "gt16",
+      "target_short_side_l0": 27.833274848798737,
+      "target_frame": 12,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 135,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.023359,
+        0.093623
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0004",
+      "size_bin": "gt16",
+      "target_short_side_l0": 28.889093929121557,
+      "target_frame": 15,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 20,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.899083,
+        0.605719
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0005",
+      "size_bin": "gt16",
+      "target_short_side_l0": 29.628262236924712,
+      "target_frame": 0,
+      "source_class": "small_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 55,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.209385,
+        0.632462
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0006",
+      "size_bin": "gt16",
+      "target_short_side_l0": 26.821890432321254,
+      "target_frame": 3,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 90,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.693449,
+        0.657571
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0007",
+      "size_bin": "gt16",
+      "target_short_side_l0": 18.622336793504473,
+      "target_frame": 7,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 125,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.934642,
+        0.851774
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0008",
+      "size_bin": "gt16",
+      "target_short_side_l0": 31.85234524857492,
+      "target_frame": 10,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 10,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.911869,
+        0.305213
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0009",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.645189894485497,
+      "target_frame": 14,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 45,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.761033,
+        0.8944
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0010",
+      "size_bin": "gt16",
+      "target_short_side_l0": 29.98268585750114,
+      "target_frame": 17,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 80,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.200573,
+        0.011677
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0011",
+      "size_bin": "gt16",
+      "target_short_side_l0": 20.412214056881282,
+      "target_frame": 2,
+      "source_class": "condor",
+      "background_family": "hosted_texture",
+      "background_frame": 115,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.869551,
+        0.342636
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0012",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.908903968032064,
+      "target_frame": 5,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 0,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.627639,
+        0.870265
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0013",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.173884637723262,
+      "target_frame": 8,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 35,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.829188,
+        0.002343
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0014",
+      "size_bin": "gt16",
+      "target_short_side_l0": 24.925272321102682,
+      "target_frame": 12,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 70,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.473815,
+        0.025229
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0015",
+      "size_bin": "gt16",
+      "target_short_side_l0": 27.27262528973597,
+      "target_frame": 16,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 105,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.158708,
+        0.374017
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0016",
+      "size_bin": "gt16",
+      "target_short_side_l0": 27.322938502453553,
+      "target_frame": 0,
+      "source_class": "helicopter",
+      "background_family": "hosted_texture",
+      "background_frame": 140,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.773938,
+        0.844371
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0017",
+      "size_bin": "gt16",
+      "target_short_side_l0": 28.43973420058083,
+      "target_frame": 4,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 25,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.96485,
+        0.982492
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0018",
+      "size_bin": "gt16",
+      "target_short_side_l0": 17.11685008329806,
+      "target_frame": 7,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 60,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.066346,
+        0.556597
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0019",
+      "size_bin": "gt16",
+      "target_short_side_l0": 28.205787314456188,
+      "target_frame": 10,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 95,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.927565,
+        0.057116
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0020",
+      "size_bin": "gt16",
+      "target_short_side_l0": 19.863963009671792,
+      "target_frame": 14,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 130,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.243308,
+        0.159779
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0021",
+      "size_bin": "gt16",
+      "target_short_side_l0": 20.332818952679645,
+      "target_frame": 18,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 15,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.90581,
+        0.902713
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0022",
+      "size_bin": "gt16",
+      "target_short_side_l0": 20.690337101430075,
+      "target_frame": 2,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 50,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.451576,
+        0.67946
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0023",
+      "size_bin": "gt16",
+      "target_short_side_l0": 21.84375854114932,
+      "target_frame": 6,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 85,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.56022,
+        0.611655
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0024",
+      "size_bin": "gt16",
+      "target_short_side_l0": 23.95881098188471,
+      "target_frame": 9,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 120,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.778317,
+        0.050586
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0025",
+      "size_bin": "gt16",
+      "target_short_side_l0": 29.26222352845926,
+      "target_frame": 12,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 5,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.528433,
+        0.274572
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0026",
+      "size_bin": "gt16",
+      "target_short_side_l0": 20.292376700933602,
+      "target_frame": 16,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 40,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.498534,
+        0.995499
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0027",
+      "size_bin": "gt16",
+      "target_short_side_l0": 18.917088307717847,
+      "target_frame": 1,
+      "source_class": "jammer",
+      "background_family": "hosted_texture",
+      "background_frame": 75,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.280684,
+        0.484549
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0028",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.06209756994295,
+      "target_frame": 4,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 110,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.890305,
+        0.29208
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "train",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0029",
+      "size_bin": "gt16",
+      "target_short_side_l0": 27.200471490516264,
+      "target_frame": 7,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 145,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.565535,
+        0.474081
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0000",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.80111945866102,
+      "target_frame": 19,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 150,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.495151,
+        0.510155
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0001",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.105543796532743,
+      "target_frame": 22,
+      "source_class": "hangar",
+      "background_family": "hosted_texture",
+      "background_frame": 185,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.341604,
+        0.263128
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0002",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.418905018422322,
+      "target_frame": 20,
+      "source_class": "hangar",
+      "background_family": "hosted_texture",
+      "background_frame": 220,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.834122,
+        0.122075
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0003",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.890076974231363,
+      "target_frame": 24,
+      "source_class": "hangar",
+      "background_family": "hosted_texture",
+      "background_frame": 155,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.762451,
+        0.604339
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0004",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.893720759004339,
+      "target_frame": 22,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 190,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.03625,
+        0.300668
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0005",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.526550483105041,
+      "target_frame": 20,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 225,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.033684,
+        0.486666
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0006",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.647956346725508,
+      "target_frame": 24,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 160,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.246966,
+        0.930818
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0007",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.756175297039704,
+      "target_frame": 22,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 195,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.216081,
+        0.767139
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0008",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.512446814088207,
+      "target_frame": 20,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 230,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.516651,
+        0.041793
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0009",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.522332539871172,
+      "target_frame": 23,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 165,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.181376,
+        0.251606
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0010",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.777613681154662,
+      "target_frame": 21,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 200,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.665971,
+        0.777813
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0011",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.66451996019174,
+      "target_frame": 19,
+      "source_class": "hangar",
+      "background_family": "hosted_texture",
+      "background_frame": 235,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.727997,
+        0.00149
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0012",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.283077875223682,
+      "target_frame": 23,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 170,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.922785,
+        0.676544
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0013",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.293616714860832,
+      "target_frame": 21,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 205,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.171483,
+        0.081401
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0014",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.243069263852874,
+      "target_frame": 19,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 240,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.822936,
+        0.845854
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0015",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.552526319546416,
+      "target_frame": 23,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 175,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.106448,
+        0.734948
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0016",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.9778908884486555,
+      "target_frame": 21,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 210,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.570288,
+        0.859164
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0017",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.729028521240295,
+      "target_frame": 19,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 245,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.818221,
+        0.019227
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0018",
+      "size_bin": "lt8",
+      "target_short_side_l0": 4.882464223416832,
+      "target_frame": 22,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 180,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.751372,
+        0.692506
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0019",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.748731393963965,
+      "target_frame": 20,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 215,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.302743,
+        0.858379
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0020",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.173233350089674,
+      "target_frame": 24,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 150,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.197474,
+        0.912254
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0021",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.5414521573245,
+      "target_frame": 22,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 185,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.306958,
+        0.380071
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0022",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.190462420498704,
+      "target_frame": 20,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 220,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.919699,
+        0.749877
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0023",
+      "size_bin": "lt8",
+      "target_short_side_l0": 5.306257366535533,
+      "target_frame": 24,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 155,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.927708,
+        0.193742
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0024",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.026577273978148,
+      "target_frame": 22,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 190,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.860161,
+        0.345987
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0025",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.771886973640278,
+      "target_frame": 20,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 225,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.801189,
+        0.779114
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0026",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.913551141118319,
+      "target_frame": 24,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 160,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.215097,
+        0.465054
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0027",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.754807664439113,
+      "target_frame": 22,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 195,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.091703,
+        0.927437
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0028",
+      "size_bin": "lt8",
+      "target_short_side_l0": 6.840405628478379,
+      "target_frame": 20,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 230,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.757806,
+        0.22636
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_lt8_0029",
+      "size_bin": "lt8",
+      "target_short_side_l0": 7.615798805809163,
+      "target_frame": 23,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 165,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.944641,
+        0.672621
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0000",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.51696282999842,
+      "target_frame": 20,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 165,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.89863,
+        0.364855
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0001",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.245129212106463,
+      "target_frame": 23,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 200,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.536545,
+        0.348358
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0002",
+      "size_bin": "8to16",
+      "target_short_side_l0": 12.131770219508383,
+      "target_frame": 21,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 235,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.728589,
+        0.160805
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0003",
+      "size_bin": "8to16",
+      "target_short_side_l0": 10.935600254958558,
+      "target_frame": 19,
+      "source_class": "hangar",
+      "background_family": "hosted_texture",
+      "background_frame": 170,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.794048,
+        0.36753
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0004",
+      "size_bin": "8to16",
+      "target_short_side_l0": 13.203261929977018,
+      "target_frame": 23,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 205,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.39603,
+        0.876
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0005",
+      "size_bin": "8to16",
+      "target_short_side_l0": 8.410640460359389,
+      "target_frame": 21,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 240,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.883945,
+        0.253267
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0006",
+      "size_bin": "8to16",
+      "target_short_side_l0": 11.299309299167021,
+      "target_frame": 19,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 175,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.930019,
+        0.989287
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0007",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.093288218642215,
+      "target_frame": 23,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 210,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.136736,
+        0.713022
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0008",
+      "size_bin": "8to16",
+      "target_short_side_l0": 12.177336547383106,
+      "target_frame": 21,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 245,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.612483,
+        0.427011
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0009",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.88411486213947,
+      "target_frame": 19,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 180,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.589987,
+        0.369872
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0010",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.756158909405144,
+      "target_frame": 22,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 215,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.190498,
+        0.480157
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0011",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.128408593798213,
+      "target_frame": 20,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 150,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.550293,
+        0.700203
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0012",
+      "size_bin": "8to16",
+      "target_short_side_l0": 10.254134661959938,
+      "target_frame": 24,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 185,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.381315,
+        0.744493
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0013",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.468956146138368,
+      "target_frame": 22,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 220,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.6664,
+        0.107884
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0014",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.54379848773715,
+      "target_frame": 20,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 155,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.606626,
+        0.776846
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0015",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.561855267095837,
+      "target_frame": 24,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 190,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.51932,
+        0.92113
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0016",
+      "size_bin": "8to16",
+      "target_short_side_l0": 13.983066241598124,
+      "target_frame": 22,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 225,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.149717,
+        0.77093
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0017",
+      "size_bin": "8to16",
+      "target_short_side_l0": 9.265321965975886,
+      "target_frame": 20,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 160,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.85632,
+        0.165356
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0018",
+      "size_bin": "8to16",
+      "target_short_side_l0": 13.774455492256578,
+      "target_frame": 24,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 195,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.530025,
+        0.363381
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0019",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.469527634425617,
+      "target_frame": 22,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 230,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.028463,
+        0.595302
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0020",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.018956861133063,
+      "target_frame": 20,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 165,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.24303,
+        0.948385
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0021",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.799201144677838,
+      "target_frame": 23,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 200,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.198039,
+        0.689006
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0022",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.592896115610966,
+      "target_frame": 21,
+      "source_class": "hangar",
+      "background_family": "hosted_texture",
+      "background_frame": 235,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.739167,
+        0.771076
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0023",
+      "size_bin": "8to16",
+      "target_short_side_l0": 13.483068974843093,
+      "target_frame": 19,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 170,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.316907,
+        0.09591
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0024",
+      "size_bin": "8to16",
+      "target_short_side_l0": 14.212861718811837,
+      "target_frame": 23,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 205,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.441362,
+        0.665691
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0025",
+      "size_bin": "8to16",
+      "target_short_side_l0": 11.592667271985533,
+      "target_frame": 21,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 240,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.93878,
+        0.37412
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0026",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.08330481309082,
+      "target_frame": 19,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 175,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.014578,
+        0.574522
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0027",
+      "size_bin": "8to16",
+      "target_short_side_l0": 15.582308065215614,
+      "target_frame": 23,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 210,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.571409,
+        0.208159
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0028",
+      "size_bin": "8to16",
+      "target_short_side_l0": 8.196050623640957,
+      "target_frame": 21,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 245,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.5724,
+        0.474798
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_8to16_0029",
+      "size_bin": "8to16",
+      "target_short_side_l0": 8.933471414791569,
+      "target_frame": 19,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 180,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.877673,
+        0.218972
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0000",
+      "size_bin": "gt16",
+      "target_short_side_l0": 26.311369601563797,
+      "target_frame": 21,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 180,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.739588,
+        0.986287
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0001",
+      "size_bin": "gt16",
+      "target_short_side_l0": 16.322192449933027,
+      "target_frame": 19,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 215,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.533961,
+        0.836574
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0002",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.185668086292026,
+      "target_frame": 22,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 150,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.75483,
+        0.379771
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0003",
+      "size_bin": "gt16",
+      "target_short_side_l0": 31.52375711780744,
+      "target_frame": 20,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 185,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.482975,
+        0.783129
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0004",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.35812533078513,
+      "target_frame": 24,
+      "source_class": "medium_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 220,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.206043,
+        0.871183
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0005",
+      "size_bin": "gt16",
+      "target_short_side_l0": 29.8346649593214,
+      "target_frame": 22,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 155,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.997522,
+        0.326
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0006",
+      "size_bin": "gt16",
+      "target_short_side_l0": 18.898818496226824,
+      "target_frame": 20,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 190,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.786295,
+        0.909111
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0007",
+      "size_bin": "gt16",
+      "target_short_side_l0": 27.126549435595223,
+      "target_frame": 24,
+      "source_class": "tank",
+      "background_family": "hosted_texture",
+      "background_frame": 225,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.440354,
+        0.772246
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0008",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.539830602060704,
+      "target_frame": 22,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 160,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.067128,
+        0.725112
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0009",
+      "size_bin": "gt16",
+      "target_short_side_l0": 19.33231415936467,
+      "target_frame": 20,
+      "source_class": "large_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 195,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.401017,
+        0.426758
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0010",
+      "size_bin": "gt16",
+      "target_short_side_l0": 25.52235340481124,
+      "target_frame": 24,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 230,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.607821,
+        0.693623
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0011",
+      "size_bin": "gt16",
+      "target_short_side_l0": 21.853008550788445,
+      "target_frame": 22,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 165,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.11158,
+        0.600402
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0012",
+      "size_bin": "gt16",
+      "target_short_side_l0": 22.596361424745567,
+      "target_frame": 20,
+      "source_class": "large_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 200,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.891072,
+        0.492535
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0013",
+      "size_bin": "gt16",
+      "target_short_side_l0": 27.754316126022786,
+      "target_frame": 23,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 235,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.415218,
+        0.471659
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0014",
+      "size_bin": "gt16",
+      "target_short_side_l0": 31.122278678768595,
+      "target_frame": 21,
+      "source_class": "hangar",
+      "background_family": "hosted_texture",
+      "background_frame": 170,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.394221,
+        0.769654
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0015",
+      "size_bin": "gt16",
+      "target_short_side_l0": 20.906398632537503,
+      "target_frame": 19,
+      "source_class": "small_tower",
+      "background_family": "hosted_texture",
+      "background_frame": 205,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.202046,
+        0.118712
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0016",
+      "size_bin": "gt16",
+      "target_short_side_l0": 20.132007971799112,
+      "target_frame": 23,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 240,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.995897,
+        0.001911
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0017",
+      "size_bin": "gt16",
+      "target_short_side_l0": 22.065017854198345,
+      "target_frame": 21,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 175,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.550056,
+        0.399036
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0018",
+      "size_bin": "gt16",
+      "target_short_side_l0": 28.021111946198687,
+      "target_frame": 19,
+      "source_class": "medium_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 210,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.83749,
+        0.197004
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0019",
+      "size_bin": "gt16",
+      "target_short_side_l0": 23.457529447098523,
+      "target_frame": 23,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 245,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.575048,
+        0.613578
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0020",
+      "size_bin": "gt16",
+      "target_short_side_l0": 24.58899339185905,
+      "target_frame": 21,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 180,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.525056,
+        0.836617
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0021",
+      "size_bin": "gt16",
+      "target_short_side_l0": 18.30530125144844,
+      "target_frame": 19,
+      "source_class": "spacecraft",
+      "background_family": "hosted_texture",
+      "background_frame": 215,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.848773,
+        0.868681
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0022",
+      "size_bin": "gt16",
+      "target_short_side_l0": 28.642982150468413,
+      "target_frame": 22,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 150,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.155524,
+        0.924428
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0023",
+      "size_bin": "gt16",
+      "target_short_side_l0": 20.330532117589115,
+      "target_frame": 20,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 185,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.191222,
+        0.601699
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0024",
+      "size_bin": "gt16",
+      "target_short_side_l0": 24.404390218128754,
+      "target_frame": 24,
+      "source_class": "ta-ta",
+      "background_family": "hosted_texture",
+      "background_frame": 220,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.600066,
+        0.326557
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0025",
+      "size_bin": "gt16",
+      "target_short_side_l0": 30.548951083669152,
+      "target_frame": 22,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 155,
+      "context_multiplier": 4.0,
+      "subpixel_offset_source": [
+        0.537334,
+        0.040732
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0026",
+      "size_bin": "gt16",
+      "target_short_side_l0": 17.467063716450127,
+      "target_frame": 20,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 190,
+      "context_multiplier": 1.0,
+      "subpixel_offset_source": [
+        0.679202,
+        0.786017
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0027",
+      "size_bin": "gt16",
+      "target_short_side_l0": 28.623999569368777,
+      "target_frame": 24,
+      "source_class": "small_launcher",
+      "background_family": "hosted_texture",
+      "background_frame": 225,
+      "context_multiplier": 1.25,
+      "subpixel_offset_source": [
+        0.04035,
+        0.795998
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0028",
+      "size_bin": "gt16",
+      "target_short_side_l0": 30.811505328403427,
+      "target_frame": 22,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 160,
+      "context_multiplier": 1.5,
+      "subpixel_offset_source": [
+        0.289529,
+        0.875145
+      ],
+      "target_count": 1
+    },
+    {
+      "split": "synthetic_eval",
+      "kind": "synthetic",
+      "name": "synthetic_gt16_0029",
+      "size_bin": "gt16",
+      "target_short_side_l0": 27.44554419674421,
+      "target_frame": 20,
+      "source_class": "jet_plane",
+      "background_family": "hosted_texture",
+      "background_frame": 195,
+      "context_multiplier": 2.0,
+      "subpixel_offset_source": [
+        0.079819,
+        0.073542
+      ],
+      "target_count": 1
+    }
+  ],
+  "dataset_yaml": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\architecture_experiments\\v3_oneclass_discovery\\generated\\dataset\\dataset.yaml"
+}
