@@ -18,7 +18,7 @@ from dtos import (OBJECT_CLASSES, DroneFlybyPredictResponseDto, DroneFlybyPredic
                   FULL_FRAME_CENTER)
 from utils import decode_view
 from v2.geometry import iou, view_to_source
-from v5.gpu.discovery_v54 import RejectingExpert
+from v5.gpu.discovery_v54 import RejectingExpert, MergedDiscovery
 from ultralytics import YOLO
 
 W, H = 3840, 2160
@@ -108,10 +108,18 @@ class V6Pipeline:
         self.det = YOLO(self.cfg.detector)
         self.dev = 0 if self.cfg.device.startswith("cuda") else "cpu"
         self.expert = RejectingExpert(self.cfg.assets, device=self.cfg.device)
+        # Ensemble: the Helsinki-fine-tuned ms1 detector has ~0 recall on hosted-domain objects,
+        # so add the pretrained open-vocab OBB + YOLO-World detectors as a complementary proposal
+        # source that generalizes to the hosted scene. Env-gated (V6_ENSEMBLE=1 default on).
+        self.ensemble = None
+        if os.getenv("V6_ENSEMBLE", "0") == "1":  # default OFF: ms1-only best on Helsinki (0.265 vs 0.206)
+            self.ensemble = MergedDiscovery(self.cfg.assets, budget=int(os.getenv("V6_ENSEMBLE_BUDGET", "48")),
+                                            device=self.cfg.device)
         self.states = OrderedDict()
         self.lock = threading.RLock()
         self.last_diagnostics = {}
-        self.manifest = {"pipeline": "v6", "detector": self.cfg.detector}
+        self.manifest = {"pipeline": "v6", "detector": self.cfg.detector,
+                         "ensemble": bool(self.ensemble)}
         # warmup
         z = np.zeros((VH, VW, 3), np.uint8)
         self._detect(z, (0, 0, W, H))
@@ -127,9 +135,24 @@ class V6Pipeline:
         if r.boxes is not None and len(r.boxes):
             for b, c in zip(r.boxes.xyxy.cpu().numpy(), r.boxes.conf.cpu().numpy()):
                 lb = [float(b[0]), float(b[1]), float(b[2]), float(b[3])]
-                sb = list(view_to_source(lb, region))
-                out.append({"local_box": lb, "source_box": sb, "score": float(c)})
-        return out
+                out.append({"local_box": lb, "source_box": list(view_to_source(lb, region)),
+                            "score": float(c), "src": "ms1"})
+        if self.ensemble is not None:
+            _, sel, _ = self.ensemble.propose(view, list(region))
+            for c in sel:
+                out.append({"local_box": c["local_box"], "source_box": c["source_box"],
+                            "score": float(c["discovery_score"]), "src": c.get("candidate_source", "ens")})
+        return self._merge_props(out)
+
+    @staticmethod
+    def _merge_props(props, thr=0.6):
+        """Greedy NMS union across detectors: keep highest score, drop near-duplicates."""
+        props = sorted(props, key=lambda p: p["score"], reverse=True)
+        kept = []
+        for p in props:
+            if all(iou(p["local_box"], q["local_box"]) <= thr for q in kept):
+                kept.append(p)
+        return kept
 
     def predict(self, request):
         with self.lock:
