@@ -19,6 +19,15 @@ dependencies = [
   "torch>=2.4",
   "numpy>=1.26",
   "more-itertools>=11.1.0",
+  # The Claim rewriter parses the Question to find where its subject ends. The
+  # model is a dependency rather than a download: the request path loads it,
+  # and nothing under `medapp` may reach the network. It is named by its wheel
+  # rather than through `[tool.uv.sources]` so that plain pip resolves it too —
+  # the deployment image installs with pip, and a model only uv can find would
+  # fail at import rather than at build. Capped below 3.9 because the model
+  # wheel is built against 3.8.
+  "spacy>=3.7,<3.9",
+  "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
 ]
 
 [project.optional-dependencies]
@@ -85,8 +94,9 @@ ignore_missing_imports = true
 # Installed in the project environment but not in the pre-commit hook's, which
 # would otherwise fail on an import it has no way to resolve. Where they are
 # installed their own types are used: this only covers the not-found case. The
-# surface `medapp` depends on is pinned by the Protocols in medapp/reranker.py.
-module = ["sentence_transformers.*", "huggingface_hub.*"]
+# surface `medapp` depends on is pinned by the Protocols in medapp/reranker.py
+# and medapp/claims.py.
+module = ["sentence_transformers.*", "huggingface_hub.*", "spacy", "spacy.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

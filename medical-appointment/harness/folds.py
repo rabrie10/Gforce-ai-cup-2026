@@ -46,7 +46,7 @@ class FoldAssignment:
         }
 
 
-def _checked_fold_name(fold: str) -> FoldName:
+def checked_fold_name(fold: str) -> FoldName:
     """The fold name, checked at the boundary where it arrives as free text.
 
     Raises:
@@ -85,7 +85,7 @@ def load_fold_assignment(fold_file: Path | None = None) -> FoldAssignment:
 
     document = json.loads(fold_file.read_text(encoding="utf-8"))
     folds = {
-        _checked_fold_name(fold): tuple(transcript_ids)
+        checked_fold_name(fold): tuple(transcript_ids)
         for fold, transcript_ids in document["folds"].items()
     }
 
@@ -140,7 +140,7 @@ def transcript_ids_in_fold(fold: FoldName) -> tuple[str, ...]:
     Raises:
         KeyError: If ``fold`` is not one of train, dev or test.
     """
-    return load_fold_assignment().folds[_checked_fold_name(fold)]
+    return load_fold_assignment().folds[checked_fold_name(fold)]
 
 
 def questions_in_fold(fold: FoldName) -> list[dict[str, str]]:
@@ -155,3 +155,21 @@ def questions_in_fold(fold: FoldName) -> list[dict[str, str]]:
     return [
         row for row in load_sample_questions() if row["transcript_id"] in transcript_ids
     ]
+
+
+def conversations_in_fold(fold: FoldName) -> list[tuple[str, list[dict[str, str]]]]:
+    """The fold's Conversations with their Question rows, in CSV order.
+
+    The grouping a measurement runs in: the Chunks and the index are built once
+    per Conversation and every Question of it is answered against them, which
+    is what happens inside one request.
+
+    Raises:
+        KeyError: If ``fold`` is not one of train, dev or test.
+    """
+    grouped: dict[str, list[dict[str, str]]] = {}
+
+    for row in questions_in_fold(fold):
+        grouped.setdefault(row["transcript_id"], []).append(row)
+
+    return list(grouped.items())

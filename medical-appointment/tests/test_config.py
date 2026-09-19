@@ -24,8 +24,10 @@ def test_defaults_resolve_without_any_environment(monkeypatch):
 
     assert settings.device == "cpu"
     assert settings.compute_type == "int8"
-    assert settings.answer_strategy == "retrieve_rerank"
+    assert settings.answer_strategy == "retrieve_rerank_entail"
     assert settings.relevance_threshold == 0.3
+    assert settings.relevance_gate is True
+    assert settings.entailment_threshold == 0.000394
     assert settings.chunk_word_lengths == (1, 2, 3, 4, 6, 8, 11, 15, 20, 27, 36, 48)
     assert settings.chunk_stride_fraction == 0.2
     assert settings.retrieval_candidates == 10

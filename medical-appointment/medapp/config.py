@@ -75,6 +75,21 @@ class Settings(BaseSettings):
             an Off-Topic Question looks like. Chosen on the dev fold for
             stability under bootstrap resampling by
             ``python -m scripts.relevance_threshold``, never by argmax.
+        nli_batch_size: How many Chunk-Claim pairs go through the NLI model at
+            once.
+        nli_max_tokens: Where a Chunk-Claim pair is truncated, counted in the
+            model's subwords.
+        entailment_threshold: The entailment probability the best Relevant
+            Chunk must reach for the answer to be yes. Below it the Chunk
+            either contradicts the Claim or is silent on it, and CONTEXT.md
+            answers both no. Chosen on the dev fold for stability under
+            bootstrap resampling by ``python -m scripts.entailment_threshold``,
+            on Hard-Negative accuracy with Positive accuracy held at its
+            Relevance-only value.
+        relevance_gate: Whether the Relevance threshold still rejects a
+            Question before Entailment is judged. Kept only because the
+            ablation the same script runs measured Off-Topic accuracy dropping
+            without it.
     """
 
     model_config = SettingsConfigDict(
@@ -117,7 +132,27 @@ class Settings(BaseSettings):
     # of Positive TPR.
     relevance_threshold: float = 0.3
 
-    answer_strategy: AnswerStrategy = "retrieve_rerank"
+    nli_batch_size: int = Field(default=16, ge=1)
+    # The Claim is a rewrite of the Question and no longer, and the premise is
+    # one Chunk, so the pair fits well inside the reranker's own limit.
+    nli_max_tokens: int = Field(default=128, ge=1)
+    # Measured on dev, 16 Conversations and 160 Questions: Hard-Negative
+    # accuracy 0.855 (90% interval [0.787, 0.918]) against 0.694 with
+    # Relevance alone, Positive accuracy 0.867 against 0.907 — the floor the
+    # sweep holds is 0.851, the bottom of ticket 08's interval — Off-Topic
+    # 1.000, TNR 0.894, overall accuracy 0.881 [0.831, 0.925] against 0.838.
+    # The value is small because the NLI model's softmax saturates: most pairs
+    # score within 1e-3 of zero on entailment, and what separates a Positive
+    # from a Hard Negative sits in that tail rather than near 0.5.
+    entailment_threshold: float = 0.000394
+    # Ablated at that threshold on dev: Off-Topic accuracy 1.000 with the gate
+    # and 0.000 without it. Entailment does not reject an Off-Topic Question on
+    # its own — the best Chunk of an unrelated Conversation still entails a
+    # loosely-worded Claim often enough — so the gate stays, at 0.093 of
+    # Positive accuracy.
+    relevance_gate: bool = True
+
+    answer_strategy: AnswerStrategy = "retrieve_rerank_entail"
     route_suffix: str = ""
 
     deadline_seconds: float = Field(default=50.0, gt=0, lt=60)

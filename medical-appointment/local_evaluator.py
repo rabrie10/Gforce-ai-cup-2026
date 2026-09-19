@@ -4,6 +4,7 @@
     python local_evaluator.py --oracle        # feed ground truth in; prints 1.000
     python local_evaluator.py --verbose       # one line per question
     python local_evaluator.py --url ...       # point at a remote endpoint
+    python local_evaluator.py --fold dev      # only one fold's conversations
 
 This replays the questions the way the evaluation service does: one POST per
 conversation, carrying all ten of its questions, strictly sequential, in file
@@ -32,9 +33,11 @@ from dataclasses import dataclass, field
 import requests
 
 from dtos import ASRQuestionResponseDto
+from harness.folds import checked_fold_name, transcript_ids_in_fold
 from medapp.config import settings
 from utils import (
     Span,
+    audio_filename_for_transcript,
     encode_audio,
     evidence_interval,
     gold_evidence,
@@ -263,13 +266,21 @@ def wait_for_endpoint(url: str, attempts: int = 30) -> bool:
     return False
 
 
-def replay(url: str, verbose: bool) -> Statistics:
-    """Send every supplied conversation to the endpoint and score the answers."""
+def replay(url: str, verbose: bool, fold: str | None = None) -> Statistics:
+    """Send the supplied conversations to the endpoint and score the answers.
+
+    Args:
+        url: The endpoint to send to.
+        verbose: Print a line per question.
+        fold: Restrict the replay to one fold of ADR-0002's split. The test
+            fold is not read until tuning ends, so a tuning run asks for dev
+            rather than filtering the full run's numbers afterwards.
+    """
     statistics = Statistics()
     session = requests.Session()
     consecutive_timeouts = 0
 
-    conversations = group_questions_by_conversation()
+    conversations = _conversations(fold)
     attempt_budget = len(conversations) * ATTEMPT_BUDGET_SECONDS_PER_CONVERSATION
     started_attempt = time.time()
 
@@ -424,11 +435,30 @@ def _ask(
         return unanswered, no_spans, None, f"{type(exc).__name__}: {exc}", False
 
 
-def oracle() -> Statistics:
+def _conversations(fold: str | None) -> list[tuple[str, list[dict[str, str]]]]:
+    """The conversations to replay, in the order the evaluator sends them.
+
+    Raises:
+        KeyError: If ``fold`` names no fold.
+    """
+    grouped = group_questions_by_conversation()
+
+    if fold is None:
+        return grouped
+
+    wanted = {
+        audio_filename_for_transcript(transcript_id)
+        for transcript_id in transcript_ids_in_fold(checked_fold_name(fold))
+    }
+
+    return [(name, rows) for name, rows in grouped if name in wanted]
+
+
+def oracle(fold: str | None = None) -> Statistics:
     """Score the ground truth against itself. Proves harness and data agree."""
     statistics = Statistics()
 
-    for _, rows in group_questions_by_conversation():
+    for _, rows in _conversations(fold):
         statistics.record_request(len(rows), None, failed=False)
 
         for row in rows:
@@ -450,10 +480,16 @@ def main() -> int:
     parser.add_argument(
         "--verbose", action="store_true", help="Print a line per question."
     )
+    parser.add_argument(
+        "--fold",
+        choices=("train", "dev", "test"),
+        help="Only this fold's conversations. Tuning runs read dev; the test "
+        "fold is not read until tuning ends.",
+    )
     args = parser.parse_args()
 
     if args.oracle:
-        print(oracle().report())
+        print(oracle(args.fold).report())
         print(
             "\nThis is the harness scoring the ground truth. Anything below "
             "1.000 means the\nsetup is broken, not the model."
@@ -467,7 +503,7 @@ def main() -> int:
         )
         return 1
 
-    statistics = replay(args.url, args.verbose)
+    statistics = replay(args.url, args.verbose, args.fold)
     print(statistics.report())
     print(
         f"\n{statistics.conversations} conversations is a correctness check, "

@@ -214,3 +214,79 @@ component.
 the gate unmet, because the gate protects a component and not a release: it says
 where work goes next, which is the dense half, and the alternative is serving
 the BM25 baseline that is worse on every number in the table.
+
+## Amendment 2026-09-19: the Entailment threshold, and the Relevance gate kept
+
+The decision above assigns Entailment **Hard-Negative accuracy with Positive
+accuracy held fixed**. Held needed a definition before it could be applied.
+Adding an Entailment test to the reranked Answerer can only turn a yes into a
+no, so Positive accuracy is non-increasing in the threshold and the literal
+reading admits only the threshold that judges nothing. What is implemented by
+`python -m scripts.entailment_threshold` instead is that the threshold may not
+cost more Positives than the fold's own sampling noise: a candidate is eligible
+when its Positive accuracy is at or above **the lower bound of the bootstrap
+interval on the ticket-08 value**, which on dev is 0.851 against a point
+estimate of 0.907. Among the eligible candidates the one with the highest lower
+bound on Hard-Negative accuracy is chosen, which is the stability rule every
+other threshold here follows.
+
+Measured on dev, 16 Conversations and 160 Questions, with
+`cross-encoder/nli-deberta-v3-base` judging the top reranked Chunk against the
+Claim the Question was rewritten as.
+
+| Answerer              | Hard-neg | 90% interval   | Positive | Off-topic | TNR   | Accuracy |
+|-----------------------|----------|----------------|----------|-----------|-------|----------|
+| Relevance only (08)   | 0.694    | [0.586, 0.793] | 0.907    | 1.000     | 0.776 | 0.838    |
+| Relevance + Entailment| 0.855    | [0.787, 0.918] | 0.867    | 1.000     | 0.894 | 0.881    |
+
+The chosen threshold is **0.000394**. It is small because the NLI model's
+softmax saturates: most Chunk-Claim pairs score within 1e-3 of zero on
+entailment, and what separates a Positive from a Hard Negative lives in that
+tail rather than anywhere near 0.5. This is why the candidates are quantiles of
+the observed probabilities rather than an even grid — a grid over [0, 1] would
+have put one candidate in the region where every decision is made.
+
+**The Relevance gate is kept, and it was ablated to find that out.** The gate
+was tuned when Entailment did not exist, so the same sweep scores every
+candidate twice. At the chosen threshold, Off-Topic accuracy is 1.000 with the
+gate and **0.000 without it**: with Relevance removed, the NLI model reads the
+best Chunk of an unrelated Conversation as entailing a loosely-worded Claim
+about a concert or a pet almost every time, and only thresholds high enough to
+cost half the Positives reject them. That is CONTEXT.md's claim that Relevance
+and Entailment answer distinct failures, measured rather than assumed. The gate
+costs 0.093 of Positive accuracy (0.867 against 0.960 ungated) and buys the
+whole of Off-Topic accuracy.
+
+**What the rewriter contributes, measured separately.** The Entailment judge
+reads a Claim and never the Question, so the rewriter is measured on its own by
+`python -m scripts.claim_fidelity` before it is measured through a threshold. A
+Claim holds the five properties the rewrite guarantees when it asserts rather
+than asks, keeps every word of the Question but the interrogative scaffolding,
+re-parses as a clause with a subject, did not move the auxiliary into the
+middle of a word, and did not strand a coordinator at the head of its
+predicate. On that check fidelity is **1.000 on train (80 Questions) and 0.988
+on dev (160)**, the two dev failures being the same failure: the parser reads
+fronted do-support as the clause's own verb, which leaves no trustworthy
+subject boundary, and the rewriter drops the auxiliary rather than placing it
+where the parse cannot justify.
+
+**That check cannot see a wrong split, and the residual is recorded here
+instead.** Word order is preserved by construction, so re-parsing a Claim
+reports back whatever boundary it was handed; deciding the boundary is right
+needs the parse the measurement is trying to hold to account. Reading all 238
+distinct train and dev Questions against their Claims by hand finds **five
+wrong**, or 0.979 — the two the check reports plus three it cannot: "Is the
+patient feeling well?", "Is the patient complaining of chest symptoms?" and
+"Does the visit concern asthma?", where the parser tags the main verb as a noun
+and the subject swallows the predicate. Nothing in the parse separates those
+from "Is the heart examination without abnormal findings?", where the identical
+shape is correct. `en_core_web_lg` was measured against `en_core_web_sm` over
+all 387 supplied Questions as the obvious fix and is a wash — six subject
+boundaries better, five worse — so the small pipeline is kept and the residual
+stands. All five are pinned by tests, so a parser or rule change that moves
+them is noticed.
+
+**Latency.** Judging one Question — ranking, the reranker, the rewrite and the
+NLI pass — is 216 ms on average and 369 ms worst on the Mac's CPU, so a
+Conversation's ten Questions cost 3.7 s of the 15 s the budget gives the
+answering half. Adding the Entailment judge cost 36 ms per Question.

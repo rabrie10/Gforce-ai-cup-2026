@@ -26,13 +26,13 @@ Questions of a Conversation share one transcript and one set of Chunks and are
 not independent observations.
 """
 
-import random
 import time
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from harness import transcript_cache
-from harness.folds import FoldName, questions_in_fold
+from harness.bootstrap import interval, rate, resamples
+from harness.folds import FoldName, conversations_in_fold
 from medapp.chunker import ChunkScheme, chunk_conversation
 from medapp.reranker import Reranker
 from medapp.retrieval import Bm25Index
@@ -42,18 +42,12 @@ from medapp.retrieval import Bm25Index
 # a candidate of zero.
 NOTHING_RETRIEVED = float("-inf")
 
-# How many resampled folds a bootstrap interval is read off, and the interval
-# they are read at. 2000 is enough that the interval is stable to the third
-# decimal the table prints.
-BOOTSTRAP_RESAMPLES = 2000
-BOOTSTRAP_INTERVAL = 0.90
-BOOTSTRAP_SEED = 20260919
-
 CANDIDATE_COUNT = 21
 
 # The spec's latency budget gives all ten Questions of a Conversation 15 s
 # worst case. Retrieval and reranking are what this module measures; Entailment
-# is not built yet and will be judged inside the same 15 s.
+# is judged inside the same 15 s and is measured by
+# ``harness.entailment_threshold``.
 QUESTIONS_PER_CONVERSATION = 10
 JUDGING_BUDGET_SECONDS = 15.0
 
@@ -161,7 +155,7 @@ def measure_fold(
     """
     measurements: list[QuestionMeasurement] = []
 
-    for transcript_id, rows in _conversations_in(fold):
+    for transcript_id, rows in conversations_in_fold(fold):
         index = Bm25Index(
             chunk_conversation(transcript_cache.read(transcript_id), scheme)
         )
@@ -233,14 +227,14 @@ def report_threshold(
         hard_negative_accuracy=_accuracy_of_type(
             measurements, threshold, "hard_negative"
         ),
-        true_positive_rate=_rate(
+        true_positive_rate=rate(
             [
                 _predicted(measurement, threshold)
                 for measurement in measurements
                 if measurement.answer
             ]
         ),
-        true_negative_rate=_rate(
+        true_negative_rate=rate(
             [
                 not _predicted(measurement, threshold)
                 for measurement in measurements
@@ -248,13 +242,13 @@ def report_threshold(
             ]
         ),
         accuracy=_accuracy(measurements, threshold),
-        off_topic_interval=_interval(
+        off_topic_interval=interval(
             [
                 _accuracy_of_type(resample, threshold, "off_topic")
                 for resample in resampled
             ]
         ),
-        accuracy_interval=_interval(
+        accuracy_interval=interval(
             [_accuracy(resample, threshold) for resample in resampled]
         ),
     )
@@ -336,7 +330,7 @@ def _predicted(measurement: QuestionMeasurement, threshold: float) -> bool:
 
 
 def _accuracy(measurements: Sequence[QuestionMeasurement], threshold: float) -> float:
-    return _rate(
+    return rate(
         [
             _predicted(measurement, threshold) == measurement.answer
             for measurement in measurements
@@ -355,61 +349,3 @@ def _accuracy_of_type(
         ],
         threshold,
     )
-
-
-def resamples(
-    measurements: Sequence[QuestionMeasurement],
-) -> tuple[tuple[QuestionMeasurement, ...], ...]:
-    """Resampled folds, drawn at Conversation level with replacement.
-
-    Drawn once and reused for every candidate threshold, so that two thresholds
-    differ by the threshold rather than by the draw. The ten Questions of a
-    Conversation share one transcript and one set of Chunks, so they are drawn
-    together or not at all — resampling Questions would treat them as ten
-    independent observations and report an interval far narrower than the fold
-    supports.
-    """
-    grouped: dict[str, list[QuestionMeasurement]] = {}
-
-    for measurement in measurements:
-        grouped.setdefault(measurement.transcript_id, []).append(measurement)
-
-    conversations = list(grouped.values())
-    generator = random.Random(BOOTSTRAP_SEED)
-
-    return tuple(
-        tuple(
-            measurement
-            for _ in conversations
-            for measurement in generator.choice(conversations)
-        )
-        for _ in range(BOOTSTRAP_RESAMPLES)
-    )
-
-
-def _interval(rates: Sequence[float]) -> tuple[float, float]:
-    """The percentile interval over one statistic's resampled values."""
-    if not rates:
-        return (0.0, 0.0)
-
-    ordered = sorted(rates)
-    tail = (1 - BOOTSTRAP_INTERVAL) / 2
-    last = len(ordered) - 1
-
-    return (ordered[round(tail * last)], ordered[round((1 - tail) * last)])
-
-
-def _conversations_in(fold: FoldName) -> list[tuple[str, list[dict[str, str]]]]:
-    """The fold's Conversations with their Question rows, in CSV order."""
-    grouped: dict[str, list[dict[str, str]]] = {}
-
-    for row in questions_in_fold(fold):
-        grouped.setdefault(row["transcript_id"], []).append(row)
-
-    return list(grouped.items())
-
-
-def _rate(outcomes: Iterable[bool]) -> float:
-    counted = list(outcomes)
-
-    return sum(counted) / len(counted) if counted else 0.0
