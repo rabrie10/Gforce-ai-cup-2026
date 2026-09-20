@@ -39,3 +39,12 @@ position (1041 px and 1492 px vs the 551 px L2 limit), leaving the camera stuck.
 Candidate minimal fix (untested, not applied): validate/clamp the planned step against the
 RECEIVED view as well as the believed state, falling back to a legal step from the received view.
 Requires redeploy + another Validation to verify.
+
+## Repository correctness note (handoff)
+Commit f3c247f accidentally committed the camera-clamp build as `v5/gpu/pipeline_v6.py`, with the
+clamp defaulting to ON. That file is NOT what served the Final Evaluation. It has been restored to
+the submitted version (sha256 `6f9be14ef9b59875f2b1c6340b321ccb32b31c33489bc9c071a877c865bb83de`,
+copied from the live `/workspace/v7-release-candidate`). The clamp variant is preserved verbatim as
+`architecture_experiments/v7_object_centric/NOT_SUBMITTED_pipeline_v6_cameraclamp.py`
+(sha256 `ebec47bda72d8b31b739c5573626093cc21e01c86b192d05730bb6f233e77026`) and must not be deployed:
+it scored 0.0124 versus 0.0318 for the submitted build.

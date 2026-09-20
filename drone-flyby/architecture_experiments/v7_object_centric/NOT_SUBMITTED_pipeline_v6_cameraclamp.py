@@ -377,9 +377,28 @@ class V6Pipeline:
                 st.tour += 1
                 lvl, gx, gy = COVERAGE_WAYPOINTS[st.tour % len(COVERAGE_WAYPOINTS)]
             cmd = self._legal_step(st, lvl, gx, gy)
-        # Independent final legality guard against the believed authoritative state.
+        # Guard 1: legality against the believed authoritative state.
         bl, bx, by = st.believed
         if cmd is not None and not command_is_legal(bl, bx, by, cmd.resolution_level, cmd.center_x, cmd.center_y):
             cmd = None  # illegal -> no move (evaluator keeps its camera; always legal)
+
+        # Guard 2 (V7): legality against the RECEIVED view. If a response never reaches the
+        # evaluator, it does not apply that command, so `believed` silently diverges and every
+        # later step is planned from a camera the evaluator is not at. Hosted attempt a23ca0fb
+        # frames 196/202: 1041px and 1492px moves requested while the evaluator sat at
+        # L2 (2001,1609) -> ignored, and the camera stayed stuck there.
+        # The evaluator validates against the camera it reports in the request, so re-plan one
+        # legal step from THAT camera toward the same goal, and drop the command if even that
+        # is not legal. V6_RECV_CLAMP=0 restores the old behaviour.
+        if cmd is not None and os.getenv("V6_RECV_CLAMP", "1") == "1":
+            rl, rx, ry = int(r.view.resolution_level), int(r.view.center_x), int(r.view.center_y)
+            if not command_is_legal(rl, rx, ry, cmd.resolution_level, cmd.center_x, cmd.center_y):
+                goal = (cmd.resolution_level, cmd.center_x, cmd.center_y)
+                st.believed = (rl, rx, ry)
+                st.cam_level, st.cam_cx, st.cam_cy = st.believed
+                cmd = self._legal_step(st, goal[0], goal[1], goal[2])
+                if cmd is not None and not command_is_legal(rl, rx, ry, cmd.resolution_level,
+                                                            cmd.center_x, cmd.center_y):
+                    cmd = None
         st.last_issued = None if cmd is None else (cmd.resolution_level, cmd.center_x, cmd.center_y)
         return cmd
