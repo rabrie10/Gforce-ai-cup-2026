@@ -1,0 +1,509 @@
+{
+ "provenance": "Manual review of original 960x540 hosted pixels (zoom crops), frozen 2026-09-20T04:10:53.072608+02:00 BEFORE any ms1 replay/candidate overlay. One f204 post-merge candidate line was accidentally printed in a metadata dump after the f204 boxes were measured. Not ground truth.",
+ "correction_note": "Earlier session annotation 'hosted_f55_helicopter' [335,267,435,355] matches the f52 helicopter location, not f55. The f55 helicopter is at bottom edge [287,475,382,540].",
+ "targets": [
+  {
+   "target_id": "f52_heli",
+   "frame_index": 52,
+   "level": 2,
+   "box_local_xyxy": [
+    334,
+    275,
+    430,
+    350
+   ],
+   "box_source_xyxy": [
+    2530.0,
+    591.0,
+    2626.0,
+    666.0
+   ],
+   "region_xyxy": [
+    2196,
+    316,
+    3156,
+    856
+   ],
+   "family": "helicopter",
+   "existence_confidence": "HIGH",
+   "difficulty": "EASY",
+   "px_w": 96,
+   "px_h": 75,
+   "short_side": 75,
+   "long_side": 96,
+   "source_px_short": 75.0,
+   "source_px_long": 96.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Full helicopter, rotors spread, dark olive on light concrete pad. Immediately recognizable."
+  },
+  {
+   "target_id": "f55_heli",
+   "frame_index": 55,
+   "level": 2,
+   "box_local_xyxy": [
+    287,
+    475,
+    382,
+    540
+   ],
+   "box_source_xyxy": [
+    2545.0,
+    778.0,
+    2640.0,
+    843.0
+   ],
+   "region_xyxy": [
+    2258,
+    303,
+    3218,
+    843
+   ],
+   "family": "helicopter",
+   "existence_confidence": "HIGH",
+   "difficulty": "MODERATE",
+   "px_w": 95,
+   "px_h": 65,
+   "short_side": 65,
+   "long_side": 95,
+   "source_px_short": 65.0,
+   "source_px_long": 95.0,
+   "edge_clipped": "bottom",
+   "partial_occlusion": false,
+   "note": "Same helicopter type, clipped by bottom edge (~lower rotor blades cut); body+3 blades visible."
+  },
+  {
+   "target_id": "f6_armor",
+   "frame_index": 6,
+   "level": 2,
+   "box_local_xyxy": [
+    213,
+    147,
+    262,
+    173
+   ],
+   "box_source_xyxy": [
+    1653.0,
+    945.0,
+    1702.0,
+    971.0
+   ],
+   "region_xyxy": [
+    1440,
+    798,
+    2400,
+    1338
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "HIGH",
+   "difficulty": "EASY",
+   "px_w": 49,
+   "px_h": 26,
+   "short_side": 26,
+   "long_side": 49,
+   "source_px_short": 26.0,
+   "source_px_long": 49.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Olive camouflage tank-like vehicle w/ gun barrel on dry grass beside trees. Class unknown."
+  },
+  {
+   "target_id": "f7_armor",
+   "frame_index": 7,
+   "level": 2,
+   "box_local_xyxy": [
+    211,
+    213,
+    261,
+    239
+   ],
+   "box_source_xyxy": [
+    1651.0,
+    1011.0,
+    1701.0,
+    1037.0
+   ],
+   "region_xyxy": [
+    1440,
+    798,
+    2400,
+    1338
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "HIGH",
+   "difficulty": "EASY",
+   "px_w": 50,
+   "px_h": 26,
+   "short_side": 26,
+   "long_side": 50,
+   "source_px_short": 26.0,
+   "source_px_long": 50.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Same object as f6, next frame."
+  },
+  {
+   "target_id": "f100_armor",
+   "frame_index": 100,
+   "level": 2,
+   "box_local_xyxy": [
+    753,
+    484,
+    811,
+    510
+   ],
+   "box_source_xyxy": [
+    3206.0,
+    1294.0,
+    3264.0,
+    1320.0
+   ],
+   "region_xyxy": [
+    2453,
+    810,
+    3413,
+    1350
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "HIGH",
+   "difficulty": "EASY",
+   "px_w": 58,
+   "px_h": 26,
+   "short_side": 26,
+   "long_side": 58,
+   "source_px_short": 26.0,
+   "source_px_long": 58.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Dark camouflage vehicle w/ gun on sand path. Class unknown."
+  },
+  {
+   "target_id": "f204_veh_small",
+   "frame_index": 204,
+   "level": 2,
+   "box_local_xyxy": [
+    112,
+    105,
+    155,
+    146
+   ],
+   "box_source_xyxy": [
+    1837.0,
+    459.0,
+    1880.0,
+    500.0
+   ],
+   "region_xyxy": [
+    1725,
+    354,
+    2685,
+    894
+   ],
+   "family": "vehicle_like",
+   "existence_confidence": "HIGH",
+   "difficulty": "EASY",
+   "px_w": 43,
+   "px_h": 41,
+   "short_side": 41,
+   "long_side": 43,
+   "source_px_short": 41.0,
+   "source_px_long": 43.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Olive camouflage vehicle on dirt yard. Class unknown."
+  },
+  {
+   "target_id": "f204_launcher_large",
+   "frame_index": 204,
+   "level": 2,
+   "box_local_xyxy": [
+    320,
+    189,
+    422,
+    281
+   ],
+   "box_source_xyxy": [
+    2045.0,
+    543.0,
+    2147.0,
+    635.0
+   ],
+   "region_xyxy": [
+    1725,
+    354,
+    2685,
+    894
+   ],
+   "family": "launcher_like",
+   "existence_confidence": "HIGH",
+   "difficulty": "EASY",
+   "px_w": 102,
+   "px_h": 92,
+   "short_side": 92,
+   "long_side": 102,
+   "source_px_short": 92.0,
+   "source_px_long": 102.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Large olive multi-section launcher/SAM-truck-like object on dirt pad."
+  },
+  {
+   "target_id": "f4_armor",
+   "frame_index": 4,
+   "level": 1,
+   "box_local_xyxy": [
+    829,
+    408,
+    853,
+    421
+   ],
+   "box_source_xyxy": [
+    1658.0,
+    816.0,
+    1706.0,
+    842.0
+   ],
+   "region_xyxy": [
+    0,
+    0,
+    1920,
+    1080
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "MEDIUM",
+   "difficulty": "MODERATE",
+   "px_w": 24,
+   "px_h": 13,
+   "short_side": 13,
+   "long_side": 24,
+   "source_px_short": 26.0,
+   "source_px_long": 48.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Small dark olive vehicle w/ barrel between trees; ~24x13 px."
+  },
+  {
+   "target_id": "f50_armor",
+   "frame_index": 50,
+   "level": 1,
+   "box_local_xyxy": [
+    201,
+    342,
+    221,
+    362
+   ],
+   "box_source_xyxy": [
+    2244.0,
+    1324.0,
+    2284.0,
+    1364.0
+   ],
+   "region_xyxy": [
+    1842,
+    640,
+    3762,
+    1720
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "MEDIUM",
+   "difficulty": "MODERATE",
+   "px_w": 20,
+   "px_h": 20,
+   "short_side": 20,
+   "long_side": 20,
+   "source_px_short": 40.0,
+   "source_px_long": 40.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Small olive vehicle w/ barrel in meadow, ~20x20 px."
+  },
+  {
+   "target_id": "f50_dark_b",
+   "frame_index": 50,
+   "level": 1,
+   "box_local_xyxy": [
+    654,
+    99,
+    680,
+    124
+   ],
+   "box_source_xyxy": [
+    3150.0,
+    838.0,
+    3202.0,
+    888.0
+   ],
+   "region_xyxy": [
+    1842,
+    640,
+    3762,
+    1720
+   ],
+   "family": "vehicle_like",
+   "existence_confidence": "MEDIUM",
+   "difficulty": "MODERATE",
+   "px_w": 26,
+   "px_h": 25,
+   "short_side": 25,
+   "long_side": 26,
+   "source_px_short": 50.0,
+   "source_px_long": 52.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Dark camouflaged object at edge of concrete pad, partly under tree shadow; class unknown."
+  },
+  {
+   "target_id": "f50_dark_a",
+   "frame_index": 50,
+   "level": 1,
+   "box_local_xyxy": [
+    637,
+    99,
+    650,
+    109
+   ],
+   "box_source_xyxy": [
+    3116.0,
+    838.0,
+    3142.0,
+    858.0
+   ],
+   "region_xyxy": [
+    1842,
+    640,
+    3762,
+    1720
+   ],
+   "family": "vehicle_like",
+   "existence_confidence": "LOW",
+   "difficulty": "HARD",
+   "px_w": 13,
+   "px_h": 10,
+   "short_side": 10,
+   "long_side": 13,
+   "source_px_short": 20.0,
+   "source_px_long": 26.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Tiny dark object with orange fleck on concrete pad; ~12x9 px. Uncertain."
+  },
+  {
+   "target_id": "f51_armor",
+   "frame_index": 51,
+   "level": 1,
+   "box_local_xyxy": [
+    163,
+    158,
+    183,
+    178
+   ],
+   "box_source_xyxy": [
+    2246.0,
+    1396.0,
+    2286.0,
+    1436.0
+   ],
+   "region_xyxy": [
+    1920,
+    1080,
+    3840,
+    2160
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "MEDIUM",
+   "difficulty": "MODERATE",
+   "px_w": 20,
+   "px_h": 20,
+   "short_side": 20,
+   "long_side": 20,
+   "source_px_short": 40.0,
+   "source_px_long": 40.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Small olive vehicle w/ barrel in meadow, ~20x20 px (probably same object as f50_armor)."
+  },
+  {
+   "target_id": "f101_armor",
+   "frame_index": 101,
+   "level": 1,
+   "box_local_xyxy": [
+    648,
+    142,
+    677,
+    155
+   ],
+   "box_source_xyxy": [
+    3216.0,
+    1364.0,
+    3274.0,
+    1390.0
+   ],
+   "region_xyxy": [
+    1920,
+    1080,
+    3840,
+    2160
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "MEDIUM",
+   "difficulty": "MODERATE",
+   "px_w": 29,
+   "px_h": 13,
+   "short_side": 13,
+   "long_side": 29,
+   "source_px_short": 26.0,
+   "source_px_long": 58.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Dark camouflage vehicle, ~29x13 px, on sand next to red-roof building (same object as f100_armor)."
+  },
+  {
+   "target_id": "f105_armor",
+   "frame_index": 105,
+   "level": 1,
+   "box_local_xyxy": [
+    668,
+    290,
+    698,
+    304
+   ],
+   "box_source_xyxy": [
+    3256.0,
+    1660.0,
+    3316.0,
+    1688.0
+   ],
+   "region_xyxy": [
+    1920,
+    1080,
+    3840,
+    2160
+   ],
+   "family": "tracked_armor_like",
+   "existence_confidence": "MEDIUM",
+   "difficulty": "MODERATE",
+   "px_w": 30,
+   "px_h": 14,
+   "short_side": 14,
+   "long_side": 30,
+   "source_px_short": 28.0,
+   "source_px_long": 60.0,
+   "edge_clipped": "",
+   "partial_occlusion": false,
+   "note": "Same as f101, ~30x14 px."
+  }
+ ],
+ "uncertain_no_box": [
+  {
+   "frame_index": 52,
+   "level": 2,
+   "note": "thin lattice/pylon-like structures upper right (~x700-860,y0-170) could be 'tower'-class objects or range infrastructure; no box frozen"
+  },
+  {
+   "frame_index": 101,
+   "level": 1,
+   "note": "rows of parked equipment at upper-left yard (~x20-260,y75-125); could be vehicles; no box frozen"
+  }
+ ],
+ "non_target_note": "cars/vans, boats on cradles (f151/f201), buildings, roofs, huts, hay bales, trees judged NOT targets; frames 102,150,151,153,159,200,201,203 have no visible plausible target"
+}

@@ -1,0 +1,567 @@
+{
+  "summary": {
+    "frames": 25,
+    "proposal_center_recall": 0.34146341463414637,
+    "gt_visible_total": 82,
+    "mean_observations": 40.0,
+    "mean_tracks": 100.48,
+    "mean_tracks_on_real_objects": 2.44,
+    "track_precision": 0.02428343949044586,
+    "mean_annotations": 177.6,
+    "recognizer_top1_on_hit_proposals": 0.9285714285714286,
+    "recognizer_evaluated": 28,
+    "per_class": {
+      "condor": {
+        "seen": 1,
+        "named": 1
+      },
+      "helicopter": {
+        "seen": 5,
+        "named": 5
+      },
+      "jet_plane": {
+        "seen": 5,
+        "named": 5
+      },
+      "large_launcher": {
+        "seen": 4,
+        "named": 4
+      },
+      "small_tower": {
+        "seen": 3,
+        "named": 3
+      },
+      "spacecraft": {
+        "seen": 7,
+        "named": 6
+      },
+      "ta-ta": {
+        "seen": 2,
+        "named": 1
+      },
+      "tank": {
+        "seen": 1,
+        "named": 1
+      }
+    },
+    "top_confusions": [
+      {
+        "gt": "spacecraft",
+        "predicted": "spacecraft",
+        "n": 6
+      },
+      {
+        "gt": "helicopter",
+        "predicted": "helicopter",
+        "n": 5
+      },
+      {
+        "gt": "jet_plane",
+        "predicted": "jet_plane",
+        "n": 5
+      },
+      {
+        "gt": "large_launcher",
+        "predicted": "large_launcher",
+        "n": 4
+      },
+      {
+        "gt": "small_tower",
+        "predicted": "small_tower",
+        "n": 3
+      },
+      {
+        "gt": "spacecraft",
+        "predicted": "jet_plane",
+        "n": 1
+      },
+      {
+        "gt": "ta-ta",
+        "predicted": "jammer",
+        "n": 1
+      },
+      {
+        "gt": "condor",
+        "predicted": "condor",
+        "n": 1
+      },
+      {
+        "gt": "ta-ta",
+        "predicted": "ta-ta",
+        "n": 1
+      },
+      {
+        "gt": "tank",
+        "predicted": "tank",
+        "n": 1
+      }
+    ],
+    "latency_ms": {
+      "decode": {
+        "calls": 25,
+        "mean": 46.11,
+        "median": 42.29,
+        "p95": 71.34,
+        "max": 75.55
+      },
+      "emit": {
+        "calls": 25,
+        "mean": 36.49,
+        "median": 41.32,
+        "p95": 51.3,
+        "max": 58.94
+      },
+      "gmc": {
+        "calls": 25,
+        "mean": 15.18,
+        "median": 14.45,
+        "p95": 29.12,
+        "max": 34.37
+      },
+      "predict_state": {
+        "calls": 25,
+        "mean": 1.79,
+        "median": 0.87,
+        "p95": 6.43,
+        "max": 7.41
+      },
+      "proposals": {
+        "calls": 25,
+        "mean": 286.05,
+        "median": 297.78,
+        "p95": 390.44,
+        "max": 461.89
+      },
+      "recognize": {
+        "calls": 25,
+        "mean": 270.41,
+        "median": 287.46,
+        "p95": 371.15,
+        "max": 391.17
+      },
+      "schedule": {
+        "calls": 25,
+        "mean": 61.89,
+        "median": 25.66,
+        "p95": 149.96,
+        "max": 161.32
+      },
+      "total": {
+        "calls": 25,
+        "mean": 736.41,
+        "median": 806.96,
+        "p95": 993.45,
+        "max": 1005.23
+      },
+      "update_state": {
+        "calls": 25,
+        "mean": 18.31,
+        "median": 22.19,
+        "p95": 29.23,
+        "max": 29.7
+      }
+    }
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "level": 0,
+      "center": [
+        1920,
+        1080
+      ],
+      "gt_total": 11,
+      "gt_visible": 11,
+      "observations": 40,
+      "proposal_center_hits": 4,
+      "tracks": 40,
+      "tracks_on_real_objects": 4,
+      "annotations": 120,
+      "distinct_classes_emitted": 14
+    },
+    {
+      "frame": 1,
+      "level": 1,
+      "center": [
+        1498,
+        596
+      ],
+      "gt_total": 11,
+      "gt_visible": 4,
+      "observations": 40,
+      "proposal_center_hits": 2,
+      "tracks": 66,
+      "tracks_on_real_objects": 3,
+      "annotations": 180,
+      "distinct_classes_emitted": 14
+    },
+    {
+      "frame": 2,
+      "level": 2,
+      "center": [
+        1906,
+        812
+      ],
+      "gt_total": 10,
+      "gt_visible": 2,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 94,
+      "tracks_on_real_objects": 3,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 3,
+      "level": 2,
+      "center": [
+        1920,
+        810
+      ],
+      "gt_total": 11,
+      "gt_visible": 1,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 83,
+      "tracks_on_real_objects": 1,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 4,
+      "level": 1,
+      "center": [
+        1464,
+        781
+      ],
+      "gt_total": 11,
+      "gt_visible": 4,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 84,
+      "tracks_on_real_objects": 1,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 5,
+      "level": 2,
+      "center": [
+        1901,
+        1003
+      ],
+      "gt_total": 11,
+      "gt_visible": 2,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 86,
+      "tracks_on_real_objects": 1,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 6,
+      "level": 2,
+      "center": [
+        1973,
+        990
+      ],
+      "gt_total": 12,
+      "gt_visible": 1,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 88,
+      "tracks_on_real_objects": 1,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 7,
+      "level": 1,
+      "center": [
+        1732,
+        810
+      ],
+      "gt_total": 12,
+      "gt_visible": 4,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 90,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 12
+    },
+    {
+      "frame": 8,
+      "level": 0,
+      "center": [
+        1920,
+        1080
+      ],
+      "gt_total": 12,
+      "gt_visible": 12,
+      "observations": 40,
+      "proposal_center_hits": 6,
+      "tracks": 102,
+      "tracks_on_real_objects": 7,
+      "annotations": 180,
+      "distinct_classes_emitted": 14
+    },
+    {
+      "frame": 9,
+      "level": 1,
+      "center": [
+        1804,
+        870
+      ],
+      "gt_total": 11,
+      "gt_visible": 3,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 87,
+      "tracks_on_real_objects": 6,
+      "annotations": 180,
+      "distinct_classes_emitted": 14
+    },
+    {
+      "frame": 10,
+      "level": 2,
+      "center": [
+        1306,
+        393
+      ],
+      "gt_total": 11,
+      "gt_visible": 0,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 115,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 15
+    },
+    {
+      "frame": 11,
+      "level": 2,
+      "center": [
+        1301,
+        451
+      ],
+      "gt_total": 10,
+      "gt_visible": 0,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 107,
+      "tracks_on_real_objects": 1,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 12,
+      "level": 1,
+      "center": [
+        1640,
+        716
+      ],
+      "gt_total": 10,
+      "gt_visible": 4,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 115,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 13,
+      "level": 2,
+      "center": [
+        1261,
+        494
+      ],
+      "gt_total": 9,
+      "gt_visible": 1,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 125,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 14,
+      "level": 2,
+      "center": [
+        1275,
+        551
+      ],
+      "gt_total": 10,
+      "gt_visible": 0,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 124,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 15,
+      "level": 1,
+      "center": [
+        1467,
+        808
+      ],
+      "gt_total": 10,
+      "gt_visible": 4,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 125,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 14
+    },
+    {
+      "frame": 16,
+      "level": 0,
+      "center": [
+        1920,
+        1080
+      ],
+      "gt_total": 10,
+      "gt_visible": 10,
+      "observations": 40,
+      "proposal_center_hits": 5,
+      "tracks": 128,
+      "tracks_on_real_objects": 5,
+      "annotations": 180,
+      "distinct_classes_emitted": 12
+    },
+    {
+      "frame": 17,
+      "level": 1,
+      "center": [
+        1276,
+        811
+      ],
+      "gt_total": 10,
+      "gt_visible": 2,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 105,
+      "tracks_on_real_objects": 4,
+      "annotations": 180,
+      "distinct_classes_emitted": 13
+    },
+    {
+      "frame": 18,
+      "level": 2,
+      "center": [
+        1485,
+        1185
+      ],
+      "gt_total": 10,
+      "gt_visible": 1,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 105,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 12
+    },
+    {
+      "frame": 19,
+      "level": 2,
+      "center": [
+        1434,
+        1162
+      ],
+      "gt_total": 10,
+      "gt_visible": 1,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 99,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 11
+    },
+    {
+      "frame": 20,
+      "level": 1,
+      "center": [
+        1216,
+        1176
+      ],
+      "gt_total": 10,
+      "gt_visible": 3,
+      "observations": 40,
+      "proposal_center_hits": 1,
+      "tracks": 106,
+      "tracks_on_real_objects": 3,
+      "annotations": 180,
+      "distinct_classes_emitted": 11
+    },
+    {
+      "frame": 21,
+      "level": 2,
+      "center": [
+        1414,
+        1126
+      ],
+      "gt_total": 10,
+      "gt_visible": 0,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 116,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 11
+    },
+    {
+      "frame": 22,
+      "level": 2,
+      "center": [
+        1410,
+        1193
+      ],
+      "gt_total": 10,
+      "gt_visible": 0,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 107,
+      "tracks_on_real_objects": 1,
+      "annotations": 180,
+      "distinct_classes_emitted": 11
+    },
+    {
+      "frame": 23,
+      "level": 1,
+      "center": [
+        1407,
+        1262
+      ],
+      "gt_total": 9,
+      "gt_visible": 4,
+      "observations": 40,
+      "proposal_center_hits": 0,
+      "tracks": 104,
+      "tracks_on_real_objects": 0,
+      "annotations": 180,
+      "distinct_classes_emitted": 11
+    },
+    {
+      "frame": 24,
+      "level": 0,
+      "center": [
+        1920,
+        1080
+      ],
+      "gt_total": 8,
+      "gt_visible": 8,
+      "observations": 40,
+      "proposal_center_hits": 3,
+      "tracks": 111,
+      "tracks_on_real_objects": 2,
+      "annotations": 180,
+      "distinct_classes_emitted": 12
+    }
+  ]
+}

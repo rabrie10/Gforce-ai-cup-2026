@@ -1,0 +1,1149 @@
+{
+  "classification": {
+    "case": "CASE L",
+    "classes_recovered_in_both_families": [
+      "helicopter",
+      "large_launcher",
+      "tank"
+    ],
+    "explanation": "Activation recovery increased materially with preserved context and occurred across multiple classes in both replacement families.",
+    "label": "local context memorization supported",
+    "median_score_recovery_ratio_1x": 0.0066804673895554355,
+    "median_score_recovery_ratio_8x": 0.7457684246597791,
+    "recommended_action": "Begin V3 discovery implementation.",
+    "recovery_rate_1x": 0.08333333333333333,
+    "recovery_rate_8x": 0.5833333333333334,
+    "recovery_rate_gain_1x_to_8x": 0.5,
+    "valid_native_controls": 6
+  },
+  "per_target": {
+    "condor": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.9941539426215077,
+              "rank_at_iou_030": 7,
+              "score_recovery_ratio": 0.30673708025576346,
+              "top20_status_restored": true
+            },
+            "1.5x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.9745997920884706,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 1.0119787791348323,
+              "top20_status_restored": true
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6591262100671892,
+              "rank_at_iou_030": 9,
+              "score_recovery_ratio": 0.16961931897234875,
+              "top20_status_restored": true
+            },
+            "2x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.9961291403221095,
+              "rank_at_iou_030": 5,
+              "score_recovery_ratio": 0.9786865808879129,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 1.0074914786882518,
+              "rank_at_iou_030": 5,
+              "score_recovery_ratio": 1.1335293299215408,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 1.01212995194066,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 0.8725362805412893,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 1.5,
+          "recovered_by_8x": true
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6478402441531146,
+              "rank_at_iou_030": 253,
+              "score_recovery_ratio": 0.010522718061327574,
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.8331617420780503,
+              "rank_at_iou_030": 238,
+              "score_recovery_ratio": 0.01138715980376144,
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.8093539263269129,
+              "rank_at_iou_030": 254,
+              "score_recovery_ratio": 0.010851193824897616,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.0034951582325813,
+              "rank_at_iou_030": 17,
+              "score_recovery_ratio": 0.024826839434029604,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.0265737966123654,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.2102341675286887,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.011214930260875,
+              "rank_at_iou_030": 2,
+              "score_recovery_ratio": 0.3876957697403045,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        }
+      },
+      "native_best_matching_score": 0.049265921115875244,
+      "native_max_iou": 0.8690181668806202,
+      "native_rank_at_iou_030": 5,
+      "valid_native_control": true
+    },
+    "helicopter": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.8825712610442185,
+              "rank_at_iou_030": 5,
+              "score_recovery_ratio": 0.7782562555899672,
+              "top20_status_restored": true
+            },
+            "1.5x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 1.0123420067668019,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.9631017434362396,
+              "top20_status_restored": true
+            },
+            "1x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.8651440145664693,
+              "rank_at_iou_030": 5,
+              "score_recovery_ratio": 0.623322532297889,
+              "top20_status_restored": true
+            },
+            "2x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.976998606221035,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.9656319885533772,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.9748340585994779,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.9207457496192598,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.971935413687628,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.9741387033268977,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 1.0,
+          "recovered_by_8x": true
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.0063597664386588,
+              "rank_at_iou_030": 361,
+              "score_recovery_ratio": 0.0006342326583911858,
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.7734519154547854,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 0.002702763276751155,
+              "top20_status_restored": true
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.9064669371275547,
+              "rank_at_iou_030": 373,
+              "score_recovery_ratio": 0.0006023013585033051,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.8194878941390578,
+              "rank_at_iou_030": 2,
+              "score_recovery_ratio": 0.005748716396763879,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.825802163857398,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.10417944741086822,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.9213941663205187,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.619000568778269,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 8.0,
+          "recovered_by_8x": true
+        }
+      },
+      "native_best_matching_score": 0.9361262917518616,
+      "native_max_iou": 0.8449819362059344,
+      "native_rank_at_iou_030": 1,
+      "valid_native_control": true
+    },
+    "jammer": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6807728436659726,
+              "rank_at_iou_030": 149,
+              "score_recovery_ratio": 0.16652611486196467,
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.503300332705229,
+              "rank_at_iou_030": 548,
+              "score_recovery_ratio": 0.06017805472935782,
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.7743525220569387,
+              "rank_at_iou_030": 52,
+              "score_recovery_ratio": 0.29197238788258284,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.3876806013014642,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.692702342015508,
+              "rank_at_iou_030": 1550,
+              "score_recovery_ratio": 0.020759585717243435,
+              "top20_status_restored": false
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6859227811781199,
+              "rank_at_iou_030": 1709,
+              "score_recovery_ratio": 0.019062864529942585,
+              "top20_status_restored": false
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.3511685181890775,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.36002533634125566,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.3099222693248633,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.34919412781303233,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.1727097335028343,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.8692652858729163,
+              "rank_at_iou_030": 1711,
+              "score_recovery_ratio": 0.02631432769947836,
+              "top20_status_restored": false
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        }
+      },
+      "native_best_matching_score": 0.005901724100112915,
+      "native_max_iou": 0.7145684933955786,
+      "native_rank_at_iou_030": 19,
+      "valid_native_control": true
+    },
+    "large_launcher": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.8897965639604154,
+              "rank_at_iou_030": 40,
+              "score_recovery_ratio": 0.001837761507930426,
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.1287218302583872,
+              "rank_at_iou_030": 9,
+              "score_recovery_ratio": 0.008623349505821857,
+              "top20_status_restored": true
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6861678855052656,
+              "rank_at_iou_030": 28,
+              "score_recovery_ratio": 0.002509740954213256,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.0475491500977474,
+              "rank_at_iou_030": 7,
+              "score_recovery_ratio": 0.015595296546880504,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 1.0190771514258175,
+              "rank_at_iou_030": 5,
+              "score_recovery_ratio": 0.5019896209248232,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.9879821272417674,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.9694995826155833,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 4.0,
+          "recovered_by_8x": true
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.9844708470763431,
+              "rank_at_iou_030": 22,
+              "score_recovery_ratio": 0.0011798566879418432,
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.0058701112725141,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.0034749366931857866,
+              "top20_status_restored": true
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.7378393301758989,
+              "rank_at_iou_030": 192,
+              "score_recovery_ratio": 0.0008973566508471124,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.1010669738796366,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.06570627848623456,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.0705082747590835,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.4456192466148692,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 1.0564890640778068,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.9261553512675621,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 8.0,
+          "recovered_by_8x": true
+        }
+      },
+      "native_best_matching_score": 0.9761446118354797,
+      "native_max_iou": 0.8281400011329699,
+      "native_rank_at_iou_030": 1,
+      "valid_native_control": true
+    },
+    "small_launcher": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.11477172800342682,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.14081602111305055,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.1166962990367249,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.03893930803104943,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.5871211168928926,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.3451351819760558,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.2016082625168281,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.2038452119863826,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.17547342407786962,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.4018761772471814,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.2946646031911597,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.14271640687944903,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        }
+      },
+      "native_best_matching_score": 0.0,
+      "native_max_iou": 0.22655237003225345,
+      "native_rank_at_iou_030": "",
+      "valid_native_control": false
+    },
+    "spacecraft": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.7553089786200542,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 0.5482109256915144,
+              "top20_status_restored": true
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6768911030486827,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 0.35449214663100553,
+              "top20_status_restored": true
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.784541269010934,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 0.4472248250051225,
+              "top20_status_restored": true
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.8672342832718486,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 0.2627173270881037,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.8999719295871423,
+              "rank_at_iou_030": 5,
+              "score_recovery_ratio": 0.7337733999090174,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.8938991356868196,
+              "rank_at_iou_030": 2,
+              "score_recovery_ratio": 0.9870289242251391,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 1.25,
+          "recovered_by_8x": true
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.5449221638524011,
+              "rank_at_iou_030": 12,
+              "score_recovery_ratio": 0.002303236406543577,
+              "top20_status_restored": true
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.3094951596030012,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.603565249636155,
+              "rank_at_iou_030": 135,
+              "score_recovery_ratio": 0.00110657526369482,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.29656040336300077,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6634324236170245,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.032364574971289375,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.9973667266308425,
+              "rank_at_iou_030": 1,
+              "score_recovery_ratio": 0.38194564845799606,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        }
+      },
+      "native_best_matching_score": 0.8773379325866699,
+      "native_max_iou": 0.9006332711136652,
+      "native_rank_at_iou_030": 3,
+      "valid_native_control": true
+    },
+    "ta-ta": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.8378147400246198,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.812629873609932,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.0906531527627126,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.9327566577189128,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 1.2457484716102059,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.2751589207730516,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.7564694545247855,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.5313096883600427,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.9954815539088285,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.47957369795042687,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.7874778692646864,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.10594765037579158,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": "",
+              "top20_status_restored": false
+            }
+          },
+          "minimum_recovery_radius": null,
+          "recovered_by_8x": false
+        }
+      },
+      "native_best_matching_score": 0.0,
+      "native_max_iou": 0.22365529851100982,
+      "native_rank_at_iou_030": "",
+      "valid_native_control": false
+    },
+    "tank": {
+      "families": {
+        "helsinki": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.322596346760946,
+              "rank_at_iou_030": 1005,
+              "score_recovery_ratio": 0.011171278372862739,
+              "top20_status_restored": false
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.7005957856529238,
+              "rank_at_iou_030": 275,
+              "score_recovery_ratio": 0.03257977478536375,
+              "top20_status_restored": false
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.030407139103335874,
+              "rank_at_iou_030": "",
+              "score_recovery_ratio": 0.0,
+              "top20_status_restored": false
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6516292788354471,
+              "rank_at_iou_030": 286,
+              "score_recovery_ratio": 0.031535457887192975,
+              "top20_status_restored": false
+            },
+            "4x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.9518347509928559,
+              "rank_at_iou_030": 5,
+              "score_recovery_ratio": 1.4231709372016053,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.9606794432789999,
+              "rank_at_iou_030": 6,
+              "score_recovery_ratio": 1.405750399940087,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 4.0,
+          "recovered_by_8x": true
+        },
+        "hosted_validation": {
+          "levels": {
+            "1.25x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.44445867744457523,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.23712026494860589,
+              "top20_status_restored": true
+            },
+            "1.5x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.4171745173258289,
+              "rank_at_iou_030": 2,
+              "score_recovery_ratio": 0.3562972100928444,
+              "top20_status_restored": true
+            },
+            "1x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.6914401683105166,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.22937318102671744,
+              "top20_status_restored": true
+            },
+            "2x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.503584027932271,
+              "rank_at_iou_030": 2,
+              "score_recovery_ratio": 0.42314597345105126,
+              "top20_status_restored": true
+            },
+            "4x": {
+              "activation_recovered": true,
+              "iou_recovery_ratio": 0.8420682824153114,
+              "rank_at_iou_030": 2,
+              "score_recovery_ratio": 0.6550987420350033,
+              "top20_status_restored": true
+            },
+            "8x": {
+              "activation_recovered": false,
+              "iou_recovery_ratio": 0.85174056869946,
+              "rank_at_iou_030": 3,
+              "score_recovery_ratio": 0.17357919853878848,
+              "top20_status_restored": true
+            }
+          },
+          "minimum_recovery_radius": 4.0,
+          "recovered_by_8x": true
+        }
+      },
+      "native_best_matching_score": 0.014325886964797974,
+      "native_max_iou": 0.935598729682956,
+      "native_rank_at_iou_030": 7,
+      "valid_native_control": true
+    }
+  },
+  "recovery_curve": {
+    "all": {
+      "1.25x": {
+        "activation_recovery_rate": 0.16666666666666666,
+        "median_iou_recovery_ratio": 0.7180409111430134,
+        "median_proposal_count": 2327.0,
+        "median_rank_delta_from_native": 30.0,
+        "median_score_recovery_ratio": 0.010846998217095156,
+        "n": 16,
+        "production_threshold_crossing_rate": 0.1875,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.3125,
+        "recall_at_20_iou_050": 0.125,
+        "recall_at_5_iou_030": 0.125,
+        "recall_at_5_iou_050": 0.0625,
+        "valid_n": 12
+      },
+      "1.5x": {
+        "activation_recovery_rate": 0.16666666666666666,
+        "median_iou_recovery_ratio": 0.7370238505538547,
+        "median_proposal_count": 2323.0,
+        "median_rank_delta_from_native": 6.5,
+        "median_score_recovery_ratio": 0.021983467294562596,
+        "n": 16,
+        "production_threshold_crossing_rate": 0.1875,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.4375,
+        "recall_at_20_iou_050": 0.375,
+        "recall_at_5_iou_030": 0.1875,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 12
+      },
+      "1x": {
+        "activation_recovery_rate": 0.08333333333333333,
+        "median_iou_recovery_ratio": 0.7146397492432077,
+        "median_proposal_count": 2346.5,
+        "median_rank_delta_from_native": 82.5,
+        "median_score_recovery_ratio": 0.0066804673895554355,
+        "n": 16,
+        "production_threshold_crossing_rate": 0.125,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.25,
+        "recall_at_20_iou_050": 0.1875,
+        "recall_at_5_iou_030": 0.125,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 12
+      },
+      "2x": {
+        "activation_recovery_rate": 0.16666666666666666,
+        "median_iou_recovery_ratio": 0.8433610887054532,
+        "median_proposal_count": 2338.0,
+        "median_rank_delta_from_native": 4.5,
+        "median_score_recovery_ratio": 0.02818114866061129,
+        "n": 16,
+        "production_threshold_crossing_rate": 0.3125,
+        "recall_at_1_iou_030": 0.0625,
+        "recall_at_1_iou_050": 0.0625,
+        "recall_at_20_iou_030": 0.5,
+        "recall_at_20_iou_050": 0.4375,
+        "recall_at_5_iou_030": 0.3125,
+        "recall_at_5_iou_050": 0.1875,
+        "valid_n": 12
+      },
+      "4x": {
+        "activation_recovery_rate": 0.5,
+        "median_iou_recovery_ratio": 0.9259033402899991,
+        "median_proposal_count": 2353.5,
+        "median_rank_delta_from_native": 0.0,
+        "median_score_recovery_ratio": 0.4738044337698462,
+        "n": 16,
+        "production_threshold_crossing_rate": 0.5625,
+        "recall_at_1_iou_030": 0.25,
+        "recall_at_1_iou_050": 0.25,
+        "recall_at_20_iou_030": 0.625,
+        "recall_at_20_iou_050": 0.625,
+        "recall_at_5_iou_030": 0.625,
+        "recall_at_5_iou_050": 0.625,
+        "valid_n": 12
+      },
+      "8x": {
+        "activation_recovery_rate": 0.5833333333333334,
+        "median_iou_recovery_ratio": 0.966307428483314,
+        "median_proposal_count": 2419.0,
+        "median_rank_delta_from_native": 0.0,
+        "median_score_recovery_ratio": 0.7457684246597791,
+        "n": 16,
+        "production_threshold_crossing_rate": 0.5625,
+        "recall_at_1_iou_030": 0.1875,
+        "recall_at_1_iou_050": 0.1875,
+        "recall_at_20_iou_030": 0.625,
+        "recall_at_20_iou_050": 0.625,
+        "recall_at_5_iou_030": 0.5,
+        "recall_at_5_iou_050": 0.5,
+        "valid_n": 12
+      }
+    },
+    "helsinki": {
+      "1.25x": {
+        "activation_recovery_rate": 0.3333333333333333,
+        "median_iou_recovery_ratio": 0.8189401198321363,
+        "median_proposal_count": 2099.0,
+        "median_rank_delta_from_native": 21.5,
+        "median_score_recovery_ratio": 0.23663159755886407,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.375,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.375,
+        "recall_at_20_iou_050": 0.25,
+        "recall_at_5_iou_030": 0.125,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 6
+      },
+      "1.5x": {
+        "activation_recovery_rate": 0.3333333333333333,
+        "median_iou_recovery_ratio": 0.8375977888706971,
+        "median_proposal_count": 2103.0,
+        "median_rank_delta_from_native": 5.5,
+        "median_score_recovery_ratio": 0.20733510068018168,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.375,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.5,
+        "recall_at_20_iou_050": 0.5,
+        "recall_at_5_iou_030": 0.125,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 6
+      },
+      "1x": {
+        "activation_recovery_rate": 0.16666666666666666,
+        "median_iou_recovery_ratio": 0.7302602037811021,
+        "median_proposal_count": 2099.0,
+        "median_rank_delta_from_native": 15.5,
+        "median_score_recovery_ratio": 0.23079585342746578,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.25,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.375,
+        "recall_at_20_iou_050": 0.25,
+        "recall_at_5_iou_030": 0.125,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 6
+      },
+      "2x": {
+        "activation_recovery_rate": 0.3333333333333333,
+        "median_iou_recovery_ratio": 0.9221164447464418,
+        "median_proposal_count": 2109.0,
+        "median_rank_delta_from_native": 4.5,
+        "median_score_recovery_ratio": 0.14712639248764833,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.5,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.5,
+        "recall_at_20_iou_050": 0.5,
+        "recall_at_5_iou_030": 0.25,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 6
+      },
+      "4x": {
+        "activation_recovery_rate": 0.8333333333333334,
+        "median_iou_recovery_ratio": 0.9633344047961669,
+        "median_proposal_count": 2118.5,
+        "median_rank_delta_from_native": 2.0,
+        "median_score_recovery_ratio": 0.8272595747641386,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.625,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.625,
+        "recall_at_20_iou_050": 0.625,
+        "recall_at_5_iou_030": 0.625,
+        "recall_at_5_iou_050": 0.625,
+        "valid_n": 6
+      },
+      "8x": {
+        "activation_recovery_rate": 0.8333333333333334,
+        "median_iou_recovery_ratio": 0.966307428483314,
+        "median_proposal_count": 2131.5,
+        "median_rank_delta_from_native": 1.5,
+        "median_score_recovery_ratio": 0.9718191429712405,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.625,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.625,
+        "recall_at_20_iou_050": 0.625,
+        "recall_at_5_iou_030": 0.375,
+        "recall_at_5_iou_050": 0.375,
+        "valid_n": 6
+      }
+    },
+    "hosted_validation": {
+      "1.25x": {
+        "activation_recovery_rate": 0.0,
+        "median_iou_recovery_ratio": 0.5963812040027578,
+        "median_proposal_count": 2864.5,
+        "median_rank_delta_from_native": 134.5,
+        "median_score_recovery_ratio": 0.0017415465472427102,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.0,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.25,
+        "recall_at_20_iou_050": 0.0,
+        "recall_at_5_iou_030": 0.125,
+        "recall_at_5_iou_050": 0.0,
+        "valid_n": 6
+      },
+      "1.5x": {
+        "activation_recovery_rate": 0.0,
+        "median_iou_recovery_ratio": 0.5953132163903072,
+        "median_proposal_count": 2877.0,
+        "median_rank_delta_from_native": 119.0,
+        "median_score_recovery_ratio": 0.0030888499849684708,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.0,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.375,
+        "recall_at_20_iou_050": 0.25,
+        "recall_at_5_iou_030": 0.25,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 6
+      },
+      "1x": {
+        "activation_recovery_rate": 0.0,
+        "median_iou_recovery_ratio": 0.7146397492432077,
+        "median_proposal_count": 2867.0,
+        "median_rank_delta_from_native": 220.0,
+        "median_score_recovery_ratio": 0.0010019659572709661,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.0,
+        "recall_at_1_iou_030": 0.0,
+        "recall_at_1_iou_050": 0.0,
+        "recall_at_20_iou_030": 0.125,
+        "recall_at_20_iou_050": 0.125,
+        "recall_at_5_iou_030": 0.125,
+        "recall_at_5_iou_050": 0.125,
+        "valid_n": 6
+      },
+      "2x": {
+        "activation_recovery_rate": 0.0,
+        "median_iou_recovery_ratio": 0.6615359610356644,
+        "median_proposal_count": 2853.5,
+        "median_rank_delta_from_native": 6.5,
+        "median_score_recovery_ratio": 0.015287777915396742,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.125,
+        "recall_at_1_iou_030": 0.125,
+        "recall_at_1_iou_050": 0.125,
+        "recall_at_20_iou_030": 0.5,
+        "recall_at_20_iou_050": 0.375,
+        "recall_at_5_iou_030": 0.375,
+        "recall_at_5_iou_050": 0.25,
+        "valid_n": 6
+      },
+      "4x": {
+        "activation_recovery_rate": 0.16666666666666666,
+        "median_iou_recovery_ratio": 0.8339352231363547,
+        "median_proposal_count": 2927.0,
+        "median_rank_delta_from_native": -1.0,
+        "median_score_recovery_ratio": 0.15720680746977847,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.5,
+        "recall_at_1_iou_030": 0.5,
+        "recall_at_1_iou_050": 0.5,
+        "recall_at_20_iou_030": 0.625,
+        "recall_at_20_iou_050": 0.625,
+        "recall_at_5_iou_030": 0.625,
+        "recall_at_5_iou_050": 0.625,
+        "valid_n": 6
+      },
+      "8x": {
+        "activation_recovery_rate": 0.3333333333333333,
+        "median_iou_recovery_ratio": 0.9593804464756805,
+        "median_proposal_count": 3064.5,
+        "median_rank_delta_from_native": -1.0,
+        "median_score_recovery_ratio": 0.3848207090991503,
+        "n": 8,
+        "production_threshold_crossing_rate": 0.5,
+        "recall_at_1_iou_030": 0.375,
+        "recall_at_1_iou_050": 0.375,
+        "recall_at_20_iou_030": 0.625,
+        "recall_at_20_iou_050": 0.625,
+        "recall_at_5_iou_030": 0.625,
+        "recall_at_5_iou_050": 0.625,
+        "valid_n": 6
+      }
+    }
+  }
+}

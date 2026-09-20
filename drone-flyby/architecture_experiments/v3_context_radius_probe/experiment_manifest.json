@@ -1,0 +1,209 @@
+{
+  "artifact_hashes": {
+    "drone_yolo11n_l0.onnx": {
+      "actual": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+      "expected": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+      "match": true
+    },
+    "drone_yolo11n_l0.pt": {
+      "actual": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+      "expected": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+      "match": true
+    },
+    "reference_gallery.npz": {
+      "actual": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+      "expected": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+      "match": true
+    }
+  },
+  "config": {
+    "class_identity": "pooled away by maximum class response",
+    "context_levels": [
+      1.0,
+      1.25,
+      1.5,
+      2.0,
+      4.0,
+      8.0
+    ],
+    "context_math": "center=(bbox edge midpoint); requested size=multiplier*bbox size; floor left/top; ceil right/bottom; clip to 3840x2160",
+    "detector_input_size": [
+      960,
+      540
+    ],
+    "diagnostic_decode_floor": 0.0001,
+    "hosted_expansion": "cv2.INTER_NEAREST 960x540 -> 3840x2160",
+    "interpretation_gate": {
+      "case_l": ">=3 classes recover in both families, 8x-vs-1x recovery gain >=0.25, and median score ratio increases",
+      "case_n": "all other outcomes with sufficient valid controls",
+      "case_w": "valid native controls < 4"
+    },
+    "nms_iou": 0.55,
+    "preservation": "byte-exact rectangular copy from native source before L0 rendering",
+    "primary_recovery_criterion": "rank<=20 at IoU>=0.30 and score>=50% of native score",
+    "production_budget_not_applied": true,
+    "production_confidence_floor": 0.01,
+    "rendering": "cv2.INTER_AREA 3840x2160 -> 960x540",
+    "source_size": [
+      3840,
+      2160
+    ]
+  },
+  "counts": {
+    "context_composites": 96,
+    "native_controls": 8,
+    "replacement_families": 2,
+    "source_targets": 8,
+    "valid_native_controls": 6
+  },
+  "experiment": "frozen_v2_local_context_radius_ablation",
+  "frozen_v2_commit": "6fb764e5b9fb5f7eefcb832c72b35553165219e5",
+  "git": {
+    "branch": "drone-v3-context-radius-probe",
+    "input_head": "8a79714031f678ff8b5297616d3d8a1bb783b0cb"
+  },
+  "prior_background_transfer_commit": "8a79714031f678ff8b5297616d3d8a1bb783b0cb",
+  "random_seed": 20260919,
+  "replacement_assignments": {
+    "condor": {
+      "helsinki_frame_id": 0,
+      "hosted_frame_id": 0,
+      "hosted_scene_type": "open_grass_road"
+    },
+    "helicopter": {
+      "helsinki_frame_id": 9,
+      "hosted_frame_id": 95,
+      "hosted_scene_type": "river_industrial"
+    },
+    "jammer": {
+      "helsinki_frame_id": 14,
+      "hosted_frame_id": 145,
+      "hosted_scene_type": "harbor_industrial"
+    },
+    "large_launcher": {
+      "helsinki_frame_id": 0,
+      "hosted_frame_id": 245,
+      "hosted_scene_type": "dense_urban_blocks"
+    },
+    "small_launcher": {
+      "helsinki_frame_id": 0,
+      "hosted_frame_id": 0,
+      "hosted_scene_type": "open_grass_road"
+    },
+    "spacecraft": {
+      "helsinki_frame_id": 9,
+      "hosted_frame_id": 95,
+      "hosted_scene_type": "river_industrial"
+    },
+    "ta-ta": {
+      "helsinki_frame_id": 14,
+      "hosted_frame_id": 145,
+      "hosted_scene_type": "harbor_industrial"
+    },
+    "tank": {
+      "helsinki_frame_id": 24,
+      "hosted_frame_id": 245,
+      "hosted_scene_type": "dense_urban_blocks"
+    }
+  },
+  "target_sources": [
+    {
+      "bbox": [
+        2673,
+        1583,
+        2844,
+        1749
+      ],
+      "frame_id": 3,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000003.png",
+      "object_id": "condor"
+    },
+    {
+      "bbox": [
+        2251,
+        1373,
+        2367,
+        1467
+      ],
+      "frame_id": 8,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000008.png",
+      "object_id": "helicopter"
+    },
+    {
+      "bbox": [
+        1493,
+        1314,
+        1525,
+        1358
+      ],
+      "frame_id": 1,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000001.png",
+      "object_id": "jammer"
+    },
+    {
+      "bbox": [
+        3552,
+        897,
+        3701,
+        1005
+      ],
+      "frame_id": 9,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000009.png",
+      "object_id": "large_launcher"
+    },
+    {
+      "bbox": [
+        1777,
+        923,
+        1799,
+        953
+      ],
+      "frame_id": 12,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000012.png",
+      "object_id": "small_launcher"
+    },
+    {
+      "bbox": [
+        1496,
+        1259,
+        1540,
+        1308
+      ],
+      "frame_id": 10,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000010.png",
+      "object_id": "spacecraft"
+    },
+    {
+      "bbox": [
+        995,
+        1339,
+        1029,
+        1355
+      ],
+      "frame_id": 17,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000017.png",
+      "object_id": "ta-ta"
+    },
+    {
+      "bbox": [
+        795,
+        695,
+        845,
+        742
+      ],
+      "frame_id": 13,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000013.png",
+      "object_id": "tank"
+    }
+  ],
+  "versions": {
+    "numpy": "2.5.3",
+    "onnx_providers": [
+      "CPUExecutionProvider"
+    ],
+    "onnxruntime": "1.30.0",
+    "opencv": "5.0.0",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]"
+  }
+}

@@ -1,0 +1,6 @@
+size_bin,gt_count,any_class_iou50_count,any_class_iou50_recall,correct_class_overlap_count,correct_class_overlap_recall,correct_class_iou50_count,correct_class_iou50_recall,matched_confidence_median,matched_confidence_mean,matched_iou_median,failure_A_missed,failure_B_wrong_class_iou50,failure_C_correct_class_low_iou,failure_D_correct_iou50,failure_G_wrong_class_low_iou
+<4,10,0,0.0,0,0.0,0,0.0,,,,10,0,0,0,0
+4-<8,50,0,0.0,0,0.0,0,0.0,,,,50,0,0,0,0
+8-<16,121,49,0.4049586776859504,41,0.33884297520661155,39,0.32231404958677684,0.8367530107498169,0.6935474682307127,0.8407026521724047,70,10,1,39,1
+16-<32,66,65,0.9848484848484849,65,0.9848484848484849,65,0.9848484848484849,0.891819417476654,0.8375752381837138,0.8824511975606111,1,0,0,65,0
+>=32,12,12,1.0,12,1.0,12,1.0,0.03865889087319374,0.03906003455631435,0.9022874572853712,0,0,0,12,0

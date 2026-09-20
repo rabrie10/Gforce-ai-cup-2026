@@ -1,0 +1,198 @@
+{
+  "artifact_hashes": {
+    "drone_yolo11n_l0.onnx": {
+      "actual": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+      "expected": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+      "match": true
+    },
+    "drone_yolo11n_l0.pt": {
+      "actual": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+      "expected": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+      "match": true
+    },
+    "reference_gallery.npz": {
+      "actual": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+      "expected": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+      "match": true
+    }
+  },
+  "config": {
+    "detector_input_size": [
+      960,
+      540
+    ],
+    "diagnostic_decode_floor": 0.0001,
+    "frozen_v2_production_proposer": {
+      "backend": "yolo",
+      "budget": 32,
+      "confidence_floor": 0.01,
+      "imgsz": 960,
+      "merge_iou": 0.45,
+      "nms_iou": 0.55,
+      "onnx_threads": 4,
+      "score_pooling": "maximum class response; identity discarded"
+    },
+    "helsinki_background_frame_ids": [
+      0,
+      9,
+      14,
+      24
+    ],
+    "hosted_frame_ids": [
+      0,
+      95,
+      145,
+      245
+    ],
+    "hosted_scene_types": {
+      "0": "open_grass_road",
+      "145": "harbor_industrial",
+      "245": "dense_urban_blocks",
+      "95": "river_industrial"
+    },
+    "hosted_source_expansion": "cv2.INTER_NEAREST 960x540 -> 3840x2160",
+    "l0_render": "cv2.INTER_AREA 3840x2160 -> 960x540",
+    "nms_iou": 0.55,
+    "placement": "shared fixed grid; one of five lowest combined-gradient cells; excludes known Helsinki boxes",
+    "production_budget_not_applied": true,
+    "production_confidence_floor": 0.01,
+    "source_selection": "one non-border median-area annotated view per class",
+    "source_size": [
+      3840,
+      2160
+    ],
+    "target_rotation_degrees": 0,
+    "target_short_sides_l0": {
+      "8to16": 12,
+      "gt16": 24,
+      "lt8": 6
+    },
+    "target_source_alignment_pixels": 4
+  },
+  "counts": {
+    "candidates": 467533,
+    "composites": 192,
+    "helsinki_backgrounds": 4,
+    "hosted_backgrounds": 4,
+    "pairs": 96,
+    "pairs_by_scale_bin": {
+      "8to16": 32,
+      "gt16": 32,
+      "lt8": 32
+    },
+    "source_targets": 8
+  },
+  "experiment": "frozen_v2_paired_background_transfer_replay",
+  "frozen_v2_commit": "6fb764e5b9fb5f7eefcb832c72b35553165219e5",
+  "git": {
+    "branch": "drone-v3-background-transfer-probe",
+    "input_head": "c89b562aa51be4387349cd38cd995ff7da57ec4f"
+  },
+  "limitations": {
+    "claim_scope": "sensitivity to surrounding/wider scenery context only",
+    "hosted_ground_truth_available": false,
+    "hosted_images_used_as_negative_labels": false,
+    "rectangular_patches_include_local_helsinki_background": true
+  },
+  "random_seed": 20260919,
+  "target_sources": [
+    {
+      "bbox": [
+        2673,
+        1583,
+        2844,
+        1749
+      ],
+      "frame_id": 3,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000003.png",
+      "object_id": "condor"
+    },
+    {
+      "bbox": [
+        2251,
+        1373,
+        2367,
+        1467
+      ],
+      "frame_id": 8,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000008.png",
+      "object_id": "helicopter"
+    },
+    {
+      "bbox": [
+        1493,
+        1314,
+        1525,
+        1358
+      ],
+      "frame_id": 1,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000001.png",
+      "object_id": "jammer"
+    },
+    {
+      "bbox": [
+        3552,
+        897,
+        3701,
+        1005
+      ],
+      "frame_id": 9,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000009.png",
+      "object_id": "large_launcher"
+    },
+    {
+      "bbox": [
+        1777,
+        923,
+        1799,
+        953
+      ],
+      "frame_id": 12,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000012.png",
+      "object_id": "small_launcher"
+    },
+    {
+      "bbox": [
+        1496,
+        1259,
+        1540,
+        1308
+      ],
+      "frame_id": 10,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000010.png",
+      "object_id": "spacecraft"
+    },
+    {
+      "bbox": [
+        995,
+        1339,
+        1029,
+        1355
+      ],
+      "frame_id": 17,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000017.png",
+      "object_id": "ta-ta"
+    },
+    {
+      "bbox": [
+        795,
+        695,
+        845,
+        742
+      ],
+      "frame_id": 13,
+      "image_path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\src\\helsinki\\images\\frame_000013.png",
+      "object_id": "tank"
+    }
+  ],
+  "versions": {
+    "numpy": "2.5.3",
+    "onnx_providers": [
+      "CPUExecutionProvider"
+    ],
+    "onnxruntime": "1.30.0",
+    "opencv": "5.0.0",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]"
+  }
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "encoder": "dinov2_vits14_onnx",
+    "size": 224,
+    "batch": 8,
+    "max_abs_export_error": 2.008676528930664e-05,
+    "cpu_percent": 199.7375499420765,
+    "process_peak_rss_mb": 1009.68359375,
+    "cuda_available": false,
+    "cuda_count": 0,
+    "repeats": 8,
+    "p50": 583.559367005364,
+    "p95": 584.9939375097165,
+    "max": 585.1196960138623
+  },
+  {
+    "encoder": "dinov2_vits14_onnx",
+    "size": 224,
+    "batch": 16,
+    "max_abs_export_error": 2.008676528930664e-05,
+    "cpu_percent": 199.723508172524,
+    "process_peak_rss_mb": 1016.0,
+    "cuda_available": false,
+    "cuda_count": 0,
+    "repeats": 8,
+    "p50": 1195.8690479805227,
+    "p95": 1207.2740127550787,
+    "max": 1210.4325930122286
+  },
+  {
+    "encoder": "dinov2_vits14_onnx",
+    "size": 224,
+    "batch": 32,
+    "max_abs_export_error": 2.008676528930664e-05,
+    "cpu_percent": 199.74722593152939,
+    "process_peak_rss_mb": 1204.5703125,
+    "cuda_available": false,
+    "cuda_count": 0,
+    "repeats": 8,
+    "p50": 2455.572178514558,
+    "p95": 2457.1167210058775,
+    "max": 2457.414823002182
+  },
+  {
+    "encoder": "dinov2_vits14_onnx",
+    "size": 224,
+    "batch": 64,
+    "max_abs_export_error": 2.008676528930664e-05,
+    "cpu_percent": 199.73499049861934,
+    "process_peak_rss_mb": 1601.93359375,
+    "cuda_available": false,
+    "cuda_count": 0,
+    "repeats": 8,
+    "p50": 5273.812494997401,
+    "p95": 5278.803688609332,
+    "max": 5279.97883601347
+  }
+]

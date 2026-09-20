@@ -1,0 +1,9 @@
+{
+  "n": 50,
+  "violations": 0,
+  "p50": 135.1117198355496,
+  "p95": 197.5230381358415,
+  "max": 202.087857760489,
+  "over_333ms": 0,
+  "note": "GPU shared with DA training if running -> latency inflated"
+}

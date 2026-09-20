@@ -1,0 +1,11 @@
+SEQUENCE 0f1bc27f24c1...  requests_seen=155  unique=155
+  frame_index range 1..248   missing=94
+  ARRIVAL ORDER: out-of-order steps = 1   out_of_order_early_exits(<1ms) = 1
+  app duration_ms: p50=68.1 p95=113.4 max=230.1  >3333ms=0  >1000ms=0
+  first seen 13:01:32.911  last seen 13:02:54.869
+  predictions: first5=[2, 5, 6, 6, 6] last5=[48, 52, 60, 63, 66]
+  exceptions: {'-'}   statuses: {'ok'}
+  inter-arrival s: p50=0.42 max=4.70
+ACCESS-LOG POST /predict responses delivered: 154  statuses={200}
+  distinct proxy source IPs: {'100.64.1.4', '100.64.1.3', '100.64.1.5', '100.64.1.2', '100.64.1.1'}
+TOTAL v6_request lines captured: 156

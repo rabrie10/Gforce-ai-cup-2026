@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "seed": 20260919,
+  "deterministic": true,
+  "dataset_manifest_sha256": "c40c855acdb37ca79cb0a18439af950bc491cac8795d1142cad25f9711fe1ec5",
+  "frozen_v2_initialization": {
+    "path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\models\\drone_yolo11n_l0.pt",
+    "sha256": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce"
+  },
+  "training_policy": "select by held-out discovery recall, never training loss",
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.14.0+cpu",
+    "ultralytics": "8.4.155",
+    "device": "cpu",
+    "torch_threads": 8
+  },
+  "candidates": [
+    {
+      "candidate": "p2",
+      "status": "PASS",
+      "initialization": "YOLO11n-P2 YAML with compatible frozen V2 backbone/head weights transferred where shapes match",
+      "epochs_requested": 8,
+      "batch": 4,
+      "imgsz": 960,
+      "seed": 20260919,
+      "training_wall_seconds": 1896.8158604000055,
+      "run_directory": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\architecture_experiments\\v3_oneclass_discovery\\runs\\v3_p2",
+      "pt": {
+        "path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\architecture_experiments\\v3_oneclass_discovery\\models\\v3_oneclass_p2.pt",
+        "bytes": 5887044,
+        "sha256": "538f1f5095a83ca56404c1360e9059fa6ab44d894351a9be94d83ec1c7a98eef"
+      },
+      "onnx": {
+        "path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\architecture_experiments\\v3_oneclass_discovery\\models\\v3_oneclass_p2.onnx",
+        "bytes": 12125185,
+        "sha256": "81d41d755ac317e1b3d26439af8314cd129f05b185a8d6d85f28cdd9a08b9f4a"
+      }
+    },
+    {
+      "candidate": "standard",
+      "status": "PASS",
+      "initialization": "frozen V2 YOLO11n weights; detection head adapted from 16 classes to target",
+      "epochs_requested": 10,
+      "batch": 4,
+      "imgsz": 960,
+      "seed": 20260919,
+      "training_wall_seconds": 1482.0612397000077,
+      "run_directory": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\architecture_experiments\\v3_oneclass_discovery\\runs\\v3_standard",
+      "pt": {
+        "path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\architecture_experiments\\v3_oneclass_discovery\\models\\v3_oneclass_standard.pt",
+        "bytes": 5482330,
+        "sha256": "126aa31373775b324cf0df37c683b983202f9bc4dbfafd6105f40d98fafcec07"
+      },
+      "onnx": {
+        "path": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\architecture_experiments\\v3_oneclass_discovery\\models\\v3_oneclass_standard.onnx",
+        "bytes": 10904024,
+        "sha256": "2daeabaeee41ffca9285485920238ce09c7762423d2d4fc41e406625d1b44d8f"
+      }
+    }
+  ]
+}

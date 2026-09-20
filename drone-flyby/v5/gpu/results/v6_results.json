@@ -1,0 +1,9 @@
+{
+  "official_local_helsinki_map50": {"oracle": 1.0, "L0_only": 0.0, "track_driven_camera": 0.006, "L0_plus_tiling": 0.048, "V6_initial": 0.212, "V6_stabilized": 0.265},
+  "V6_stabilized_realtime_map50": 0.265, "frames_skipped_realtime": 0, "camera_moves_refused": 0,
+  "roundtrip_ms": {"median": 49, "max": 140},
+  "per_class_failure_stage": {"OK": ["helicopter","jet_plane","large_launcher","small_launcher","small_plane","small_tower","tank","condor","spacecraft"], "A_no_resolvable_view": ["hangar","large_tower","medium_launcher","medium_plane"], "C_reject_or_misclass": ["mine_roller","ta-ta","jammer"]},
+  "global_drift_estimate_pxframe": [-10.6, 40.0], "true_drift_approx": 65,
+  "fixes": ["camera legal-step feasible-point search -> 0 refused", "global-drift additive correction (was EMA halving)"],
+  "caveat": "Helsinki one-instance-per-class; not hosted-generalization proof"
+}
