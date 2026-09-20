@@ -24,7 +24,7 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 ACTION_DIM = 4
-LOG_STD_MIN = -3.0   # std >= 0.05
+LOG_STD_MIN = -5.0   # std >= 0.0067 (a -3.0 floor was binding: cloned policies need std <~0.05 and PPO must be free to shrink it)
 LOG_STD_MAX = 0.0    # std <= 1.0 (was e^1: heading noise swamped the signal)
 
 
@@ -73,3 +73,30 @@ class ActorCritic(nn.Module):
         logprob = dist.log_prob(action_raw).sum(-1)
         entropy = dist.entropy().sum(-1)
         return logprob, entropy, value
+
+
+GLOBAL_DIM = 8
+
+
+class CentralCritic(nn.Module):
+    """
+    Centralized value function for CTDE training (training-time only).
+
+    Input = the agent's own encoded observation + GLOBAL_DIM colony-level features
+    (see env_wrapper.CurriculumEnv.global_features: population, mean/min energy
+    fraction, fruit/tree/predator counts, elapsed time fraction, mean age). Those
+    features are privileged -- a deployed agent cannot see them -- which is exactly
+    why they only feed the critic. The actor (ActorCritic) never sees them, so the
+    deployed policy and inference.py are unchanged.
+    """
+
+    def __init__(self, obs_dim: int, global_dim: int = GLOBAL_DIM, hidden: int = 128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(obs_dim + global_dim, hidden), nn.Tanh(),
+            nn.Linear(hidden, hidden), nn.Tanh(),
+            nn.Linear(hidden, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x).squeeze(-1)

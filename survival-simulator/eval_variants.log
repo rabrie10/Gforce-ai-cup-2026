@@ -1,0 +1,67 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+270 jobs (9 policies x 30 chunks x 10 eps), 6 workers
+[10/270] elapsed=4.1m eta=107.1m
+[20/270] elapsed=8.7m eta=108.7m
+[30/270] elapsed=12.0m eta=96.3m
+[40/270] elapsed=16.5m eta=94.7m
+[50/270] elapsed=19.1m eta=84.0m
+[60/270] elapsed=23.5m eta=82.1m
+[70/270] elapsed=26.9m eta=76.8m
+[80/270] elapsed=29.0m eta=69.0m
+[90/270] elapsed=32.5m eta=65.0m
+[100/270] elapsed=36.0m eta=61.3m
+[110/270] elapsed=38.1m eta=55.5m
+[120/270] elapsed=41.7m eta=52.1m
+[130/270] elapsed=44.9m eta=48.4m
+[140/270] elapsed=47.4m eta=44.0m
+[150/270] elapsed=50.9m eta=40.7m
+[160/270] elapsed=53.6m eta=36.8m
+[170/270] elapsed=55.6m eta=32.7m
+[180/270] elapsed=58.4m eta=29.2m
+[190/270] elapsed=61.7m eta=26.0m
+[200/270] elapsed=64.1m eta=22.4m
+[210/270] elapsed=67.4m eta=19.2m
+[220/270] elapsed=71.0m eta=16.1m
+[230/270] elapsed=73.4m eta=12.8m
+[240/270] elapsed=76.9m eta=9.6m
+[250/270] elapsed=79.7m eta=6.4m
+[260/270] elapsed=81.8m eta=3.1m
+[270/270] elapsed=85.0m eta=0.0m
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+
+=== Baselines on stage2_single_predator_evasion (cap 400s, 300 eps each, spawn charge ACTIVE (current behaviour)) ===
+policy          survive%     95% CI all-alive%  mean_t median_t mean_alive pred_d/ep starv_d/ep ext_by_pred% wasted_spawn/ep old_d/ep births/ep peak_pop
+heuristic           74.3 [ 69, 79]       11.0   352.2    400.0       1.24      1.42       0.34         92.2            0.00     0.00      0.00      3.0
+ev_base             72.3 [ 67, 77]       10.0   351.2    400.0       1.22      1.48       0.30         95.2            0.00     0.00      0.00      3.0
+ev_zonesC           71.0 [ 66, 76]        9.7   348.3    400.0       1.15      1.51       0.34         89.7            0.00     0.00      0.00      3.0
+ev_zones            75.0 [ 70, 80]       11.7   356.9    400.0       1.27      1.46       0.28         89.3            0.00     0.00      0.00      3.0
+ev_zonesB           72.7 [ 67, 77]       11.7   352.1    400.0       1.21      1.47       0.33         91.5            0.00     0.00      0.00      3.0
+ev_wall             45.7 [ 40, 51]        4.7   301.2    374.5       0.68      2.05       0.27         93.9            0.00     0.00      0.00      3.0
+ev_multi            73.0 [ 68, 78]       10.0   350.6    400.0       1.20      1.49       0.32         90.1            0.00     0.00      0.00      3.0
+ev_face             86.3 [ 82, 90]       16.3   376.3    400.0       1.51      1.06       0.43         78.0            0.00     0.00      0.00      3.0
+ev_all              51.7 [ 46, 57]        4.7   313.3    400.0       0.73      1.99       0.28         97.2            0.00     0.00      0.00      3.0
+
+=== Paired vs 'heuristic' (same seeds) ===
+policy             n surv d(pts) better worse McNemar p  d mean_t (s)
+ev_base          300        -2.0     31    37     0.545     -1.0+- 5.3
+ev_zonesC        300        -3.3     41    51     0.348     -3.8+- 6.6
+ev_zones         300        +0.7     46    44     0.916     +4.7+- 6.9
+ev_zonesB        300        -1.7     44    49     0.679     -0.1+- 7.0
+ev_wall          300       -28.7     27   113     0.000    -51.0+- 8.4
+ev_multi         300        -1.3     30    34     0.708     -1.5+- 5.5
+ev_face          300       +12.0     61    25     0.000    +24.1+- 6.5
+ev_all           300       -22.7     26    94     0.000    -38.9+- 7.7
+
+Raw episodes: C:\Users\welde\Desktop\School\Private_projects\Gforce-ai-cup-2026\survival-simulator\training\RL\eval_results\stage2_single_predator_evasion_baselines_raw_20260919_222622.csv

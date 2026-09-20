@@ -165,9 +165,11 @@ def print_table(rows, title):
     print(f"\n=== {title} ===")
     print(f"{'checkpoint':<10} {'avg':>5} | {'stoch surv%':>11} {'95% CI':>13} {'mean_t':>7} | {'det surv%':>9} {'95% CI':>13} {'mean_t':>7} | {'wasted spawn/ep (stoch, det)':>28} | n(each)")
     for score, name, _, d in rows:
-        s, t = d["stoch"], d["det"]
+        blank = dict(n=0, rate=float('nan'), lo=float('nan'), hi=float('nan'), mean_t=float('nan'), mean_alive=float('nan'), wasted=float('nan'))
+        s, t = d.get("stoch", blank), d.get("det", blank)
+        n_ = s['n'] or t['n']
         print(f"{name:<10} {score*100:5.1f} | {s['rate']*100:11.1f} [{s['lo']*100:4.0f},{s['hi']*100:4.0f}]   {s['mean_t']:7.1f} | "
-              f"{t['rate']*100:9.1f} [{t['lo']*100:4.0f},{t['hi']*100:4.0f}]   {t['mean_t']:7.1f} | {s['wasted']:12.2f} {t['wasted']:>15.2f} | {s['n']}")
+              f"{t['rate']*100:9.1f} [{t['lo']*100:4.0f},{t['hi']*100:4.0f}]   {t['mean_t']:7.1f} | {s['wasted']:12.2f} {t['wasted']:>15.2f} | {n_}")
 
 
 def main():
@@ -176,6 +178,7 @@ def main():
     ap.add_argument("--ckpt-dir", default=os.path.join(os.path.dirname(__file__), "checkpoints"))
     ap.add_argument("--iters", default="400-520,1180-1340", help="comma list of iteration ranges, e.g. 400-520,1180-1340")
     ap.add_argument("--include-final", action="store_true")
+    ap.add_argument("--modes", default="stoch,det", help="comma list of stoch,det (e.g. --modes stoch to skip deterministic)")
     ap.add_argument("--files", default="", help="comma list of extra checkpoint .pt paths (e.g. bc / best files)")
     ap.add_argument("--episodes", type=int, default=100, help="pass-1 episodes per (checkpoint, mode)")
     ap.add_argument("--refine-top", type=int, default=4)
@@ -191,6 +194,8 @@ def main():
     if args.mask_spawn and get_stage(args.stage).reproduction:
         sys.exit(f"--mask-spawn is only meaningful for stages with reproduction disabled; {args.stage} has it enabled.")
     print(f"spawn charge: {'MASKED (fixed behaviour)' if args.mask_spawn else 'ACTIVE (current behaviour)'}", flush=True)
+    global MODES
+    MODES = tuple(m for m in args.modes.split(",") if m in ("stoch", "det"))
     names = pick_checkpoints(args.ckpt_dir, args.stage, args.iters, args.include_final, [f for f in args.files.split(',') if f])
     if not names:
         sys.exit("No checkpoints matched.")

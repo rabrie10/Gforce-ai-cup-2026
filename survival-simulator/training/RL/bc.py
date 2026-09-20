@@ -11,8 +11,8 @@ Pipeline
   round k : run the CURRENT student (deterministic mean action), but label every visited
             state with the heuristic's action (DAgger: fixes covariate shift, the student
             sees the states its own mistakes lead to). Aggregate all data, retrain.
-  student : actor mean <- MSE to heuristic action (spawn dim always -1: reproduction is
-            blocked/unneeded in stages 1-3; heuristic spawn requests are dropped).
+  student : actor mean <- MSE to heuristic action (spawn dim: heuristic's spawn request as +1/-1 on
+            stages with reproduction (4-5); always -1 on stages 1-3 where births are blocked).
             critic <- MC discounted return (variance-normalised weight so it does not
             dominate the shared trunk). log_std set to --init-log-std afterwards
             (PPO's exploration noise).
@@ -55,14 +55,18 @@ from training.RL.network import ACTION_DIM, ActorCritic
 
 GAMMA = 0.99
 CHUNK = 5
+# Per-dim actor loss weights [move_dist, move_dir, turn, spawn]: spawn is a rare-ish binary decision
+# that MSE on a 4-dim mean would otherwise underweight.
+DIM_W = torch.tensor([1.0, 1.0, 1.0, 2.0])
 
 
-def _to_norm(req, sprint_speed):
-    """Inverse of env_wrapper.decode_action; spawn dim fixed to -1 (never spawn)."""
+def _to_norm(req, sprint_speed, label_spawn=False):
+    """Inverse of env_wrapper.decode_action. Spawn dim: the heuristic's spawn request (+1/-1)
+    when label_spawn (stages with reproduction), else fixed -1 (blocked stages)."""
     a0 = 2.0 * (req.move_distance / max(sprint_speed, 1e-6)) - 1.0
     a1 = req.move_direction / math.pi
     a2 = req.turn_angle / math.pi
-    return np.clip(np.array([a0, a1, a2, -1.0], dtype=np.float32), -1.0, 1.0)
+    return np.clip(np.array([a0, a1, a2, 1.0 if (label_spawn and req.spawn_agent) else -1.0], dtype=np.float32), -1.0, 1.0)
 
 
 def _returns(rewards):
@@ -89,6 +93,7 @@ def _collect(job):
         net.eval()
     O, A, R = [], [], []
     surv = 0
+    t_sum = 0.0
     for _ in range(n_eps):
         obs = env.reset()
         traj = {}  # aid -> (obs list, act list, rew list)
@@ -99,7 +104,7 @@ def _collect(job):
             for aid in ids:
                 ag = sim_env.agents_dict.get(aid)
                 req = heuristic_action(sim_env.get_agent_state(aid), rng)
-                expert[aid] = _to_norm(req, ag.sprint_speed)
+                expert[aid] = _to_norm(req, ag.sprint_speed, stage.reproduction)
             if net is None:
                 acts = expert
             else:
@@ -118,6 +123,7 @@ def _collect(job):
                     traj[aid][2].append(r)
             if done:
                 surv += int(info["num_agents"] > 0)
+                t_sum += float(info["sim_time"])
                 break
         for aid, (o, a, r) in traj.items():
             n = min(len(o), len(r))
@@ -126,16 +132,16 @@ def _collect(job):
             O.append(np.stack(o[:n]))
             A.append(np.stack(a[:n]))
             R.append(_returns(r[:n]))
-    return np.concatenate(O), np.concatenate(A), np.concatenate(R), surv, n_eps
+    return np.concatenate(O), np.concatenate(A), np.concatenate(R), surv, n_eps, t_sum
 
 
 def collect_round(pool, student_state, n_eps, seed_base, stage_name):
     n_chunks = math.ceil(n_eps / CHUNK)
     jobs = [(student_state, seed_base + c, CHUNK, stage_name) for c in range(n_chunks)]
-    O, A, R, S, N = [], [], [], 0, 0
-    for o, a, r, s, n in pool.imap_unordered(_collect, jobs):
-        O.append(o); A.append(a); R.append(r); S += s; N += n
-    return np.concatenate(O), np.concatenate(A), np.concatenate(R), S / max(N, 1)
+    O, A, R, S, N, T = [], [], [], 0, 0, 0.0
+    for o, a, r, s, n, t in pool.imap_unordered(_collect, jobs):
+        O.append(o); A.append(a); R.append(r); S += s; N += n; T += t
+    return np.concatenate(O), np.concatenate(A), np.concatenate(R), S / max(N, 1), T / max(N, 1)
 
 
 def fit(net, O, A, R, epochs, lr, bs=512):
@@ -153,7 +159,7 @@ def fit(net, O, A, R, epochs, lr, bs=512):
         for s in range(0, n, bs):
             idx = perm[s:s + bs]
             mean, _, value = net.forward(obs[idx])
-            loss_a = F.mse_loss(mean, act[idx])
+            loss_a = (((mean - act[idx]) ** 2) * DIM_W).mean()
             loss_v = F.smooth_l1_loss(value, ret_n[idx])
             loss = loss_a + 0.5 * loss_v
             opt.zero_grad(); loss.backward()
@@ -188,10 +194,10 @@ def main():
     with ctx.Pool(args.workers) as pool:
         for rd in range(args.rounds):
             state = None if rd == 0 else {k: v.clone() for k, v in net.state_dict().items()}
-            O, A, R, surv = collect_round(pool, state, args.episodes_per_round,
+            O, A, R, surv, mean_t = collect_round(pool, state, args.episodes_per_round,
                                           args.seed_base + rd * 1000, args.stage)
             who = "heuristic" if rd == 0 else "student(det)"
-            print(f"[round {rd}] acting policy={who}  survive={surv*100:.1f}%  new samples={len(O)}  "
+            print(f"[round {rd}] acting policy={who}  survive={surv*100:.1f}%  mean_sim_time={mean_t:.1f}s  new samples={len(O)}  "
                   f"elapsed={(time.time()-t0)/60:.1f}m", flush=True)
             Os.append(O); As.append(A); Rs.append(R)
             r_mean, r_std = fit(net, np.concatenate(Os), np.concatenate(As), np.concatenate(Rs),

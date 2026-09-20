@@ -47,9 +47,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from training.RL import reward as reward_mod
 from training.RL.curriculum import check_goal, get_stage
 from training.RL.env_wrapper import CurriculumEnv, OBS_DIM
-from training.RL.network import ACTION_DIM, ActorCritic
+from training.RL.network import ACTION_DIM, GLOBAL_DIM, LOG_STD_MAX, LOG_STD_MIN, ActorCritic, CentralCritic
 
 GAMMA = 0.99
 GAE_LAMBDA = 0.95
@@ -70,6 +71,7 @@ class _Traj:
     logprob: List[float] = field(default_factory=list)
     value: List[float] = field(default_factory=list)
     reward: List[float] = field(default_factory=list)
+    g: List[np.ndarray] = field(default_factory=list)  # colony features per step (central critic)
     bootstrap: float = 0.0  # value estimate to bootstrap from after the LAST recorded step
 
 
@@ -87,8 +89,16 @@ def _gae(traj: _Traj, gamma: float, lam: float):
     return advantages, returns
 
 
+def _bootstrap_values(net, critic, env, batch):
+    with torch.no_grad():
+        if critic is None:
+            return net.forward(batch)[2]
+        g = torch.as_tensor(env.global_features(), dtype=torch.float32).unsqueeze(0).expand(batch.shape[0], -1)
+        return critic(torch.cat([batch, g], dim=-1))
+
+
 def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndarray],
-                     rollout_steps: int, device: torch.device, episode_log: List[dict]):
+                     rollout_steps: int, device: torch.device, episode_log: List[dict], critic=None):
     """
     Runs rollout_steps env ticks (resetting and continuing into new episodes
     as needed), returns (finished trajectories ready for GAE, the obs dict
@@ -113,6 +123,12 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
         agent_ids = sorted(obs.keys())
         obs_batch = torch.as_tensor(np.stack([obs[a] for a in agent_ids]), dtype=torch.float32, device=device)
         action_clipped, action_raw, logprob, value = net.act(obs_batch)
+        g_np = None
+        if critic is not None:
+            g_np = env.global_features()
+            g_t = torch.as_tensor(g_np, dtype=torch.float32, device=device).unsqueeze(0).expand(len(agent_ids), -1)
+            with torch.no_grad():
+                value = critic(torch.cat([obs_batch, g_t], dim=-1))
         action_clipped_np = action_clipped.cpu().numpy()
         action_raw_np = action_raw.cpu().numpy()
         logprob_np = logprob.cpu().numpy()
@@ -124,6 +140,8 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
             traj.action.append(action_raw_np[i])
             traj.logprob.append(float(logprob_np[i]))
             traj.value.append(float(value_np[i]))
+            if g_np is not None:
+                traj.g.append(g_np)
 
         actions_norm = {aid: action_clipped_np[i] for i, aid in enumerate(agent_ids)}
         next_obs, rewards, done, info = env.step(actions_norm)
@@ -149,8 +167,7 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
                     rem_batch = torch.as_tensor(
                         np.stack([obs[a] for a in remaining_ids]), dtype=torch.float32, device=device
                     )
-                    with torch.no_grad():
-                        _, _, rem_value = net.forward(rem_batch)
+                    rem_value = _bootstrap_values(net, critic, env, rem_batch)
                     rem_value_np = rem_value.cpu().numpy()
                     for i, aid in enumerate(remaining_ids):
                         active[aid].bootstrap = float(rem_value_np[i])
@@ -177,8 +194,7 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
     if active:
         remaining_ids = sorted(active.keys())
         rem_batch = torch.as_tensor(np.stack([obs[a] for a in remaining_ids]), dtype=torch.float32, device=device)
-        with torch.no_grad():
-            _, _, rem_value = net.forward(rem_batch)
+        rem_value = _bootstrap_values(net, critic, env, rem_batch)
         rem_value_np = rem_value.cpu().numpy()
         for i, aid in enumerate(remaining_ids):
             active[aid].bootstrap = float(rem_value_np[i])
@@ -188,7 +204,7 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
 
 
 def _worker_loop(rank: int, stage_name: str, seed: Optional[int], rollout_steps: int,
-                  in_q: "mp.Queue", out_q: "mp.Queue") -> None:
+                  in_q: "mp.Queue", out_q: "mp.Queue", central: bool = False) -> None:
     """
     Persistent worker process: builds ONE CurriculumEnv and keeps it (and
     its obs dict) alive across iterations -- rebuilding it per call would
@@ -211,15 +227,20 @@ def _worker_loop(rank: int, stage_name: str, seed: Optional[int], rollout_steps:
     obs = env.reset()
     net = ActorCritic(OBS_DIM, ACTION_DIM)
     net.eval()
+    critic = CentralCritic(OBS_DIM, GLOBAL_DIM) if central else None
+    if critic is not None:
+        critic.eval()
 
     while True:
         msg = in_q.get()
         if msg is None:
             break
-        state_dict = msg
+        state_dict, critic_sd = msg
         net.load_state_dict(state_dict)
+        if critic is not None:
+            critic.load_state_dict(critic_sd)
         episode_log: List[dict] = []
-        trajs, obs = collect_rollout(env, net, obs, rollout_steps, torch.device("cpu"), episode_log)
+        trajs, obs = collect_rollout(env, net, obs, rollout_steps, torch.device("cpu"), episode_log, critic)
         out_q.put((trajs, episode_log))
 
 
@@ -231,15 +252,16 @@ def _default_worker_count(requested: Optional[int]) -> int:
     return min(4, max(1, mp.cpu_count() - 1))
 
 
-def collect_rollout_parallel(workers: List[dict], net: ActorCritic) -> List[_Traj]:
+def collect_rollout_parallel(workers: List[dict], net: ActorCritic, critic=None) -> List[_Traj]:
     """
     workers: list of {"in_q": ..., "out_q": ...} for each live worker
     process. Broadcasts the current (CPU) state_dict to every worker,
     blocks until all have replied, and returns the pooled trajectories.
     """
     state_dict = {k: v.cpu() for k, v in net.state_dict().items()}
+    critic_sd = {k: v.cpu() for k, v in critic.state_dict().items()} if critic is not None else None
     for w in workers:
-        w["in_q"].put(state_dict)
+        w["in_q"].put((state_dict, critic_sd))
 
     all_trajs: List[_Traj] = []
     all_episode_logs: List[dict] = []
@@ -250,8 +272,9 @@ def collect_rollout_parallel(workers: List[dict], net: ActorCritic) -> List[_Tra
     return all_trajs, all_episode_logs
 
 
-def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_Traj], device: torch.device):
-    obs_all, action_all, logprob_all, adv_all, ret_all = [], [], [], [], []
+def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_Traj], device: torch.device,
+               critic=None, train_actor: bool = True):
+    obs_all, action_all, logprob_all, adv_all, ret_all, g_all = [], [], [], [], [], []
     for traj in trajs:
         if not traj.reward:
             continue
@@ -261,6 +284,8 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
         logprob_all.append(np.asarray(traj.logprob, dtype=np.float32))
         adv_all.append(adv)
         ret_all.append(ret)
+        if critic is not None:
+            g_all.append(np.stack(traj.g))
 
     obs_t = torch.as_tensor(np.concatenate(obs_all), dtype=torch.float32, device=device)
     action_t = torch.as_tensor(np.concatenate(action_all), dtype=torch.float32, device=device)
@@ -268,6 +293,7 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
     adv_t = torch.as_tensor(np.concatenate(adv_all), dtype=torch.float32, device=device)
     ret_t = torch.as_tensor(np.concatenate(ret_all), dtype=torch.float32, device=device)
 
+    g_t = torch.as_tensor(np.concatenate(g_all), dtype=torch.float32, device=device) if critic is not None else None
     adv_t = (adv_t - adv_t.mean()) / (adv_t.std() + 1e-8)
 
     n = obs_t.shape[0]
@@ -278,6 +304,8 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
         for start in range(0, n, MINIBATCH_SIZE):
             idx = perm[start:start + MINIBATCH_SIZE]
             new_logprob, entropy, value = net.evaluate_actions(obs_t[idx], action_t[idx])
+            if critic is not None:
+                value = critic(torch.cat([obs_t[idx], g_t[idx]], dim=-1))
             ratio = torch.exp(new_logprob - old_logprob_t[idx])
             surr1 = ratio * adv_t[idx]
             surr2 = torch.clamp(ratio, 1 - CLIP_EPS, 1 + CLIP_EPS) * adv_t[idx]
@@ -285,6 +313,8 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
             value_loss = 0.5 * (value - ret_t[idx]).pow(2).mean()
             entropy_loss = -entropy.mean()
             loss = policy_loss + VF_COEF * value_loss + ENT_COEF * entropy_loss
+            if not train_actor:
+                loss = VF_COEF * value_loss  # critic warm-up: actor untouched
 
             with torch.no_grad():
                 log_ratio = new_logprob - old_logprob_t[idx]
@@ -293,7 +323,7 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
 
             optimizer.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(net.parameters(), MAX_GRAD_NORM)
+            nn.utils.clip_grad_norm_(list(net.parameters()) + (list(critic.parameters()) if critic is not None else []), MAX_GRAD_NORM)
             optimizer.step()
 
             last_policy_loss = float(policy_loss.item())
@@ -309,8 +339,18 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
           resume_from: Optional[str] = None, workers: Optional[int] = None,
           ignore_goal: bool = False, success_window: Optional[int] = None,
           success_threshold: Optional[float] = None, lr: float = LR,
-          lr_decay: bool = True, ent_coef: Optional[float] = None) -> str:
-    global ENT_COEF
+          lr_decay: bool = True, ent_coef: Optional[float] = None,
+          colony_bonus: float = 0.0, patience: Optional[int] = None,
+          min_delta: Optional[float] = None, es_every: int = 10,
+          init_log_std: Optional[float] = None, central_critic: bool = False,
+          critic_warmup: int = 15, resume_critic: Optional[str] = None,
+          clip_eps: Optional[float] = None, gae_lambda: Optional[float] = None) -> str:
+    global ENT_COEF, CLIP_EPS, GAE_LAMBDA
+    if clip_eps is not None:
+        CLIP_EPS = clip_eps
+    if gae_lambda is not None:
+        GAE_LAMBDA = gae_lambda
+    reward_mod.COLONY_BONUS = colony_bonus  # must be set before workers fork
     if ent_coef is not None:
         ENT_COEF = ent_coef
     if seed is not None:
@@ -337,7 +377,21 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     if resume_from:
         net.load_state_dict(torch.load(resume_from, map_location=device))
         print(f"Resumed weights from {resume_from}")
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+    if init_log_std is not None:
+        with torch.no_grad():
+            net.log_std.fill_(init_log_std)
+        print(f"log_std set to {init_log_std} (std={np.exp(init_log_std):.3f})")
+    critic = None
+    if central_critic:
+        critic = CentralCritic(OBS_DIM, GLOBAL_DIM).to(device)
+        if resume_critic:
+            critic.load_state_dict(torch.load(resume_critic, map_location=device))
+            print(f"Resumed critic from {resume_critic}")
+        print(f"Centralized critic ON (actor-only warm-up skip: first {critic_warmup} iterations train the critic only)")
+    else:
+        critic_warmup = 0
+    opt_params = list(net.parameters()) + (list(critic.parameters()) if critic is not None else [])
+    optimizer = torch.optim.Adam(opt_params, lr=lr)
 
     os.makedirs(out_dir, exist_ok=True)
     log_path = os.path.join(out_dir, f"{stage_name}_episodes.csv")
@@ -357,6 +411,7 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     ])
     iters_writer.writeheader()
     best_metric = -float("inf")
+    es_best, es_bad = -float("inf"), 0
     best_path = os.path.join(out_dir, f"{stage_name}_best.pt")
 
     all_episode_scores: List[float] = []
@@ -390,7 +445,7 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
         ctx = mp.get_context("spawn") if sys.platform == "win32" else mp.get_context("fork")
         for rank in range(n_workers):
             in_q, out_q = ctx.Queue(), ctx.Queue()
-            p = ctx.Process(target=_worker_loop, args=(rank, stage_name, seed, rollout_steps, in_q, out_q), daemon=True)
+            p = ctx.Process(target=_worker_loop, args=(rank, stage_name, seed, rollout_steps, in_q, out_q, critic is not None), daemon=True)
             p.start()
             worker_procs.append({"process": p, "in_q": in_q, "out_q": out_q})
         print(f"Started {n_workers} parallel rollout workers.")
@@ -401,10 +456,10 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     try:
         for it in range(1, iterations + 1):
             if n_workers > 1:
-                trajs, episode_log = collect_rollout_parallel(worker_procs, net)
+                trajs, episode_log = collect_rollout_parallel(worker_procs, net, critic)
             else:
                 episode_log = []
-                trajs, obs = collect_rollout(env, net, obs, rollout_steps, device, episode_log)
+                trajs, obs = collect_rollout(env, net, obs, rollout_steps, device, episode_log, critic)
 
             if lr_decay:
                 cur_lr = lr * (1.0 - (1.0 - LR_FINAL_FRAC) * (it - 1) / max(1, iterations - 1))
@@ -413,7 +468,7 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
             else:
                 cur_lr = lr
 
-            stats = ppo_update(net, optimizer, trajs, device)
+            stats = ppo_update(net, optimizer, trajs, device, critic, train_actor=(it > critic_warmup))
 
             for ep in episode_log:
                 ep["iteration"] = it
@@ -435,11 +490,11 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
                     roll = sum(1 for e in w_eps if not e["extinct"]) / len(w_eps)
                 else:
                     roll = float(np.mean([e["sim_time"] for e in w_eps]))
-                if roll > best_metric:
+                if roll > best_metric and it > critic_warmup:
                     best_metric = roll
                     torch.save(net.state_dict(), best_path)
             with torch.no_grad():
-                stds = net.log_std.clamp(-3.0, 0.0).exp().tolist()
+                stds = net.log_std.clamp(LOG_STD_MIN, LOG_STD_MAX).exp().tolist()
             iters_writer.writerow({
                 "iteration": it, "lr": cur_lr, "policy_loss": stats["policy_loss"],
                 "value_loss": stats["value_loss"], "entropy": stats["entropy"],
@@ -465,7 +520,21 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
             if it % checkpoint_every == 0 or it == iterations:
                 ckpt_path = os.path.join(out_dir, f"{stage_name}_iter{it}.pt")
                 torch.save(net.state_dict(), ckpt_path)
+                if critic is not None:
+                    torch.save(critic.state_dict(), ckpt_path + ".critic")
                 print(f"  saved checkpoint: {ckpt_path}")
+
+            if patience and roll is not None and it % es_every == 0 and it > critic_warmup:
+                md = min_delta if min_delta is not None else (0.01 if stage.success_metric == "survive_rate" else 15.0)
+                if roll > es_best + md:
+                    es_best, es_bad = roll, 0
+                else:
+                    es_bad += 1
+                if es_bad >= patience:
+                    stop_reason = (f"early stop at iteration {it}: rolling metric {roll:.3f} has not improved "
+                                   f"by >{md} over best {es_best:.3f} for {patience} checks (every {es_every} iters)")
+                    print(stop_reason)
+                    break
 
             if goal_met:
                 stop_reason = (
@@ -488,6 +557,8 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
     iters_f.close()
     final_path = os.path.join(out_dir, f"{stage_name}_final.pt")
     torch.save(net.state_dict(), final_path)
+    if critic is not None:
+        torch.save(critic.state_dict(), final_path + ".critic")
     print(f"Training done ({stop_reason}). Final weights: {final_path}")
     return final_path
 
@@ -515,6 +586,22 @@ def main():
     parser.add_argument("--lr", type=float, default=LR)
     parser.add_argument("--no-lr-decay", action="store_true", help="Constant LR (default: linear decay to 10%% over --iterations).")
     parser.add_argument("--ent-coef", type=float, default=None, help=f"Entropy bonus (default {ENT_COEF}).")
+    parser.add_argument("--colony-bonus", type=float, default=0.0,
+                         help="Colony-level survival reward per second, split over living agents (0=off; try 0.05).")
+    parser.add_argument("--patience", type=int, default=None,
+                         help="Early stop after this many consecutive checks without improvement of the rolling metric.")
+    parser.add_argument("--min-delta", type=float, default=None,
+                         help="Improvement needed to reset patience (default 0.01 for survive_rate stages, else 15 s).")
+    parser.add_argument("--es-every", type=int, default=10, help="Early-stop check interval in iterations.")
+    parser.add_argument("--init-log-std", type=float, default=None,
+                         help="Overwrite the loaded checkpoint's log_std (e.g. -3.5 -> std 0.03).")
+    parser.add_argument("--central-critic", action="store_true",
+                         help="Centralized critic (colony features, training only). Actor/inference unchanged.")
+    parser.add_argument("--critic-warmup", type=int, default=15,
+                         help="Iterations that train only the critic before the actor updates (central critic only).")
+    parser.add_argument("--resume-critic", type=str, default=None)
+    parser.add_argument("--clip-eps", type=float, default=None)
+    parser.add_argument("--gae-lambda", type=float, default=None)
     args = parser.parse_args()
 
     out_dir = args.out or os.path.join(os.path.dirname(__file__), "checkpoints")
@@ -534,6 +621,16 @@ def main():
         lr=args.lr,
         lr_decay=not args.no_lr_decay,
         ent_coef=args.ent_coef,
+        colony_bonus=args.colony_bonus,
+        patience=args.patience,
+        min_delta=args.min_delta,
+        es_every=args.es_every,
+        init_log_std=args.init_log_std,
+        central_critic=args.central_critic,
+        critic_warmup=args.critic_warmup,
+        resume_critic=args.resume_critic,
+        clip_eps=args.clip_eps,
+        gae_lambda=args.gae_lambda,
     )
 
 

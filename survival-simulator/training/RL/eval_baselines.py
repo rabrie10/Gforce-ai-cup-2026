@@ -19,6 +19,8 @@ Policies:
   oracle_evade    PRIVILEGED: oracle_nearest foraging, but if an awake
                   predator is within EVADE_RADIUS (true distance) it sprints
                   straight away from it instead.
+  heuristic_capN  heuristic, but never requests a spawn while the colony has >= N agents
+                  (e.g. heuristic_cap12; heuristic_cap0 = never reproduce).
   approach        PRIVILEGED, diagnostic only: walks toward the nearest
                   predator (worst-case behaviour; used by reward_sanity.py).
 
@@ -36,6 +38,8 @@ have, when masked) without creating a child. See spawn_hook.py.
 Death causes are counted exactly (kill_agent with energy > 0 = predator,
 energy <= 0 = starvation; same trick as reward.py / rule_based instrumentation).
 "ext_by_pred%" = share of EXTINCT episodes whose last death was a predator kill.
+old_d/ep = deaths by aging drain (energy ran out while age > max_age); births/ep = successful spawns;
+peak_pop = max simultaneous agents.
 
 Uses the same CurriculumEnv (same patches, same stage config, same episode-seed
 scheme) as training and eval_checkpoints.py. With the default --seed-base
@@ -73,6 +77,9 @@ from training.RL.curriculum import get_stage
 from training.RL.env_wrapper import CurriculumEnv, decode_action
 from training.RL.reward import begin_tick, compute_rewards
 from training.RL.spawn_hook import hook_spawn
+from training.RL import evasion_variants
+from training.RL import reproduction_variants
+from training.RL import hybrid_variants
 
 CHUNK = 10
 POLICIES = ("do_nothing", "random", "heuristic", "oracle_nearest", "oracle_value", "oracle_evade", "approach")
@@ -158,6 +165,22 @@ def _actions(policy, env, dt, rng):
             a = decode_action(agent.agent_id, np.array([rng.uniform(-1, 1) for _ in range(4)]), agent.sprint_speed)
         elif policy == "heuristic":
             a = heuristic_action(env.get_agent_state(agent.agent_id), rng)
+        elif policy.startswith("rp_"):
+            # reproduction-rule variant (reproduction_variants.py); everything else = heuristic
+            a = reproduction_variants.action(env.get_agent_state(agent.agent_id), rng, policy[3:])
+        elif policy.startswith("hy_"):
+            a = hybrid_variants.action(env.get_agent_state(agent.agent_id), rng, policy[3:])
+        elif policy.startswith("ev_"):
+            # evasion variant (evasion_variants.py); foraging is the unchanged heuristic
+            a = evasion_variants.action(env.get_agent_state(agent.agent_id), rng, policy[3:])
+        elif policy.startswith("heuristic_cap"):
+            # heuristic with population-regulated reproduction: no spawn requests while the
+            # colony has >= N agents (heuristic_cap0 = never reproduce).
+            cap = int(policy[len("heuristic_cap"):])
+            a = heuristic_action(env.get_agent_state(agent.agent_id), rng)
+            if a.spawn_agent and len(env.agents) >= cap:
+                a = ActionRequest(agent_id=a.agent_id, move_distance=a.move_distance,
+                                  move_direction=a.move_direction, turn_angle=a.turn_angle, spawn_agent=False)
         else:
             a = _oracle_action(env, agent, dt, policy)
         out.append((agent.agent_id, a))
@@ -169,12 +192,34 @@ def _hook_death_causes(env, counts):
     orig = env.kill_agent
 
     def hook(self, agent):
-        cause = "pred" if agent.energy > 0 else "starve"
+        # energy>0 at kill time = eaten by a predator. Otherwise energy ran out:
+        # "old" if the agent was past max_age (aging drain, environment.py) else "starve".
+        if agent.energy > 0:
+            cause = "pred"
+        elif agent.age > agent.max_age:
+            cause = "old"
+        else:
+            cause = "starve"
         counts[cause] += 1
         counts["last"] = cause
         return orig(agent)
 
     env.kill_agent = types.MethodType(hook, env)
+
+
+def _hook_births(env, counts):
+    """Count successful births (spawn_agent with a parent that returns a child)."""
+    orig = env.spawn_agent
+    counts.setdefault("births", 0)
+
+    def hook(self, x=None, y=None, parent=None):
+        n_before = len(self.agents)
+        child = orig(x=x, y=y, parent=parent)
+        if parent is not None and len(self.agents) > n_before:
+            counts["births"] += len(self.agents) - n_before
+        return child
+
+    env.spawn_agent = types.MethodType(hook, env)
 
 
 def _run_chunk(job):
@@ -183,24 +228,28 @@ def _run_chunk(job):
     cenv = CurriculumEnv(stage, seed=seed)
     rng = random.Random(seed)
     out = []
-    for _ in range(n_eps):
+    for ep_i in range(n_eps):
         cenv.reset()
         sim = cenv.sim
         env = sim.env
-        counts = {"pred": 0, "starve": 0, "last": None}
+        counts = {"pred": 0, "starve": 0, "old": 0, "last": None, "births": 0}
         _hook_death_causes(env, counts)
+        _hook_births(env, counts)
         spawn_counts = {"wasted": 0}
         hook_spawn(env, spawn_counts, mask_spawn)
         start_agents = len(env.agents)
+        peak = start_agents
         while True:
             actions = _actions(policy, env, sim.dt, rng)
             begin_tick(env, cenv.reward_state)
             sim.step(actions)
             compute_rewards(env, cenv.reward_state, sim.dt)
+            peak = max(peak, len(env.agents))
             if len(env.agents) == 0 or env.time >= stage.max_sim_time:
                 break
         out.append((policy, float(env.time), len(env.agents), start_agents,
-                    counts["pred"], counts["starve"], counts["last"] or "", spawn_counts["wasted"]))
+                    counts["pred"], counts["starve"], counts["last"] or "", spawn_counts["wasted"],
+                    counts["old"], counts["births"], peak, seed, ep_i))
     return out
 
 
@@ -232,7 +281,7 @@ def main():
         policies = [p.strip() for p in args.policies.split(",") if p.strip()]
     else:
         policies = list(DEFAULT_NO_PRED if stage.predators == "off" else DEFAULT_PRED)
-    bad = [p for p in policies if p not in POLICIES]
+    bad = [p for p in policies if p not in POLICIES and not p.startswith('heuristic_cap') and not (p.startswith('ev_') and p[3:] in evasion_variants.VARIANTS) and not (p.startswith('hy_') and p[3:] in hybrid_variants.VARIANTS) and not (p.startswith('rp_') and p[3:] in reproduction_variants.VARIANTS)]
     if bad:
         sys.exit(f"unknown policies: {bad}; choose from {POLICIES}")
 
@@ -256,13 +305,13 @@ def main():
     print(f"\n=== Baselines on {args.stage} (cap {stage.max_sim_time:.0f}s, {args.episodes} eps each, "
           f"spawn charge {'MASKED (fixed behaviour)' if args.mask_spawn else 'ACTIVE (current behaviour)'}) ===")
     print(f"{'policy':<15} {'survive%':>8} {'95% CI':>10} {'all-alive%':>10} {'mean_t':>7} {'median_t':>8} "
-          f"{'mean_alive':>10} {'pred_d/ep':>9} {'starv_d/ep':>10} {'ext_by_pred%':>12} {'wasted_spawn/ep':>15}")
+          f"{'mean_alive':>10} {'pred_d/ep':>9} {'starv_d/ep':>10} {'ext_by_pred%':>12} {'wasted_spawn/ep':>15} {'old_d/ep':>8} {'births/ep':>9} {'peak_pop':>8}")
     os.makedirs(args.out, exist_ok=True)
     stamp = time.strftime("%Y%m%d_%H%M%S")
     raw = os.path.join(args.out, f"{args.stage}_baselines_raw_{stamp}.csv")
     with open(raw, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["policy", "sim_time", "final_agents", "start_agents", "predator_deaths", "starvation_deaths", "last_death_cause", "wasted_spawn"])
+        w.writerow(["policy", "sim_time", "final_agents", "start_agents", "predator_deaths", "starvation_deaths", "last_death_cause", "wasted_spawn", "old_deaths", "births", "peak_pop", "seed", "ep"])
         for p in policies:
             eps = res[p]
             n = len(eps)
@@ -275,9 +324,31 @@ def main():
             print(f"{p:<15} {100*k/n:8.1f} [{100*lo:3.0f},{100*hi:3.0f}] {100*k_all/n:10.1f} "
                   f"{np.mean(ts):7.1f} {np.median(ts):8.1f} {np.mean([e[1] for e in eps]):10.2f} "
                   f"{np.mean([e[3] for e in eps]):9.2f} {np.mean([e[4] for e in eps]):10.2f} {ext_pred:12.1f} "
-                  f"{np.mean([e[6] for e in eps]):15.2f}")
-            for t, a, s, pd, sd, last, wsp in eps:
-                w.writerow([p, t, a, s, pd, sd, last, wsp])
+                  f"{np.mean([e[6] for e in eps]):15.2f} {np.mean([e[7] for e in eps]):8.2f} "
+                  f"{np.mean([e[8] for e in eps]):9.2f} {np.mean([e[9] for e in eps]):8.1f}")
+            for t, a, s, pd, sd, last, wsp, od, bi, pk, sd_, ei in eps:
+                w.writerow([p, t, a, s, pd, sd, last, wsp, od, bi, pk, sd_, ei])
+    if len(policies) > 1:
+        # Paired comparison vs the first listed policy (same seeds -> same maps / initial state).
+        ref = policies[0]
+        ref_d = {(e[10], e[11]): (e[0], e[1] > 0) for e in res[ref]}
+        print(f"\n=== Paired vs '{ref}' (same seeds) ===")
+        print(f"{'policy':<15} {'n':>4} {'surv d(pts)':>11} {'better':>6} {'worse':>5} {'McNemar p':>9} {'d mean_t (s)':>13}")
+        for p in policies[1:]:
+            pd_ = {(e[10], e[11]): (e[0], e[1] > 0) for e in res[p]}
+            keys = sorted(set(ref_d) & set(pd_))
+            b = sum(1 for k in keys if (not ref_d[k][1]) and pd_[k][1])   # ref died, this survived
+            c = sum(1 for k in keys if ref_d[k][1] and not pd_[k][1])     # ref survived, this died
+            n = b + c
+            if n:
+                kk = min(b, c)
+                pval = min(1.0, 2 * sum(math.comb(n, i) for i in range(kk + 1)) / 2 ** n)
+            else:
+                pval = 1.0
+            dt = np.array([pd_[k][0] - ref_d[k][0] for k in keys])
+            se = dt.std(ddof=1) / math.sqrt(len(dt)) if len(dt) > 1 else float("nan")
+            dsurv = 100 * (sum(pd_[k][1] for k in keys) - sum(ref_d[k][1] for k in keys)) / max(len(keys), 1)
+            print(f"{p:<15} {len(keys):4d} {dsurv:+11.1f} {b:6d} {c:5d} {pval:9.3f} {dt.mean():+8.1f}+-{se:4.1f}")
     print(f"\nRaw episodes: {raw}")
 
 

@@ -109,6 +109,13 @@ DANGER_RADIUS = 150.0
 # either changes.
 SHAPING_GAMMA = 0.99
 
+# Colony-level survival reward. The competition score is COLONY survival time, not
+# individual lifetime or head-count. Each tick the colony earns COLONY_BONUS * dt in
+# total, split equally over the agents alive that tick (so it does not reward simply
+# having more agents, and the total per tick is independent of population size).
+# Off (0.0) by default; train.py --colony-bonus sets it before workers fork.
+COLONY_BONUS = 0.0
+
 
 def _danger_potential(observation: Optional[List[dict]]) -> float:
     """
@@ -279,12 +286,15 @@ def compute_rewards(env, state: RewardState, dt: float) -> Dict[int, float]:
     w_danger = w.get("w_danger", 0.0)
 
     living_ids = set()
+    n_alive = max(1, len(env.agents))
+    colony_share = COLONY_BONUS * dt / n_alive if COLONY_BONUS else 0.0
     for agent in env.agents:
         living_ids.add(agent.agent_id)
         prev = state.prev_energy.get(agent.agent_id, agent.energy)
         delta_energy = agent.energy - prev
         r = w["w_energy"] * (delta_energy / agent.max_energy)
         r += w["w_survive"] * dt
+        r += colony_share
         if state.reproduced_this_tick.get(agent.agent_id):
             r += w["w_repro"]
 

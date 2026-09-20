@@ -329,6 +329,23 @@ class CurriculumEnv:
         # rollout calls, and a per-call local silently undercounted it.
         self.episode_stats = {"fruit_energy": 0.0, "predator_deaths": 0, "starvation_deaths": 0}
 
+    def global_features(self) -> np.ndarray:
+        """Colony-level state for the centralized critic (privileged; never given to the actor)."""
+        env = self.sim.env
+        ags = env.agents
+        n = len(ags)
+        if n:
+            ef = [a.energy / a.max_energy if a.max_energy > 0 else 0.0 for a in ags]
+            mean_ef, min_ef = float(np.mean(ef)), float(np.min(ef))
+            mean_age = float(np.mean([a.age for a in ags])) / 100.0
+        else:
+            mean_ef = min_ef = mean_age = 0.0
+        return np.array([
+            n / 40.0, mean_ef, min_ef,
+            len(env.fruits) / 60.0, len(env.trees) / 20.0, len(env.predators) / 6.0,
+            env.time / max(self.stage.max_sim_time, 1e-6), mean_age,
+        ], dtype=np.float32)
+
     def reset(self) -> Dict[int, np.ndarray]:
         if self._fresh:
             self._fresh = False
