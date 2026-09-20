@@ -49,9 +49,12 @@ K_PREDATOR = 3
 K_TREE = 3
 K_EDGE = 3
 
-# Own-scalar block: energy, age, speed, sprint_speed, hearing_radius,
-# vision_range, vision_angle -- all normalized to [0, 1]-ish.
-N_OWN = 7
+# Own-scalar block: energy, age, speed, sprint_speed, max_energy, hearing_radius,
+# vision_range, vision_angle -- all normalized to [0, 1]-ish. vision_range is
+# needed because every object distance is divided by the agent's OWN
+# vision_range (see encode_observation); without it absolute distances are
+# unrecoverable once mutation makes vision_range differ between agents.
+N_OWN = 8
 
 # Per-slot field counts (this many normalized floats per slot, the LAST of
 # which is always the presence flag -- 0.0 for a padded/empty slot).
@@ -154,6 +157,7 @@ def encode_observation(agent_state: dict) -> np.ndarray:
         # constant (200, comfortably above the default hearing_radius=50
         # and the observed chunk_size/4=100 cap) and clip to 1.0.
         min(agent_state["hearing_radius"] / 200.0, 1.0),
+        min(agent_state["vision_range"] / 200.0, 1.0),
         agent_state["vision_angle"] / MAX_CONE_ANGLE,
     ]
 
@@ -250,11 +254,21 @@ class CurriculumEnv:
         # training run reproducible end to end when you pass the same seed.
         self._episode_rng = random.Random(seed)
         self.reward_state = RewardState()
+        # Stage-level weight overrides (curriculum.py's StageConfig.reward_weights
+        # -- e.g. stage 2/3/5 turning on w_danger evasion shaping) apply first,
+        # so an explicit reward_weights argument here can still override them
+        # per-call if ever needed (train.py doesn't currently pass one; it
+        # relies entirely on the stage config).
+        if stage.reward_weights:
+            self.reward_state.weights.update(stage.reward_weights)
         if reward_weights:
             self.reward_state.weights.update(reward_weights)
         self.sim: Optional[SimulationCore] = None
         self._last_state: Optional[dict] = None
         self._build()
+        # __init__ already built episode #1; the first reset() must reuse it
+        # instead of building (and drawing seeds for) a second env.
+        self._fresh = True
 
     def _build(self) -> None:
         # Every monkeypatch below (spawn_predator/spawn_agent/kill_agent
@@ -309,8 +323,34 @@ class CurriculumEnv:
         # curriculum stage installed (reward.py's module docstring).
         attach_reward_tracking(env, self.reward_state)
 
+        # Per-episode accumulators (fresh every _build(), i.e. every episode).
+        # Kept HERE, on the env, instead of as locals inside train.py's
+        # collect_rollout: an episode (up to 3000 ticks) spans many 512-tick
+        # rollout calls, and a per-call local silently undercounted it.
+        self.episode_stats = {"fruit_energy": 0.0, "predator_deaths": 0, "starvation_deaths": 0}
+
+    def global_features(self) -> np.ndarray:
+        """Colony-level state for the centralized critic (privileged; never given to the actor)."""
+        env = self.sim.env
+        ags = env.agents
+        n = len(ags)
+        if n:
+            ef = [a.energy / a.max_energy if a.max_energy > 0 else 0.0 for a in ags]
+            mean_ef, min_ef = float(np.mean(ef)), float(np.min(ef))
+            mean_age = float(np.mean([a.age for a in ags])) / 100.0
+        else:
+            mean_ef = min_ef = mean_age = 0.0
+        return np.array([
+            n / 40.0, mean_ef, min_ef,
+            len(env.fruits) / 60.0, len(env.trees) / 20.0, len(env.predators) / 6.0,
+            env.time / max(self.stage.max_sim_time, 1e-6), mean_age,
+        ], dtype=np.float32)
+
     def reset(self) -> Dict[int, np.ndarray]:
-        self._build()
+        if self._fresh:
+            self._fresh = False
+        else:
+            self._build()
         return self._current_observations()
 
     def _current_observations(self) -> Dict[int, np.ndarray]:
@@ -349,6 +389,22 @@ class CurriculumEnv:
         observations = self._current_observations()
 
         done = (len(env.agents) == 0) or (env.time >= self.stage.max_sim_time)
-        info = {"sim_time": env.time, "score": env.score, "num_agents": len(env.agents)}
+
+        st = self.episode_stats
+        st["fruit_energy"] += self.reward_state.last_fruit_energy_tick
+        st["predator_deaths"] += self.reward_state.predator_deaths_this_tick
+        st["starvation_deaths"] += self.reward_state.starvation_deaths_this_tick
+
+        info = {
+            "sim_time": env.time,
+            "score": env.score,
+            "num_agents": len(env.agents),
+            # Food-consumption diagnostic (reward.py's algebraic
+            # decomposition). Not a reward term.
+            "fruit_energy_tick": self.reward_state.last_fruit_energy_tick,
+            # Whole-episode running totals (correct across rollout-window
+            # boundaries) -- train.py logs these when done=True.
+            "episode_stats": dict(st),
+        }
         self._last_state = state
         return observations, rewards, done, info

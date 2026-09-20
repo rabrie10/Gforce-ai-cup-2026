@@ -58,6 +58,20 @@ PREDATOR_FACING_CONE = math.pi / 2
 # regardless.
 SPAWN_ENERGY_FRACTION = 0.3
 
+# Require at least this many fruits within hearing radius before spawning. 1 = the original
+# rule. 2 ("food2") gave the best paired stage-5 result of 7 reproduction variants tested
+# (+44 +- 28 s mean survival, NOT significant, and not confirmed on new seeds: adopted on
+# weak evidence). Set to 1 to restore the original behaviour.
+SPAWN_MIN_FRUITS = 2
+
+# While fleeing, keep FACING the predator (turn toward it every tick) and back away
+# by moving in the away direction relative to the pre-turn heading. Measured on stage 2
+# (single predator, 300 paired episodes): survive 74.3% -> 86.3% (+12.0 pts, McNemar
+# p<0.001), mean time +24s, predator deaths/ep 1.42 -> 1.06. Facing it keeps the predator
+# in its slower flanking mode instead of the direct charge. Set False for the old rule
+# (turn away when charging, turn 0.6x toward it otherwise).
+FACE_PREDATOR_WHILE_FLEEING = True
+
 # How close an obstacle edge has to be, roughly ahead of us, before we
 # nudge sideways to avoid wasting movement energy walking into it. This is
 # a light refinement only - the environment itself already deflects
@@ -149,7 +163,7 @@ def action_decision(observation_response: Dict, rng: random.Random) -> ActionReq
             # race, and this reframes into a short energy burst rather than
             # a sustained chase, since predators exhaust their own energy
             # after a few seconds of sprinting.
-            turn_angle = away_offset
+            turn_angle = angle if FACE_PREDATOR_WHILE_FLEEING else away_offset
             move_direction = away_offset
             move_distance = sprint_speed
         else:
@@ -158,7 +172,7 @@ def action_decision(observation_response: Dict, rng: random.Random) -> ActionReq
             # its slower flanking behavior instead of switching to a direct
             # charge) while still physically retreating at walking speed -
             # no need to burn sprint energy yet.
-            turn_angle = angle * 0.6
+            turn_angle = angle if FACE_PREDATOR_WHILE_FLEEING else angle * 0.6
             move_direction = away_offset
             move_distance = speed
 
@@ -233,7 +247,10 @@ def action_decision(observation_response: Dict, rng: random.Random) -> ActionReq
     # not just seen far off in the vision cone) is a stronger, more honest
     # "this spot can currently support another mouth to feed" signal.
     hearing_radius = observation_response["hearing_radius"]
-    locally_fed = nearest_fruit is not None and nearest_fruit["distance"] <= hearing_radius
+    n_fruit_near = sum(1 for o in observation_response["observations"]
+                       if o.get("type") == "Fruit" and o["distance"] <= hearing_radius)
+    locally_fed = nearest_fruit is not None and nearest_fruit["distance"] <= hearing_radius \
+        and n_fruit_near >= SPAWN_MIN_FRUITS
     spawn_agent = energy_fraction > SPAWN_ENERGY_FRACTION and locally_fed
 
     return ActionRequest(

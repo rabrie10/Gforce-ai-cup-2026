@@ -47,19 +47,21 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from training.RL.curriculum import get_stage
+from training.RL import reward as reward_mod
+from training.RL.curriculum import check_goal, get_stage
 from training.RL.env_wrapper import CurriculumEnv, OBS_DIM
-from training.RL.network import ACTION_DIM, ActorCritic
+from training.RL.network import ACTION_DIM, GLOBAL_DIM, LOG_STD_MAX, LOG_STD_MIN, ActorCritic, CentralCritic
 
 GAMMA = 0.99
 GAE_LAMBDA = 0.95
 CLIP_EPS = 0.2
 VF_COEF = 0.5
-ENT_COEF = 0.01
+ENT_COEF = 0.001  # was 0.01: with a state-independent std it pinned log_std at its cap
 MAX_GRAD_NORM = 0.5
 LR = 3e-4
 PPO_EPOCHS = 4
 MINIBATCH_SIZE = 256
+LR_FINAL_FRAC = 0.1  # LR decays linearly to LR * this over --iterations (0/1 style: pass --no-lr-decay to disable)
 
 
 @dataclass
@@ -69,6 +71,7 @@ class _Traj:
     logprob: List[float] = field(default_factory=list)
     value: List[float] = field(default_factory=list)
     reward: List[float] = field(default_factory=list)
+    g: List[np.ndarray] = field(default_factory=list)  # colony features per step (central critic)
     bootstrap: float = 0.0  # value estimate to bootstrap from after the LAST recorded step
 
 
@@ -86,23 +89,46 @@ def _gae(traj: _Traj, gamma: float, lam: float):
     return advantages, returns
 
 
+def _bootstrap_values(net, critic, env, batch):
+    with torch.no_grad():
+        if critic is None:
+            return net.forward(batch)[2]
+        g = torch.as_tensor(env.global_features(), dtype=torch.float32).unsqueeze(0).expand(batch.shape[0], -1)
+        return critic(torch.cat([batch, g], dim=-1))
+
+
 def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndarray],
-                     rollout_steps: int, device: torch.device, episode_log: List[dict]):
+                     rollout_steps: int, device: torch.device, episode_log: List[dict], critic=None):
     """
     Runs rollout_steps env ticks (resetting and continuing into new episodes
     as needed), returns (finished trajectories ready for GAE, the obs dict
     to resume from next call). Appends one dict per completed episode to
-    episode_log (score, extinction_time/truncated, final_num_agents).
+    episode_log (score, extinction_time/truncated, final_num_agents,
+    starting_agents, fruit_energy_consumed).
+
+    Per-episode diagnostics (fruit_energy_consumed, predator_deaths,
+    starvation_deaths) come from env.episode_stats (see env_wrapper.py),
+    which accumulates over the WHOLE episode and resets in env.reset() --
+    so an episode that spans several rollout calls is counted correctly.
+    (An earlier version kept these as locals of this function and
+    undercounted every episode longer than rollout_steps.)
     """
     active: Dict[int, _Traj] = {}
     finished: List[_Traj] = []
 
     ep_start_time = wallclock.time()
+    starting_agents = env.stage.env_kwargs.get("starting_agents", 0)
 
     for _ in range(rollout_steps):
         agent_ids = sorted(obs.keys())
         obs_batch = torch.as_tensor(np.stack([obs[a] for a in agent_ids]), dtype=torch.float32, device=device)
         action_clipped, action_raw, logprob, value = net.act(obs_batch)
+        g_np = None
+        if critic is not None:
+            g_np = env.global_features()
+            g_t = torch.as_tensor(g_np, dtype=torch.float32, device=device).unsqueeze(0).expand(len(agent_ids), -1)
+            with torch.no_grad():
+                value = critic(torch.cat([obs_batch, g_t], dim=-1))
         action_clipped_np = action_clipped.cpu().numpy()
         action_raw_np = action_raw.cpu().numpy()
         logprob_np = logprob.cpu().numpy()
@@ -114,6 +140,8 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
             traj.action.append(action_raw_np[i])
             traj.logprob.append(float(logprob_np[i]))
             traj.value.append(float(value_np[i]))
+            if g_np is not None:
+                traj.g.append(g_np)
 
         actions_norm = {aid: action_clipped_np[i] for i, aid in enumerate(agent_ids)}
         next_obs, rewards, done, info = env.step(actions_norm)
@@ -139,19 +167,23 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
                     rem_batch = torch.as_tensor(
                         np.stack([obs[a] for a in remaining_ids]), dtype=torch.float32, device=device
                     )
-                    with torch.no_grad():
-                        _, _, rem_value = net.forward(rem_batch)
+                    rem_value = _bootstrap_values(net, critic, env, rem_batch)
                     rem_value_np = rem_value.cpu().numpy()
                     for i, aid in enumerate(remaining_ids):
                         active[aid].bootstrap = float(rem_value_np[i])
                         finished.append(active.pop(aid))
 
+            ep_stats = info["episode_stats"]
             episode_log.append({
                 "score": info["score"],
                 "sim_time": info["sim_time"],
                 "final_num_agents": info["num_agents"],
                 "extinct": info["num_agents"] == 0,
                 "wall_seconds": wallclock.time() - ep_start_time,
+                "starting_agents": starting_agents,
+                "fruit_energy_consumed": ep_stats["fruit_energy"],
+                "predator_deaths": ep_stats["predator_deaths"],
+                "starvation_deaths": ep_stats["starvation_deaths"],
             })
             ep_start_time = wallclock.time()
             obs = env.reset()
@@ -162,8 +194,7 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
     if active:
         remaining_ids = sorted(active.keys())
         rem_batch = torch.as_tensor(np.stack([obs[a] for a in remaining_ids]), dtype=torch.float32, device=device)
-        with torch.no_grad():
-            _, _, rem_value = net.forward(rem_batch)
+        rem_value = _bootstrap_values(net, critic, env, rem_batch)
         rem_value_np = rem_value.cpu().numpy()
         for i, aid in enumerate(remaining_ids):
             active[aid].bootstrap = float(rem_value_np[i])
@@ -173,7 +204,7 @@ def collect_rollout(env: CurriculumEnv, net: ActorCritic, obs: Dict[int, np.ndar
 
 
 def _worker_loop(rank: int, stage_name: str, seed: Optional[int], rollout_steps: int,
-                  in_q: "mp.Queue", out_q: "mp.Queue") -> None:
+                  in_q: "mp.Queue", out_q: "mp.Queue", central: bool = False) -> None:
     """
     Persistent worker process: builds ONE CurriculumEnv and keeps it (and
     its obs dict) alive across iterations -- rebuilding it per call would
@@ -186,20 +217,30 @@ def _worker_loop(rank: int, stage_name: str, seed: Optional[int], rollout_steps:
     """
     torch.set_num_threads(1)
     worker_seed = None if seed is None else seed + rank
+    # Forked workers inherit the parent's torch/numpy RNG state -> identical
+    # action-noise streams in every worker. Re-seed each one differently.
+    rng_seed = (int.from_bytes(os.urandom(4), "little") if seed is None else seed * 1000 + 17) + 7919 * rank
+    torch.manual_seed(rng_seed % (2**31))
+    np.random.seed(rng_seed % (2**31))
     stage = get_stage(stage_name)
     env = CurriculumEnv(stage, seed=worker_seed)
     obs = env.reset()
     net = ActorCritic(OBS_DIM, ACTION_DIM)
     net.eval()
+    critic = CentralCritic(OBS_DIM, GLOBAL_DIM) if central else None
+    if critic is not None:
+        critic.eval()
 
     while True:
         msg = in_q.get()
         if msg is None:
             break
-        state_dict = msg
+        state_dict, critic_sd = msg
         net.load_state_dict(state_dict)
+        if critic is not None:
+            critic.load_state_dict(critic_sd)
         episode_log: List[dict] = []
-        trajs, obs = collect_rollout(env, net, obs, rollout_steps, torch.device("cpu"), episode_log)
+        trajs, obs = collect_rollout(env, net, obs, rollout_steps, torch.device("cpu"), episode_log, critic)
         out_q.put((trajs, episode_log))
 
 
@@ -211,15 +252,16 @@ def _default_worker_count(requested: Optional[int]) -> int:
     return min(4, max(1, mp.cpu_count() - 1))
 
 
-def collect_rollout_parallel(workers: List[dict], net: ActorCritic) -> List[_Traj]:
+def collect_rollout_parallel(workers: List[dict], net: ActorCritic, critic=None) -> List[_Traj]:
     """
     workers: list of {"in_q": ..., "out_q": ...} for each live worker
     process. Broadcasts the current (CPU) state_dict to every worker,
     blocks until all have replied, and returns the pooled trajectories.
     """
     state_dict = {k: v.cpu() for k, v in net.state_dict().items()}
+    critic_sd = {k: v.cpu() for k, v in critic.state_dict().items()} if critic is not None else None
     for w in workers:
-        w["in_q"].put(state_dict)
+        w["in_q"].put((state_dict, critic_sd))
 
     all_trajs: List[_Traj] = []
     all_episode_logs: List[dict] = []
@@ -230,8 +272,9 @@ def collect_rollout_parallel(workers: List[dict], net: ActorCritic) -> List[_Tra
     return all_trajs, all_episode_logs
 
 
-def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_Traj], device: torch.device):
-    obs_all, action_all, logprob_all, adv_all, ret_all = [], [], [], [], []
+def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_Traj], device: torch.device,
+               critic=None, train_actor: bool = True):
+    obs_all, action_all, logprob_all, adv_all, ret_all, g_all = [], [], [], [], [], []
     for traj in trajs:
         if not traj.reward:
             continue
@@ -241,6 +284,8 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
         logprob_all.append(np.asarray(traj.logprob, dtype=np.float32))
         adv_all.append(adv)
         ret_all.append(ret)
+        if critic is not None:
+            g_all.append(np.stack(traj.g))
 
     obs_t = torch.as_tensor(np.concatenate(obs_all), dtype=torch.float32, device=device)
     action_t = torch.as_tensor(np.concatenate(action_all), dtype=torch.float32, device=device)
@@ -248,15 +293,19 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
     adv_t = torch.as_tensor(np.concatenate(adv_all), dtype=torch.float32, device=device)
     ret_t = torch.as_tensor(np.concatenate(ret_all), dtype=torch.float32, device=device)
 
+    g_t = torch.as_tensor(np.concatenate(g_all), dtype=torch.float32, device=device) if critic is not None else None
     adv_t = (adv_t - adv_t.mean()) / (adv_t.std() + 1e-8)
 
     n = obs_t.shape[0]
     last_policy_loss = last_value_loss = last_entropy = 0.0
+    kls, clipfracs = [], []
     for _ in range(PPO_EPOCHS):
         perm = torch.randperm(n)
         for start in range(0, n, MINIBATCH_SIZE):
             idx = perm[start:start + MINIBATCH_SIZE]
             new_logprob, entropy, value = net.evaluate_actions(obs_t[idx], action_t[idx])
+            if critic is not None:
+                value = critic(torch.cat([obs_t[idx], g_t[idx]], dim=-1))
             ratio = torch.exp(new_logprob - old_logprob_t[idx])
             surr1 = ratio * adv_t[idx]
             surr2 = torch.clamp(ratio, 1 - CLIP_EPS, 1 + CLIP_EPS) * adv_t[idx]
@@ -264,22 +313,49 @@ def ppo_update(net: ActorCritic, optimizer: torch.optim.Optimizer, trajs: List[_
             value_loss = 0.5 * (value - ret_t[idx]).pow(2).mean()
             entropy_loss = -entropy.mean()
             loss = policy_loss + VF_COEF * value_loss + ENT_COEF * entropy_loss
+            if not train_actor:
+                loss = VF_COEF * value_loss  # critic warm-up: actor untouched
+
+            with torch.no_grad():
+                log_ratio = new_logprob - old_logprob_t[idx]
+                kls.append(float(((ratio - 1) - log_ratio).mean()))
+                clipfracs.append(float(((ratio - 1).abs() > CLIP_EPS).float().mean()))
 
             optimizer.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(net.parameters(), MAX_GRAD_NORM)
+            nn.utils.clip_grad_norm_(list(net.parameters()) + (list(critic.parameters()) if critic is not None else []), MAX_GRAD_NORM)
             optimizer.step()
 
             last_policy_loss = float(policy_loss.item())
             last_value_loss = float(value_loss.item())
             last_entropy = float(entropy.mean().item())
 
-    return {"policy_loss": last_policy_loss, "value_loss": last_value_loss, "entropy": last_entropy, "n_transitions": n}
+    return {"policy_loss": last_policy_loss, "value_loss": last_value_loss, "entropy": last_entropy,
+            "n_transitions": n, "approx_kl": float(np.mean(kls)), "clipfrac": float(np.mean(clipfracs))}
 
 
 def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[int],
           out_dir: str, log_every: int = 5, checkpoint_every: int = 20,
-          resume_from: Optional[str] = None, workers: Optional[int] = None) -> str:
+          resume_from: Optional[str] = None, workers: Optional[int] = None,
+          ignore_goal: bool = False, success_window: Optional[int] = None,
+          success_threshold: Optional[float] = None, lr: float = LR,
+          lr_decay: bool = True, ent_coef: Optional[float] = None,
+          colony_bonus: float = 0.0, patience: Optional[int] = None,
+          min_delta: Optional[float] = None, es_every: int = 10,
+          init_log_std: Optional[float] = None, central_critic: bool = False,
+          critic_warmup: int = 15, resume_critic: Optional[str] = None,
+          clip_eps: Optional[float] = None, gae_lambda: Optional[float] = None) -> str:
+    global ENT_COEF, CLIP_EPS, GAE_LAMBDA
+    if clip_eps is not None:
+        CLIP_EPS = clip_eps
+    if gae_lambda is not None:
+        GAE_LAMBDA = gae_lambda
+    reward_mod.COLONY_BONUS = colony_bonus  # must be set before workers fork
+    if ent_coef is not None:
+        ENT_COEF = ent_coef
+    if seed is not None:
+        torch.manual_seed(seed)
+        np.random.seed(seed)
     device = torch.device("cpu")
     n_workers = _default_worker_count(workers)
     if n_workers > 1:
@@ -288,20 +364,71 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
         # update contending for every core.
         torch.set_num_threads(1)
 
+    stage = get_stage(stage_name)
+    # Optional CLI overrides of the stage's own goal-check defaults
+    # (curriculum.py's StageConfig) -- e.g. to tighten/loosen a threshold
+    # for one run without editing the stage table.
+    if success_window is not None:
+        stage.success_window = success_window
+    if success_threshold is not None:
+        stage.success_threshold = success_threshold
+
     net = ActorCritic(OBS_DIM, ACTION_DIM).to(device)
     if resume_from:
         net.load_state_dict(torch.load(resume_from, map_location=device))
         print(f"Resumed weights from {resume_from}")
-    optimizer = torch.optim.Adam(net.parameters(), lr=LR)
+    if init_log_std is not None:
+        with torch.no_grad():
+            net.log_std.fill_(init_log_std)
+        print(f"log_std set to {init_log_std} (std={np.exp(init_log_std):.3f})")
+    critic = None
+    if central_critic:
+        critic = CentralCritic(OBS_DIM, GLOBAL_DIM).to(device)
+        if resume_critic:
+            critic.load_state_dict(torch.load(resume_critic, map_location=device))
+            print(f"Resumed critic from {resume_critic}")
+        print(f"Centralized critic ON (actor-only warm-up skip: first {critic_warmup} iterations train the critic only)")
+    else:
+        critic_warmup = 0
+    opt_params = list(net.parameters()) + (list(critic.parameters()) if critic is not None else [])
+    optimizer = torch.optim.Adam(opt_params, lr=lr)
 
     os.makedirs(out_dir, exist_ok=True)
     log_path = os.path.join(out_dir, f"{stage_name}_episodes.csv")
     log_f = open(log_path, "w", newline="")
-    log_writer = csv.DictWriter(log_f, fieldnames=["iteration", "score", "sim_time", "final_num_agents", "extinct", "wall_seconds"])
+    log_writer = csv.DictWriter(log_f, fieldnames=[
+        "iteration", "score", "sim_time", "final_num_agents", "extinct",
+        "wall_seconds", "starting_agents", "fruit_energy_consumed",
+        "predator_deaths", "starvation_deaths",
+    ])
     log_writer.writeheader()
 
+    iters_path = os.path.join(out_dir, f"{stage_name}_iters.csv")
+    iters_f = open(iters_path, "w", newline="")
+    iters_writer = csv.DictWriter(iters_f, fieldnames=[
+        "iteration", "lr", "policy_loss", "value_loss", "entropy", "approx_kl", "clipfrac",
+        "std_move_dist", "std_move_dir", "std_turn", "std_spawn", "roll_metric",
+    ])
+    iters_writer.writeheader()
+    best_metric = -float("inf")
+    es_best, es_bad = -float("inf"), 0
+    best_path = os.path.join(out_dir, f"{stage_name}_best.pt")
+
     all_episode_scores: List[float] = []
+    all_episodes: List[dict] = []  # full dicts, for check_goal()'s rolling window
     t0 = wallclock.time()
+
+    stop_reason = f"reached --iterations cap ({iterations})"
+
+    if stage.success_metric and not ignore_goal:
+        print(
+            f"Goal-based stop enabled: {stage.success_metric} >= {stage.success_threshold} "
+            f"over a rolling window of the last {stage.success_window} episodes "
+            f"(hard cap: {iterations} iterations). Pass --ignore-goal to disable and "
+            f"always run the full iteration count instead."
+        )
+    elif not stage.success_metric:
+        print(f"{stage_name} has no success_metric configured -- running the full {iterations} iterations.")
 
     worker_procs: List[dict] = []
     env = None
@@ -318,46 +445,108 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
         ctx = mp.get_context("spawn") if sys.platform == "win32" else mp.get_context("fork")
         for rank in range(n_workers):
             in_q, out_q = ctx.Queue(), ctx.Queue()
-            p = ctx.Process(target=_worker_loop, args=(rank, stage_name, seed, rollout_steps, in_q, out_q), daemon=True)
+            p = ctx.Process(target=_worker_loop, args=(rank, stage_name, seed, rollout_steps, in_q, out_q, critic is not None), daemon=True)
             p.start()
             worker_procs.append({"process": p, "in_q": in_q, "out_q": out_q})
         print(f"Started {n_workers} parallel rollout workers.")
     else:
-        stage = get_stage(stage_name)
         env = CurriculumEnv(stage, seed=seed)
         obs = env.reset()
 
     try:
         for it in range(1, iterations + 1):
             if n_workers > 1:
-                trajs, episode_log = collect_rollout_parallel(worker_procs, net)
+                trajs, episode_log = collect_rollout_parallel(worker_procs, net, critic)
             else:
                 episode_log = []
-                trajs, obs = collect_rollout(env, net, obs, rollout_steps, device, episode_log)
+                trajs, obs = collect_rollout(env, net, obs, rollout_steps, device, episode_log, critic)
 
-            stats = ppo_update(net, optimizer, trajs, device)
+            if lr_decay:
+                cur_lr = lr * (1.0 - (1.0 - LR_FINAL_FRAC) * (it - 1) / max(1, iterations - 1))
+                for g in optimizer.param_groups:
+                    g["lr"] = cur_lr
+            else:
+                cur_lr = lr
+
+            stats = ppo_update(net, optimizer, trajs, device, critic, train_actor=(it > critic_warmup))
 
             for ep in episode_log:
                 ep["iteration"] = it
                 log_writer.writerow(ep)
                 all_episode_scores.append(ep["score"])
+                all_episodes.append(ep)
             log_f.flush()
+
+            goal_met, goal_rate = (False, None) if (ignore_goal or not stage.success_metric) \
+                else check_goal(stage, all_episodes)
+
+            # Rolling metric for best-checkpoint saving: the stage's own goal rate
+            # when configured, else mean sim_time. Window = stage.success_window (>=50).
+            win = max(50, stage.success_window or 50)
+            roll = None
+            if len(all_episodes) >= win:
+                w_eps = all_episodes[-win:]
+                if stage.success_metric == "survive_rate":
+                    roll = sum(1 for e in w_eps if not e["extinct"]) / len(w_eps)
+                else:
+                    roll = float(np.mean([e["sim_time"] for e in w_eps]))
+                if roll > best_metric and it > critic_warmup:
+                    best_metric = roll
+                    torch.save(net.state_dict(), best_path)
+            with torch.no_grad():
+                stds = net.log_std.clamp(LOG_STD_MIN, LOG_STD_MAX).exp().tolist()
+            iters_writer.writerow({
+                "iteration": it, "lr": cur_lr, "policy_loss": stats["policy_loss"],
+                "value_loss": stats["value_loss"], "entropy": stats["entropy"],
+                "approx_kl": stats["approx_kl"], "clipfrac": stats["clipfrac"],
+                "std_move_dist": stds[0], "std_move_dir": stds[1], "std_turn": stds[2], "std_spawn": stds[3],
+                "roll_metric": "" if roll is None else roll,
+            })
+            iters_f.flush()
 
             if it % log_every == 0 or it == 1:
                 recent = all_episode_scores[-20:] if all_episode_scores else [0.0]
                 elapsed = wallclock.time() - t0
+                goal_str = f"  {stage.success_metric}={goal_rate:.3f}/{stage.success_threshold}" if goal_rate is not None else ""
                 print(
                     f"iter {it:4d}/{iterations}  episodes_so_far={len(all_episode_scores):4d}  "
                     f"mean_score(last20)={np.mean(recent):8.2f}  "
                     f"policy_loss={stats['policy_loss']:+.4f}  value_loss={stats['value_loss']:.4f}  "
-                    f"entropy={stats['entropy']:.4f}  transitions={stats['n_transitions']:5d}  "
-                    f"elapsed={elapsed:6.1f}s"
+                    f"entropy={stats['entropy']:.4f}  kl={stats['approx_kl']:.4f}  clip={stats['clipfrac']:.2f}  "
+                    f"std={[round(x, 2) for x in stds]}  best={best_metric:.3f}  transitions={stats['n_transitions']:5d}  "
+                    f"elapsed={elapsed:6.1f}s{goal_str}"
                 )
 
             if it % checkpoint_every == 0 or it == iterations:
                 ckpt_path = os.path.join(out_dir, f"{stage_name}_iter{it}.pt")
                 torch.save(net.state_dict(), ckpt_path)
+                if critic is not None:
+                    torch.save(critic.state_dict(), ckpt_path + ".critic")
                 print(f"  saved checkpoint: {ckpt_path}")
+
+            if patience and roll is not None and it % es_every == 0 and it > critic_warmup:
+                md = min_delta if min_delta is not None else (0.01 if stage.success_metric == "survive_rate" else 15.0)
+                if roll > es_best + md:
+                    es_best, es_bad = roll, 0
+                else:
+                    es_bad += 1
+                if es_bad >= patience:
+                    stop_reason = (f"early stop at iteration {it}: rolling metric {roll:.3f} has not improved "
+                                   f"by >{md} over best {es_best:.3f} for {patience} checks (every {es_every} iters)")
+                    print(stop_reason)
+                    break
+
+            if goal_met:
+                stop_reason = (
+                    f"goal met at iteration {it}: {stage.success_metric}={goal_rate:.3f} "
+                    f">= {stage.success_threshold} over the last {stage.success_window} episodes"
+                )
+                print(stop_reason)
+                ckpt_path = os.path.join(out_dir, f"{stage_name}_iter{it}.pt")
+                if not os.path.exists(ckpt_path):
+                    torch.save(net.state_dict(), ckpt_path)
+                    print(f"  saved checkpoint: {ckpt_path}")
+                break
     finally:
         for w in worker_procs:
             w["in_q"].put(None)
@@ -365,9 +554,12 @@ def train(stage_name: str, iterations: int, rollout_steps: int, seed: Optional[i
             w["process"].join(timeout=5)
 
     log_f.close()
+    iters_f.close()
     final_path = os.path.join(out_dir, f"{stage_name}_final.pt")
     torch.save(net.state_dict(), final_path)
-    print(f"Training done. Final weights: {final_path}")
+    if critic is not None:
+        torch.save(critic.state_dict(), final_path + ".critic")
+    print(f"Training done ({stop_reason}). Final weights: {final_path}")
     return final_path
 
 
@@ -384,6 +576,32 @@ def main():
     parser.add_argument("--workers", type=int, default=None,
                          help="Parallel rollout-collection processes. Default: min(4, cpu_count()-1). "
                               "1 disables multiprocessing entirely.")
+    parser.add_argument("--ignore-goal", action="store_true",
+                         help="Disable the stage's goal-based early stop (curriculum.py's "
+                              "success_metric) and always run the full --iterations count instead.")
+    parser.add_argument("--success-window", type=int, default=None,
+                         help="Override the stage's rolling-window size (default: per-stage, 50).")
+    parser.add_argument("--success-threshold", type=float, default=None,
+                         help="Override the stage's success threshold (default: per-stage).")
+    parser.add_argument("--lr", type=float, default=LR)
+    parser.add_argument("--no-lr-decay", action="store_true", help="Constant LR (default: linear decay to 10%% over --iterations).")
+    parser.add_argument("--ent-coef", type=float, default=None, help=f"Entropy bonus (default {ENT_COEF}).")
+    parser.add_argument("--colony-bonus", type=float, default=0.0,
+                         help="Colony-level survival reward per second, split over living agents (0=off; try 0.05).")
+    parser.add_argument("--patience", type=int, default=None,
+                         help="Early stop after this many consecutive checks without improvement of the rolling metric.")
+    parser.add_argument("--min-delta", type=float, default=None,
+                         help="Improvement needed to reset patience (default 0.01 for survive_rate stages, else 15 s).")
+    parser.add_argument("--es-every", type=int, default=10, help="Early-stop check interval in iterations.")
+    parser.add_argument("--init-log-std", type=float, default=None,
+                         help="Overwrite the loaded checkpoint's log_std (e.g. -3.5 -> std 0.03).")
+    parser.add_argument("--central-critic", action="store_true",
+                         help="Centralized critic (colony features, training only). Actor/inference unchanged.")
+    parser.add_argument("--critic-warmup", type=int, default=15,
+                         help="Iterations that train only the critic before the actor updates (central critic only).")
+    parser.add_argument("--resume-critic", type=str, default=None)
+    parser.add_argument("--clip-eps", type=float, default=None)
+    parser.add_argument("--gae-lambda", type=float, default=None)
     args = parser.parse_args()
 
     out_dir = args.out or os.path.join(os.path.dirname(__file__), "checkpoints")
@@ -397,6 +615,22 @@ def main():
         checkpoint_every=args.checkpoint_every,
         resume_from=args.resume_from,
         workers=args.workers,
+        ignore_goal=args.ignore_goal,
+        success_window=args.success_window,
+        success_threshold=args.success_threshold,
+        lr=args.lr,
+        lr_decay=not args.no_lr_decay,
+        ent_coef=args.ent_coef,
+        colony_bonus=args.colony_bonus,
+        patience=args.patience,
+        min_delta=args.min_delta,
+        es_every=args.es_every,
+        init_log_std=args.init_log_std,
+        central_critic=args.central_critic,
+        critic_warmup=args.critic_warmup,
+        resume_critic=args.resume_critic,
+        clip_eps=args.clip_eps,
+        gae_lambda=args.gae_lambda,
     )
 
 
