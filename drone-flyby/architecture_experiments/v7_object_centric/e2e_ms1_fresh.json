@@ -1,0 +1,531 @@
+{
+ "mode": "fresh",
+ "frames": {
+  "4": {
+   "level": 1,
+   "latency_ms": 127.9,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2016,
+    "center_y": 540
+   },
+   "annotations": [
+    {
+     "object_id": "condor",
+     "bbox": [
+      0.30234298706054685,
+      0.0,
+      0.4020053863525391,
+      0.06476590191876447
+     ],
+     "confidence": 0.38253891468048096
+    }
+   ],
+   "n_ann": 1
+  },
+  "5": {
+   "level": 1,
+   "latency_ms": 40.7,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1824,
+    "center_y": 540
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "6": {
+   "level": 2,
+   "latency_ms": 49.0,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1440,
+    "center_y": 804
+   },
+   "annotations": [
+    {
+     "object_id": "condor",
+     "bbox": [
+      0.43739840586980183,
+      0.5382842169867621,
+      0.5077182133992513,
+      0.6194444444444445
+     ],
+     "confidence": 0.5629149675369263
+    }
+   ],
+   "n_ann": 1
+  },
+  "7": {
+   "level": 2,
+   "latency_ms": 39.1,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1440,
+    "center_y": 804
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "50": {
+   "level": 1,
+   "latency_ms": 39.7,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1789,
+    "center_y": 828
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "51": {
+   "level": 1,
+   "latency_ms": 37.7,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2016,
+    "center_y": 1134
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "52": {
+   "level": 2,
+   "latency_ms": 38.0,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2161,
+    "center_y": 572
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "55": {
+   "level": 2,
+   "latency_ms": 47.6,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2205,
+    "center_y": 563
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.5880208333333333,
+      0.14027777777777778,
+      0.6242275595664978,
+      0.1749349488152398
+     ],
+     "confidence": 0.2944904863834381
+    }
+   ],
+   "n_ann": 1
+  },
+  "100": {
+   "level": 2,
+   "latency_ms": 52.3,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2440,
+    "center_y": 945
+   },
+   "annotations": [
+    {
+     "object_id": "condor",
+     "bbox": [
+      0.8793341636657714,
+      0.4891346401638455,
+      0.8888020833333333,
+      0.5207418653700087
+     ],
+     "confidence": 0.3222711384296417
+    },
+    {
+     "object_id": "large_launcher",
+     "bbox": [
+      0.8315264383951823,
+      0.5883230986418547,
+      0.8519332249959309,
+      0.61447183114511
+     ],
+     "confidence": 0.17413870990276337
+    }
+   ],
+   "n_ann": 2
+  },
+  "101": {
+   "level": 1,
+   "latency_ms": 62.9,
+   "requested_view": {
+    "resolution_level": 2,
+    "center_x": 3342,
+    "center_y": 1176
+   },
+   "annotations": [
+    {
+     "object_id": "condor",
+     "bbox": [
+      0.9391806284586589,
+      0.5,
+      1.0,
+      0.5331110495108146
+     ],
+     "confidence": 0.43937039375305176
+    },
+    {
+     "object_id": "helicopter",
+     "bbox": [
+      0.8636583010355632,
+      0.5321153216891819,
+      0.8773649533589681,
+      0.557528163768627
+     ],
+     "confidence": 0.10942485183477402
+    }
+   ],
+   "n_ann": 2
+  },
+  "102": {
+   "level": 2,
+   "latency_ms": 41.7,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2861,
+    "center_y": 629
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "105": {
+   "level": 1,
+   "latency_ms": 47.5,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2016,
+    "center_y": 1134
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "150": {
+   "level": 1,
+   "latency_ms": 42.7,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "151": {
+   "level": 2,
+   "latency_ms": 32.6,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1896,
+    "center_y": 864
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "153": {
+   "level": 1,
+   "latency_ms": 46.7,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "159": {
+   "level": 2,
+   "latency_ms": 34.6,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "200": {
+   "level": 1,
+   "latency_ms": 43.5,
+   "requested_view": {
+    "resolution_level": 2,
+    "center_x": 1490,
+    "center_y": 1153
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.375792662302653,
+      0.5164690088342737,
+      0.4007290204366048,
+      0.5519550464771412
+     ],
+     "confidence": 0.22700880467891693
+    }
+   ],
+   "n_ann": 1
+  },
+  "201": {
+   "level": 1,
+   "latency_ms": 41.5,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.3744249661763509,
+      0.5474641128822609,
+      0.4010204633076986,
+      0.5849725652624059
+     ],
+     "confidence": 0.2806303799152374
+    }
+   ],
+   "n_ann": 1
+  },
+  "203": {
+   "level": 2,
+   "latency_ms": 39.2,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1336,
+    "center_y": 722
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "204": {
+   "level": 2,
+   "latency_ms": 46.5,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1707,
+    "center_y": 590
+   },
+   "annotations": [
+    {
+     "object_id": "small_launcher",
+     "bbox": [
+      0.47591310342152915,
+      0.2099609233714916,
+      0.49162880579630536,
+      0.2363475658275463
+     ],
+     "confidence": 0.1791360080242157
+    }
+   ],
+   "n_ann": 1
+  }
+ },
+ "latency_ms": [
+  127.85028386861086,
+  40.746936574578285,
+  48.98363444954157,
+  39.13922980427742,
+  39.695548824965954,
+  37.676542066037655,
+  38.03690243512392,
+  47.58026730269194,
+  52.25357040762901,
+  62.85545323044062,
+  41.69377591460943,
+  47.54367657005787,
+  42.68353432416916,
+  32.56180044263601,
+  46.682278625667095,
+  34.58545636385679,
+  43.458002619445324,
+  41.54101572930813,
+  39.22494035214186,
+  46.502999030053616
+ ],
+ "illegal_camera": [],
+ "errors": [],
+ "targets": [
+  {
+   "target": "f52_heli",
+   "frame": 52,
+   "level": 2,
+   "family": "helicopter",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f55_heli",
+   "frame": 55,
+   "level": 2,
+   "family": "helicopter",
+   "difficulty": "MODERATE",
+   "manual_conf": "HIGH",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f6_armor",
+   "frame": 6,
+   "level": 2,
+   "family": "tracked_armor_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f7_armor",
+   "frame": 7,
+   "level": 2,
+   "family": "tracked_armor_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f100_armor",
+   "frame": 100,
+   "level": 2,
+   "family": "tracked_armor_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.532,
+   "emitted": {
+    "object_id": "large_launcher",
+    "bbox": [
+     0.8315264383951823,
+     0.5883230986418547,
+     0.8519332249959309,
+     0.61447183114511
+    ],
+    "confidence": 0.17413870990276337,
+    "global_box": [
+     3193.1,
+     1270.8,
+     3271.4,
+     1327.3
+    ]
+   }
+  },
+  {
+   "target": "f204_veh_small",
+   "frame": 204,
+   "level": 2,
+   "family": "vehicle_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.801,
+   "emitted": {
+    "object_id": "small_launcher",
+    "bbox": [
+     0.47591310342152915,
+     0.2099609233714916,
+     0.49162880579630536,
+     0.2363475658275463
+    ],
+    "confidence": 0.1791360080242157,
+    "global_box": [
+     1827.5,
+     453.5,
+     1887.9,
+     510.5
+    ]
+   }
+  },
+  {
+   "target": "f204_launcher_large",
+   "frame": 204,
+   "level": 2,
+   "family": "launcher_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f4_armor",
+   "frame": 4,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f50_armor",
+   "frame": 50,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f50_dark_b",
+   "frame": 50,
+   "level": 1,
+   "family": "vehicle_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f50_dark_a",
+   "frame": 50,
+   "level": 1,
+   "family": "vehicle_like",
+   "difficulty": "HARD",
+   "manual_conf": "LOW",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f51_armor",
+   "frame": 51,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f101_armor",
+   "frame": 101,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f105_armor",
+   "frame": 105,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.0,
+   "emitted": null
+  }
+ ],
+ "emitted_total": 10,
+ "emitted_fp": 8
+}

@@ -1,0 +1,1105 @@
+{
+ "mode": "fresh",
+ "frames": {
+  "4": {
+   "level": 1,
+   "latency_ms": 140.8,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2016,
+    "center_y": 540
+   },
+   "annotations": [
+    {
+     "object_id": "medium_launcher",
+     "bbox": [
+      0.07416041692097981,
+      0.28531934950086807,
+      0.08652474085489908,
+      0.30603083857783564
+     ],
+     "confidence": 0.5735588669776917
+    },
+    {
+     "object_id": "condor",
+     "bbox": [
+      0.0,
+      0.23514587967484085,
+      0.10636738141377768,
+      0.4220866167986834
+     ],
+     "confidence": 0.2968168556690216
+    },
+    {
+     "object_id": "large_tower",
+     "bbox": [
+      0.48374684651692706,
+      0.0,
+      0.49985764821370443,
+      0.03206758145932798
+     ],
+     "confidence": 0.20997580885887146
+    }
+   ],
+   "n_ann": 3
+  },
+  "5": {
+   "level": 1,
+   "latency_ms": 44.4,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1824,
+    "center_y": 540
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "6": {
+   "level": 2,
+   "latency_ms": 49.1,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1440,
+    "center_y": 804
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.4290933609008789,
+      0.4356908445005064,
+      0.44438910484313965,
+      0.4507034866898148
+     ],
+     "confidence": 0.40646979212760925
+    },
+    {
+     "object_id": "small_plane",
+     "bbox": [
+      0.4967003027598063,
+      0.4930344758210359,
+      0.5031038443247478,
+      0.5046865957754629
+     ],
+     "confidence": 0.19402140378952026
+    }
+   ],
+   "n_ann": 2
+  },
+  "7": {
+   "level": 2,
+   "latency_ms": 45.1,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1440,
+    "center_y": 804
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.4283965031305949,
+      0.4662747135868779,
+      0.4446629762649536,
+      0.48307018986454714
+     ],
+     "confidence": 0.4238363802433014
+    }
+   ],
+   "n_ann": 1
+  },
+  "50": {
+   "level": 1,
+   "latency_ms": 59.6,
+   "requested_view": {
+    "resolution_level": 2,
+    "center_x": 2262,
+    "center_y": 1345
+   },
+   "annotations": [
+    {
+     "object_id": "condor",
+     "bbox": [
+      0.4796875,
+      0.6748524983723958,
+      0.4971993406613668,
+      0.7373680962456597
+     ],
+     "confidence": 0.6479942202568054
+    },
+    {
+     "object_id": "large_launcher",
+     "bbox": [
+      0.8146644592285156,
+      0.3851892118100767,
+      0.8357128143310547,
+      0.42100786279748986
+     ],
+     "confidence": 0.4193446636199951
+    },
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.5775587558746338,
+      0.6066891140407986,
+      0.6012827078501384,
+      0.6361813015407987
+     ],
+     "confidence": 0.3648383319377899
+    }
+   ],
+   "n_ann": 3
+  },
+  "51": {
+   "level": 1,
+   "latency_ms": 45.3,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2016,
+    "center_y": 1134
+   },
+   "annotations": [
+    {
+     "object_id": "spacecraft",
+     "bbox": [
+      0.556505040327708,
+      0.887135738796658,
+      0.5659130454063416,
+      0.9076004310890481
+     ],
+     "confidence": 0.5858938097953796
+    },
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.5852626164754232,
+      0.6468363867865669,
+      0.5977473894755045,
+      0.6684866304750796
+     ],
+     "confidence": 0.3011903464794159
+    }
+   ],
+   "n_ann": 2
+  },
+  "52": {
+   "level": 2,
+   "latency_ms": 49.5,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2161,
+    "center_y": 572
+   },
+   "annotations": [
+    {
+     "object_id": "helicopter",
+     "bbox": [
+      0.6606620232264201,
+      0.2703150148744936,
+      0.685379433631897,
+      0.31720996432834203
+     ],
+     "confidence": 0.668581485748291
+    },
+    {
+     "object_id": "helicopter",
+     "bbox": [
+      0.778308916091919,
+      0.34251761259856045,
+      0.7874664465586344,
+      0.36082646405255353
+     ],
+     "confidence": 0.13061562180519104
+    }
+   ],
+   "n_ann": 2
+  },
+  "55": {
+   "level": 2,
+   "latency_ms": 56.3,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2205,
+    "center_y": 563
+   },
+   "annotations": [
+    {
+     "object_id": "helicopter",
+     "bbox": [
+      0.6642820517222087,
+      0.35748559457284435,
+      0.68858962059021,
+      0.3902777777777778
+     ],
+     "confidence": 0.785078763961792
+    },
+    {
+     "object_id": "helicopter",
+     "bbox": [
+      0.6362511475880941,
+      0.35214592262550637,
+      0.6940229733784994,
+      0.3902777777777778
+     ],
+     "confidence": 0.7440399527549744
+    },
+    {
+     "object_id": "large_launcher",
+     "bbox": [
+      0.5881622791290283,
+      0.14027777777777778,
+      0.6232428153355917,
+      0.2356096479627821
+     ],
+     "confidence": 0.2648032307624817
+    },
+    {
+     "object_id": "medium_launcher",
+     "bbox": [
+      0.6653563340504964,
+      0.14027777777777778,
+      0.6783700307210286,
+      0.16787616588451243
+     ],
+     "confidence": 0.1545931100845337
+    }
+   ],
+   "n_ann": 4
+  },
+  "100": {
+   "level": 2,
+   "latency_ms": 71.6,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2440,
+    "center_y": 945
+   },
+   "annotations": [
+    {
+     "object_id": "small_launcher",
+     "bbox": [
+      0.6598373393217722,
+      0.4603605764883536,
+      0.6668877502282461,
+      0.47178582085503473
+     ],
+     "confidence": 0.26098039746284485
+    },
+    {
+     "object_id": "medium_launcher",
+     "bbox": [
+      0.8815754572550456,
+      0.49701967592592594,
+      0.8886242866516113,
+      0.5115155255353009
+     ],
+     "confidence": 0.24867023527622223
+    },
+    {
+     "object_id": "large_launcher",
+     "bbox": [
+      0.833482583363851,
+      0.597300296359592,
+      0.8518581072489421,
+      0.6135681434913918
+     ],
+     "confidence": 0.20208962261676788
+    }
+   ],
+   "n_ann": 3
+  },
+  "101": {
+   "level": 1,
+   "latency_ms": 92.6,
+   "requested_view": {
+    "resolution_level": 2,
+    "center_x": 3242,
+    "center_y": 1377
+   },
+   "annotations": [
+    {
+     "object_id": "spacecraft",
+     "bbox": [
+      0.8856468200683594,
+      0.5288763540762442,
+      0.8941045125325521,
+      0.5442463768853082
+     ],
+     "confidence": 0.327160507440567
+    },
+    {
+     "object_id": "condor",
+     "bbox": [
+      0.8787673314412435,
+      0.5539365379898636,
+      0.9093873977661133,
+      0.5947671113190828
+     ],
+     "confidence": 0.12934622168540955
+    },
+    {
+     "object_id": "medium_launcher",
+     "bbox": [
+      0.8352738380432129,
+      0.6301179108796297,
+      0.8535746574401856,
+      0.6455042521158855
+     ],
+     "confidence": 0.10979600250720978
+    }
+   ],
+   "n_ann": 3
+  },
+  "102": {
+   "level": 2,
+   "latency_ms": 73.6,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2861,
+    "center_y": 629
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "105": {
+   "level": 1,
+   "latency_ms": 79.8,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 2016,
+    "center_y": 1134
+   },
+   "annotations": [
+    {
+     "object_id": "medium_launcher",
+     "bbox": [
+      0.8970326741536458,
+      0.659414616337529,
+      0.9064023335774739,
+      0.6763150815610532
+     ],
+     "confidence": 0.44629377126693726
+    },
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.5956802209218343,
+      0.6540500499584057,
+      0.6129074414571126,
+      0.6744736000343605
+     ],
+     "confidence": 0.2527349591255188
+    },
+    {
+     "object_id": "large_launcher",
+     "bbox": [
+      0.8845954895019531,
+      0.6851110105161313,
+      0.9208639780680339,
+      0.7280097961425781
+     ],
+     "confidence": 0.23638689517974854
+    },
+    {
+     "object_id": "jammer",
+     "bbox": [
+      0.543491796652476,
+      0.6670534487123843,
+      0.5544546723365784,
+      0.6863683912489149
+     ],
+     "confidence": 0.14551027119159698
+    },
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.594770097732544,
+      0.6487698590313947,
+      0.6153492132822672,
+      0.6838386818214699
+     ],
+     "confidence": 0.13512398302555084
+    },
+    {
+     "object_id": "jammer",
+     "bbox": [
+      0.8460899988810221,
+      0.7680544817889178,
+      0.8641613642374675,
+      0.7840642293294271
+     ],
+     "confidence": 0.11099576950073242
+    }
+   ],
+   "n_ann": 6
+  },
+  "150": {
+   "level": 1,
+   "latency_ms": 104.2,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.5494352022806803,
+      0.1663384472882306,
+      0.5625649452209472,
+      0.19194518195258248
+     ],
+     "confidence": 0.2024669051170349
+    }
+   ],
+   "n_ann": 1
+  },
+  "151": {
+   "level": 2,
+   "latency_ms": 64.3,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1896,
+    "center_y": 864
+   },
+   "annotations": [
+    {
+     "object_id": "tank",
+     "bbox": [
+      0.6012366771697998,
+      0.3623987904301396,
+      0.6125447114308675,
+      0.3803408410814073
+     ],
+     "confidence": 0.2762966752052307
+    }
+   ],
+   "n_ann": 1
+  },
+  "153": {
+   "level": 1,
+   "latency_ms": 102.7,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [
+    {
+     "object_id": "small_launcher",
+     "bbox": [
+      0.6543547948201497,
+      0.39644577591507524,
+      0.6632402420043946,
+      0.4174856115270544
+     ],
+     "confidence": 0.6295486688613892
+    },
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.5509416262308756,
+      0.24706654018825955,
+      0.5651535987854004,
+      0.2764897099247685
+     ],
+     "confidence": 0.4334260821342468
+    },
+    {
+     "object_id": "large_tower",
+     "bbox": [
+      0.3464238087336222,
+      0.5334464179144965,
+      0.36390992005666095,
+      0.5695004498517072
+     ],
+     "confidence": 0.2375115603208542
+    },
+    {
+     "object_id": "tank",
+     "bbox": [
+      0.5324780146280924,
+      0.15,
+      0.5531738917032878,
+      0.18386949256614402
+     ],
+     "confidence": 0.15495020151138306
+    }
+   ],
+   "n_ann": 4
+  },
+  "159": {
+   "level": 2,
+   "latency_ms": 92.4,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [
+    {
+     "object_id": "medium_launcher",
+     "bbox": [
+      0.29203497568766273,
+      0.28199177494755495,
+      0.29817972183227537,
+      0.29374858714916086
+     ],
+     "confidence": 0.6232659220695496
+    },
+    {
+     "object_id": "tank",
+     "bbox": [
+      0.41816542943318685,
+      0.21851851851851853,
+      0.4322655995686849,
+      0.23368189952991628
+     ],
+     "confidence": 0.2325669378042221
+    }
+   ],
+   "n_ann": 2
+  },
+  "200": {
+   "level": 1,
+   "latency_ms": 67.4,
+   "requested_view": {
+    "resolution_level": 2,
+    "center_x": 1983,
+    "center_y": 1743
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.090625,
+      0.5814764517324942,
+      0.10691979428132375,
+      0.6172449747721355
+     ],
+     "confidence": 0.5485449433326721
+    },
+    {
+     "object_id": "large_launcher",
+     "bbox": [
+      0.3819578170776367,
+      0.5243910895453558,
+      0.39673709869384766,
+      0.5481408295808015
+     ],
+     "confidence": 0.5294489860534668
+    },
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.0907716045777003,
+      0.3148148148148148,
+      0.12397809028625488,
+      0.371837513535111
+     ],
+     "confidence": 0.30255332589149475
+    },
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.24381078084309896,
+      0.5819137573242188,
+      0.25801302591959635,
+      0.6123402348271123
+     ],
+     "confidence": 0.2489033192396164
+    },
+    {
+     "object_id": "tank",
+     "bbox": [
+      0.5059797922770183,
+      0.7996627242476851,
+      0.5271928787231446,
+      0.8148148148148148
+     ],
+     "confidence": 0.24187150597572327
+    }
+   ],
+   "n_ann": 5
+  },
+  "201": {
+   "level": 1,
+   "latency_ms": 68.0,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 960,
+    "center_y": 540
+   },
+   "annotations": [
+    {
+     "object_id": "small_tower",
+     "bbox": [
+      0.3811200141906738,
+      0.5564997107894333,
+      0.395667298634847,
+      0.5797410753038195
+     ],
+     "confidence": 0.2319801151752472
+    },
+    {
+     "object_id": "large_tower",
+     "bbox": [
+      0.24163180987040203,
+      0.6141546743887442,
+      0.2560617287953695,
+      0.6460810343424479
+     ],
+     "confidence": 0.1612354815006256
+    }
+   ],
+   "n_ann": 2
+  },
+  "203": {
+   "level": 2,
+   "latency_ms": 62.1,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1336,
+    "center_y": 722
+   },
+   "annotations": [],
+   "n_ann": 0
+  },
+  "204": {
+   "level": 2,
+   "latency_ms": 59.6,
+   "requested_view": {
+    "resolution_level": 1,
+    "center_x": 1707,
+    "center_y": 590
+   },
+   "annotations": [
+    {
+     "object_id": "hangar",
+     "bbox": [
+      0.5771403948465983,
+      0.1638888888888889,
+      0.6005692799886068,
+      0.18234577885380499
+     ],
+     "confidence": 0.523658275604248
+    },
+    {
+     "object_id": "jammer",
+     "bbox": [
+      0.5499002774556477,
+      0.1638888888888889,
+      0.5559207916259765,
+      0.17187050183614094
+     ],
+     "confidence": 0.46126794815063477
+    },
+    {
+     "object_id": "large_launcher",
+     "bbox": [
+      0.5275749286015828,
+      0.2453154104727286,
+      0.5624343315760295,
+      0.3003432662398727
+     ],
+     "confidence": 0.3492172956466675
+    },
+    {
+     "object_id": "tank",
+     "bbox": [
+      0.4551889623204867,
+      0.1898172696431478,
+      0.46533188422520955,
+      0.21305949952867295
+     ],
+     "confidence": 0.2124241441488266
+    },
+    {
+     "object_id": "ta-ta",
+     "bbox": [
+      0.4767382740974426,
+      0.21109098151878075,
+      0.49061774810155234,
+      0.23375217296459055
+     ],
+     "confidence": 0.19229154288768768
+    },
+    {
+     "object_id": "tank",
+     "bbox": [
+      0.4528359164794286,
+      0.1639399422539605,
+      0.4649880896011988,
+      0.18117086622450088
+     ],
+     "confidence": 0.17705287039279938
+    }
+   ],
+   "n_ann": 6
+  }
+ },
+ "latency_ms": [
+  140.79567324370146,
+  44.422280974686146,
+  49.0640252828598,
+  45.145911164581776,
+  59.60905831307173,
+  45.26105057448149,
+  49.54471345990896,
+  56.30579311400652,
+  71.58575020730495,
+  92.64654666185379,
+  73.63257743418217,
+  79.79926839470863,
+  104.15369924157858,
+  64.27516043186188,
+  102.72049251943827,
+  92.42036752402782,
+  67.39942729473114,
+  67.98250507563353,
+  62.11711373180151,
+  59.61108859628439
+ ],
+ "illegal_camera": [],
+ "errors": [],
+ "targets": [
+  {
+   "target": "f52_heli",
+   "frame": 52,
+   "level": 2,
+   "family": "helicopter",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.713,
+   "emitted": {
+    "object_id": "helicopter",
+    "bbox": [
+     0.6606620232264201,
+     0.2703150148744936,
+     0.685379433631897,
+     0.31720996432834203
+    ],
+    "confidence": 0.668581485748291,
+    "global_box": [
+     2536.9,
+     583.9,
+     2631.9,
+     685.2
+    ]
+   }
+  },
+  {
+   "target": "f55_heli",
+   "frame": 55,
+   "level": 2,
+   "family": "helicopter",
+   "difficulty": "MODERATE",
+   "manual_conf": "HIGH",
+   "final_iou": 0.829,
+   "emitted": {
+    "object_id": "helicopter",
+    "bbox": [
+     0.6642820517222087,
+     0.35748559457284435,
+     0.68858962059021,
+     0.3902777777777778
+    ],
+    "confidence": 0.785078763961792,
+    "global_box": [
+     2550.8,
+     772.2,
+     2644.2,
+     843.0
+    ]
+   }
+  },
+  {
+   "target": "f6_armor",
+   "frame": 6,
+   "level": 2,
+   "family": "tracked_armor_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.92,
+   "emitted": {
+    "object_id": "small_tower",
+    "bbox": [
+     0.4290933609008789,
+     0.4356908445005064,
+     0.44438910484313965,
+     0.4507034866898148
+    ],
+    "confidence": 0.40646979212760925,
+    "global_box": [
+     1647.7,
+     941.1,
+     1706.5,
+     973.5
+    ]
+   }
+  },
+  {
+   "target": "f7_armor",
+   "frame": 7,
+   "level": 2,
+   "family": "tracked_armor_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.888,
+   "emitted": {
+    "object_id": "small_tower",
+    "bbox": [
+     0.4283965031305949,
+     0.4662747135868779,
+     0.4446629762649536,
+     0.48307018986454714
+    ],
+    "confidence": 0.4238363802433014,
+    "global_box": [
+     1645.0,
+     1007.2,
+     1707.5,
+     1043.4
+    ]
+   }
+  },
+  {
+   "target": "f100_armor",
+   "frame": 100,
+   "level": 2,
+   "family": "tracked_armor_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.902,
+   "emitted": {
+    "object_id": "large_launcher",
+    "bbox": [
+     0.833482583363851,
+     0.597300296359592,
+     0.8518581072489421,
+     0.6135681434913918
+    ],
+    "confidence": 0.20208962261676788,
+    "global_box": [
+     3200.6,
+     1290.2,
+     3271.1,
+     1325.3
+    ]
+   }
+  },
+  {
+   "target": "f204_veh_small",
+   "frame": 204,
+   "level": 2,
+   "family": "vehicle_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.915,
+   "emitted": {
+    "object_id": "ta-ta",
+    "bbox": [
+     0.4767382740974426,
+     0.21109098151878075,
+     0.49061774810155234,
+     0.23375217296459055
+    ],
+    "confidence": 0.19229154288768768,
+    "global_box": [
+     1830.7,
+     456.0,
+     1884.0,
+     504.9
+    ]
+   }
+  },
+  {
+   "target": "f204_launcher_large",
+   "frame": 204,
+   "level": 2,
+   "family": "launcher_like",
+   "difficulty": "EASY",
+   "manual_conf": "HIGH",
+   "final_iou": 0.922,
+   "emitted": {
+    "object_id": "large_launcher",
+    "bbox": [
+     0.5275749286015828,
+     0.2453154104727286,
+     0.5624343315760295,
+     0.3003432662398727
+    ],
+    "confidence": 0.3492172956466675,
+    "global_box": [
+     2025.9,
+     529.9,
+     2159.7,
+     648.7
+    ]
+   }
+  },
+  {
+   "target": "f4_armor",
+   "frame": 4,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.0,
+   "emitted": null
+  },
+  {
+   "target": "f50_armor",
+   "frame": 50,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.431,
+   "emitted": {
+    "object_id": "small_tower",
+    "bbox": [
+     0.5775587558746338,
+     0.6066891140407986,
+     0.6012827078501384,
+     0.6361813015407987
+    ],
+    "confidence": 0.3648383319377899,
+    "global_box": [
+     2217.8,
+     1310.4,
+     2308.9,
+     1374.2
+    ]
+   }
+  },
+  {
+   "target": "f50_dark_b",
+   "frame": 50,
+   "level": 1,
+   "family": "vehicle_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.645,
+   "emitted": {
+    "object_id": "large_launcher",
+    "bbox": [
+     0.8146644592285156,
+     0.3851892118100767,
+     0.8357128143310547,
+     0.42100786279748986
+    ],
+    "confidence": 0.4193446636199951,
+    "global_box": [
+     3128.3,
+     832.0,
+     3209.1,
+     909.4
+    ]
+   }
+  },
+  {
+   "target": "f50_dark_a",
+   "frame": 50,
+   "level": 1,
+   "family": "vehicle_like",
+   "difficulty": "HARD",
+   "manual_conf": "LOW",
+   "final_iou": 0.064,
+   "emitted": {
+    "object_id": "large_launcher",
+    "bbox": [
+     0.8146644592285156,
+     0.3851892118100767,
+     0.8357128143310547,
+     0.42100786279748986
+    ],
+    "confidence": 0.4193446636199951,
+    "global_box": [
+     3128.3,
+     832.0,
+     3209.1,
+     909.4
+    ]
+   }
+  },
+  {
+   "target": "f51_armor",
+   "frame": 51,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.675,
+   "emitted": {
+    "object_id": "small_tower",
+    "bbox": [
+     0.5852626164754232,
+     0.6468363867865669,
+     0.5977473894755045,
+     0.6684866304750796
+    ],
+    "confidence": 0.3011903464794159,
+    "global_box": [
+     2247.4,
+     1397.2,
+     2295.3,
+     1443.9
+    ]
+   }
+  },
+  {
+   "target": "f101_armor",
+   "frame": 101,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.899,
+   "emitted": {
+    "object_id": "medium_launcher",
+    "bbox": [
+     0.8352738380432129,
+     0.6301179108796297,
+     0.8535746574401856,
+     0.6455042521158855
+    ],
+    "confidence": 0.10979600250720978,
+    "global_box": [
+     3207.5,
+     1361.1,
+     3277.7,
+     1394.3
+    ]
+   }
+  },
+  {
+   "target": "f105_armor",
+   "frame": 105,
+   "level": 1,
+   "family": "tracked_armor_like",
+   "difficulty": "MODERATE",
+   "manual_conf": "MEDIUM",
+   "final_iou": 0.814,
+   "emitted": {
+    "object_id": "jammer",
+    "bbox": [
+     0.8460899988810221,
+     0.7680544817889178,
+     0.8641613642374675,
+     0.7840642293294271
+    ],
+    "confidence": 0.11099576950073242,
+    "global_box": [
+     3249.0,
+     1659.0,
+     3318.4,
+     1693.6
+    ]
+   }
+  }
+ ],
+ "emitted_total": 50,
+ "emitted_fp": 37
+}
