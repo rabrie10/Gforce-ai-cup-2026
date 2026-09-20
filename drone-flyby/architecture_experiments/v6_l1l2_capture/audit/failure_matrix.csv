@@ -11,5 +11,5 @@ f50_armor,50,1,tracked_armor_like,MEDIUM,MODERATE,20x20,20,no,0.0,0.0,,,0,0.0,0.
 f50_dark_b,50,1,vehicle_like,MEDIUM,MODERATE,26x25,25,no,0.0,0.01,,,0,0.0,0.0,,,0.5,0.0,B_raw_miss,best IoU 0.00
 f50_dark_a,50,1,vehicle_like,LOW,HARD,13x10,10,no,0.0,0.01,,,0,0.0,0.0,,,0.97,0.0,B_raw_miss,LOW-confidence tiny target; best IoU 0.00
 f51_armor,51,1,tracked_armor_like,MEDIUM,MODERATE,20x20,20,no,0.0,0.0,,,0,0.0,0.0,,,0.99,0.0,B_raw_miss,best IoU 0.00 (top raw .150 elsewhere)
-f101_armor,101,1,tracked_armor_like,MEDIUM,MODERATE,29x13,13,no,0.45,0.74,0.698,0,0,0.45,0.45,0.61,hangar0.18,0.89,0.0,C_loose_box_G_minside_gate,raw .698 IoU .45 (box 39x22 vs 29x13); no final emission overlaps target
+f101_armor,101,1,tracked_armor_like,MEDIUM,MODERATE,29x13,13,no,0.45,0.74,0.698,0,0,0.45,0.45,0.61,hangar0.18,0.89,0.0,E_minside_gate,"post-merge cand IoU .45 (score .70, box 38x21.8 px) but min side 21.8 < classify_min_px=22 -> never classified -> ev=0 -> never emitted; forced classify target_p .61 (loose box)"
 f105_armor,105,1,tracked_armor_like,MEDIUM,MODERATE,30x14,14,no,0.61,0.84,0.287,3,1,0.61,0.61,0.83,small_tower0.13,0.88,0,E_minside_gate,post-merge cand IoU .61 (score .287) but 18 px min side < classify_min_px=22 -> never classified -> ev=0 -> never emitted (frame has 0 predictions); forced classify gives target_p .83

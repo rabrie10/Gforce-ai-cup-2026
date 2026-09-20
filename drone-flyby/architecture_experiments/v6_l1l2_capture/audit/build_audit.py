@@ -29,7 +29,7 @@ CAT = {
  "f50_dark_b": ("B_raw_miss", "best IoU 0.00"),
  "f50_dark_a": ("B_raw_miss", "LOW-confidence tiny target; best IoU 0.00"),
  "f51_armor": ("B_raw_miss", "best IoU 0.00 (top raw .150 elsewhere)"),
- "f101_armor": ("C_loose_box_G_minside_gate", "raw .698 IoU .45 (box 39x22 vs 29x13); no final emission overlaps target"),
+ "f101_armor": ("E_minside_gate", "post-merge cand IoU .45 (score .70, box 38x21.8 px) but min side 21.8 < classify_min_px=22 -> never classified -> ev=0 -> never emitted; forced classify target_p .61 (loose box)"),
  "f105_armor": ("E_minside_gate", "post-merge cand IoU .61 (score .287) but 18 px min side < classify_min_px=22 -> never classified -> ev=0 -> never emitted (frame has 0 predictions); forced classify gives target_p .83"),
 }
 rows = []

@@ -21,8 +21,7 @@
   "C_loose_box_E_class": 1,
   "OK_detected": 1,
   "E_bg_reject": 1,
-  "C_loose_box_G_minside_gate": 1,
-  "E_minside_gate": 1
+  "E_minside_gate": 2
  },
  "difficulty x failure": {
   "EASY | D_threshold": 1,
@@ -33,8 +32,7 @@
   "EASY | E_bg_reject": 1,
   "MODERATE | B_raw_miss": 4,
   "HARD | B_raw_miss": 1,
-  "MODERATE | C_loose_box_G_minside_gate": 1,
-  "MODERATE | E_minside_gate": 1
+  "MODERATE | E_minside_gate": 2
  },
  "level x failure": {
   "L2 | D_threshold": 1,
@@ -44,8 +42,7 @@
   "L2 | OK_detected": 1,
   "L2 | E_bg_reject": 1,
   "L1 | B_raw_miss": 5,
-  "L1 | C_loose_box_G_minside_gate": 1,
-  "L1 | E_minside_gate": 1
+  "L1 | E_minside_gate": 2
  },
  "family x failure": {
   "helicopter | D_threshold": 1,
@@ -55,8 +52,7 @@
   "vehicle_like | OK_detected": 1,
   "launcher_like | E_bg_reject": 1,
   "vehicle_like | B_raw_miss": 2,
-  "tracked_armor_like | C_loose_box_G_minside_gate": 1,
-  "tracked_armor_like | E_minside_gate": 1
+  "tracked_armor_like | E_minside_gate": 2
  },
  "size x raw_found(IoU>=.3 tight or pad1.3)": {
   "short>=30 | yes": 4,
