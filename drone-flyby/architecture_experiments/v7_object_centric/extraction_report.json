@@ -1,0 +1,307 @@
+{
+ "condor": {
+  "frame": 7,
+  "gt_box": [
+   2697,
+   1882,
+   2873,
+   2056
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.146,
+  "cut_wh": [
+   115,
+   110
+  ],
+  "gt_wh": [
+   176,
+   174
+  ]
+ },
+ "hangar": {
+  "frame": 24,
+  "gt_box": [
+   102,
+   143,
+   291,
+   273
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.57,
+  "cut_wh": [
+   173,
+   104
+  ],
+  "gt_wh": [
+   189,
+   130
+  ]
+ },
+ "helicopter": {
+  "frame": 16,
+  "gt_box": [
+   2272,
+   1962,
+   2395,
+   2064
+  ],
+  "mask_mode": "soft_alpha_matte",
+  "mean_alpha": 0.059,
+  "cut_wh": [
+   143,
+   122
+  ],
+  "gt_wh": [
+   123,
+   102
+  ]
+ },
+ "jammer": {
+  "frame": 11,
+  "gt_box": [
+   1460,
+   2051,
+   1494,
+   2095
+  ],
+  "mask_mode": "bgstats",
+  "fg_ratio": 0.407,
+  "cover": 0.775,
+  "cut_wh": [
+   29,
+   40
+  ],
+  "gt_wh": [
+   34,
+   44
+  ]
+ },
+ "jet_plane": {
+  "frame": 24,
+  "gt_box": [
+   2242,
+   1190,
+   2325,
+   1279
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.127,
+  "cut_wh": [
+   49,
+   56
+  ],
+  "gt_wh": [
+   83,
+   89
+  ]
+ },
+ "large_launcher": {
+  "frame": 16,
+  "gt_box": [
+   3636,
+   1364,
+   3795,
+   1476
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.187,
+  "cut_wh": [
+   127,
+   82
+  ],
+  "gt_wh": [
+   159,
+   112
+  ]
+ },
+ "large_tower": {
+  "frame": 16,
+  "gt_box": [
+   3498,
+   527,
+   3561,
+   592
+  ],
+  "mask_mode": "soft_alpha_matte",
+  "mean_alpha": 0.066,
+  "cut_wh": [
+   83,
+   85
+  ],
+  "gt_wh": [
+   63,
+   65
+  ]
+ },
+ "medium_launcher": {
+  "frame": 16,
+  "gt_box": [
+   3742,
+   78,
+   3789,
+   123
+  ],
+  "mask_mode": "soft_alpha_matte",
+  "mean_alpha": 0.068,
+  "cut_wh": [
+   67,
+   65
+  ],
+  "gt_wh": [
+   47,
+   45
+  ]
+ },
+ "medium_plane": {
+  "frame": 24,
+  "gt_box": [
+   575,
+   199,
+   632,
+   248
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.15,
+  "cut_wh": [
+   36,
+   40
+  ],
+  "gt_wh": [
+   57,
+   49
+  ]
+ },
+ "mine_roller": {
+  "frame": 0,
+  "gt_box": [
+   1979,
+   2010,
+   2032,
+   2070
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.264,
+  "cut_wh": [
+   47,
+   53
+  ],
+  "gt_wh": [
+   53,
+   60
+  ]
+ },
+ "small_launcher": {
+  "frame": 24,
+  "gt_box": [
+   1763,
+   1754,
+   1787,
+   1783
+  ],
+  "mask_mode": "soft_alpha_matte",
+  "mean_alpha": 0.07,
+  "cut_wh": [
+   44,
+   49
+  ],
+  "gt_wh": [
+   24,
+   29
+  ]
+ },
+ "small_plane": {
+  "frame": 7,
+  "gt_box": [
+   2034,
+   2025,
+   2077,
+   2077
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.224,
+  "cut_wh": [
+   33,
+   43
+  ],
+  "gt_wh": [
+   43,
+   52
+  ]
+ },
+ "small_tower": {
+  "frame": 14,
+  "gt_box": [
+   2690,
+   1745,
+   2750,
+   1803
+  ],
+  "mask_mode": "soft_alpha_matte",
+  "mean_alpha": 0.111,
+  "cut_wh": [
+   80,
+   78
+  ],
+  "gt_wh": [
+   60,
+   58
+  ]
+ },
+ "spacecraft": {
+  "frame": 20,
+  "gt_box": [
+   1462,
+   1991,
+   1511,
+   2040
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.395,
+  "cut_wh": [
+   43,
+   47
+  ],
+  "gt_wh": [
+   49,
+   49
+  ]
+ },
+ "ta-ta": {
+  "frame": 6,
+  "gt_box": [
+   1064,
+   634,
+   1095,
+   653
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.384,
+  "cut_wh": [
+   24,
+   16
+  ],
+  "gt_wh": [
+   31,
+   19
+  ]
+ },
+ "tank": {
+  "frame": 24,
+  "gt_box": [
+   702,
+   1420,
+   756,
+   1472
+  ],
+  "mask_mode": "grabcut",
+  "fg_ratio": 0.261,
+  "cut_wh": [
+   40,
+   39
+  ],
+  "gt_wh": [
+   54,
+   52
+  ]
+ }
+}

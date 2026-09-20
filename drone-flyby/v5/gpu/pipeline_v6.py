@@ -97,7 +97,10 @@ class Config:
         self.ttl = int(os.getenv("V6_TTL", "8"))
         self.active_camera = os.getenv("V6_ACTIVE_CAMERA", "1") == "1"
         self.min_emit_conf = float(os.getenv("V6_MIN_EMIT", "0.05"))
-        self.classify_min_px = 22
+        # V7: admission gates made configurable (audit 2eec8ec found three gates dropping
+        # candidates that had usable proposals). Defaults reproduce V6 exactly.
+        self.classify_min_px = int(os.getenv("V6_CLASSIFY_MIN_PX", "22"))
+        self.target_min = float(os.getenv("V6_TARGET_MIN", "0.5"))
 
 
 # Broad L1 coverage tiles over the whole 3840x2160 frame (fine L2 handled via track refine).
@@ -237,7 +240,7 @@ class V6Pipeline:
                         best.best_level = level; best.feat = res[1]
                 used.add(best.id); observed.append(best.id)
             else:
-                if target_p >= 0.5 and len(st.tracks) < self.cfg.max_tracks:
+                if target_p >= self.cfg.target_min and len(st.tracks) < self.cfg.max_tracks:
                     t = Track(st.next_id, pcx, pcy, sb[2]-sb[0], sb[3]-sb[1], r.frame_index, level)
                     st.next_id += 1
                     if res:
