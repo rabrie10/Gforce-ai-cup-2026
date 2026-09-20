@@ -5,3 +5,24 @@ __pycache__/
 # Telemetry capture sessions; useful locally, never committed.
 telemetry/
 run_[0-9]*/
+
+# --- V7 handoff (2026-09-20) ---
+# Hosted diagnostic captures: private evaluator imagery, redistribution permission unverified,
+# and the filenames exceed the Windows path limit. Archived locally instead
+# (Nordic-AI-Cup-2026-Final-Archive/diagnostics/ev_diagnostics.tgz).
+drone-flyby/architecture_experiments/v6_l1l2_capture/attempt_*/
+# Generated V7 dataset and model weights are archived locally, not tracked.
+**/dataset_v7/
+*.pt
+*.onnx
+!drone-flyby/**/bg_head.npz
+# scratch / caches / secrets
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.log
+.env
+*.pem
+id_rsa*
+id_ed25519*
