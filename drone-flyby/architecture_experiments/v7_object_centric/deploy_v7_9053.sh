@@ -9,8 +9,8 @@ test "$(sha256sum $CKPT | cut -d" " -f1)" = "$EXPECT" || { echo "CHECKPOINT SHA 
 mkdir -p /workspace/v7-deploy-$STAMP
 cp /workspace/logs/endpoint_v6_public_9053*.log /workspace/v7-deploy-$STAMP/ 2>/dev/null || true
 OLD=$(lsof -ti:9053 || true); echo "old pid(s): $OLD" | tee /workspace/v7-deploy-$STAMP/replaced_pid.txt
-[ -n "$OLD" ] && kill $OLD && sleep 6
-[ -n "$(lsof -ti:9053 || true)" ] && { echo "port still busy"; lsof -ti:9053 | xargs -r kill -9; sleep 3; }
+if [ -n "$OLD" ]; then kill $OLD; sleep 6; fi
+if [ -n "$(lsof -ti:9053 || true)" ]; then echo "port still busy"; lsof -ti:9053 | xargs -r kill -9; sleep 3; fi
 cd /workspace/v7-release-candidate
 source /workspace/env.sh >/dev/null 2>&1
 export PYTHONPATH=/workspace/v7-release-candidate
