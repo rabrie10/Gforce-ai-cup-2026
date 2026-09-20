@@ -1,0 +1,90 @@
+{
+  "competition": "Nordic AI Cup 2026 - Drone Flyby",
+  "team_uuid": "3dbf6d1499c6467e982689d0db1cfbbe",
+  "deadline": "2026-09-20T16:00:00+02:00",
+  "provenance_note": "Entries marked provenance=official_json are verbatim portal responses captured in the working session. Entries marked provenance=session_notes were reported in conversation only; their attempt UUIDs were not captured and MUST NOT be treated as authoritative.",
+  "final_submission": {
+    "type": "FINAL_EVALUATION",
+    "attempt_uuid": "c594011b82984f9b9c0cf563ee34e1c9",
+    "score": 0.024644923331075038,
+    "enqueued_at": "2026-09-20T13:21:29.775339+00:00",
+    "started_at": "2026-09-20T13:21:30.285067+00:00",
+    "finished_at": "2026-09-20T13:22:54.336279+00:00",
+    "service_url": "https://4telrb865f5bkf-9053.proxy.runpod.net/predict",
+    "errors": [
+      "Frame 197 request 4455103619814a4aa5766b516db00767:197:1:1210:1345 did not answer within 3333 ms."
+    ],
+    "provenance": "official_json",
+    "detector": "/workspace/v7_e15_snapshot.pt",
+    "detector_sha256": "52b9fcef703d3fc5f35993f3088381f545b50d1091c862f52ff0c4df1cd091b8",
+    "config": {
+      "V6_CLASSIFY_MIN_PX": 16,
+      "V6_TARGET_MIN": 0.5,
+      "V6_DET_CONF": 0.15,
+      "V6_ENSEMBLE": 0,
+      "V6_DIAGNOSTIC_CAPTURE": 0
+    },
+    "camera_receive_clamp": "REVERTED - NOT part of the submitted build",
+    "serving_code": "/workspace/v7-release-candidate (pipeline_v6.py sha256 6f9be14ef9b59875f2b1c6340b321ccb32b31c33489bc9c071a877c865bb83de)",
+    "git_commit": "f3c247fb68323f6202a21d19b6f835e2c869a23d",
+    "git_branch": "claude/hosted-l1l2-audit"
+  },
+  "attempts": [
+    {
+      "type": "VALIDATION", "label": "V6 initial", "detector": "ms1",
+      "score": 0.017816760543340894, "attempt_uuid": null, "provenance": "session_notes"
+    },
+    {
+      "type": "VALIDATION", "label": "V6 camera-legality-corrected", "detector": "ms1",
+      "score": 0.012703337237408291, "attempt_uuid": null, "provenance": "session_notes",
+      "note": "Camera legality correction LOWERED the score vs V6 initial."
+    },
+    {
+      "type": "VALIDATION", "label": "V6 diagnostic capture build", "detector": "ms1",
+      "score": 0.008194775521508196, "attempt_uuid": "d09922e7a50f4cd88682f2d895fbef91",
+      "hosted_sequence": "369d011de8574218868c9eced3d26fa7", "errors": [],
+      "provenance": "session_notes",
+      "note": "Produced the 20 genuine hosted L1/L2 captures used for the whole V7 audit."
+    },
+    {
+      "type": "VALIDATION", "label": "V7 first attempt", "detector": "v7_e15",
+      "score": 0, "attempt_uuid": "7306c67fb2164d17a692385f8794b412",
+      "hosted_sequence": "16993e040a894a58819379267e87f43f",
+      "provenance": "session_notes",
+      "note": "Scored 0 purely from transport timeouts. Only 22 of ~249 requests reached the application; every one answered in <=236 ms. Not a model failure."
+    },
+    {
+      "type": "VALIDATION", "label": "V7 retry - BEST VALIDATION", "detector": "v7_e15",
+      "score": 0.03182123481701167, "attempt_uuid": "a23ca0fbf1124a3c852680c8a39d4d53",
+      "hosted_sequence": "0f1bc27f24c1475f9fb6d92d989a5bfa",
+      "started_at": "2026-09-20T13:01:29.865889+00:00",
+      "finished_at": "2026-09-20T13:02:55.054901+00:00",
+      "errors": [
+        "Frame 184 request 0f1bc27f24c1475f9fb6d92d989a5bfa:183:2:2001:1609 did not answer within 3333 ms.",
+        "Frame 196: ignored camera request L1 (960, 1620) from L2 (2001, 1609): center movement 1041.06px exceeds the L2 limit of 551.00px",
+        "Frame 202: ignored camera request L1 (960, 540) from L2 (2001, 1609): center movement 1492.13px exceeds the L2 limit of 551.00px",
+        "Frame 214 request 0f1bc27f24c1475f9fb6d92d989a5bfa:213:1:995:586 did not answer within 3333 ms."
+      ],
+      "provenance": "official_json"
+    },
+    {
+      "type": "VALIDATION", "label": "V7b camera receive-clamp EXPERIMENT (NOT submitted)",
+      "detector": "v7_e15 + V6_RECV_CLAMP=1",
+      "score": 0.012407912707236929, "attempt_uuid": "360956de735a45ffbfd4d909bc932619",
+      "hosted_sequence": "0032a09335874946b5f30cac1cfbe990",
+      "started_at": "2026-09-20T13:17:10.188671+00:00",
+      "finished_at": "2026-09-20T13:18:38.972122+00:00",
+      "errors": [
+        "Frame 45 request 0032a09335874946b5f30cac1cfbe990:44:2:1369:1552 did not answer within 3333 ms.",
+        "Frame 57 request 0032a09335874946b5f30cac1cfbe990:56:2:1369:1552 did not answer within 3333 ms."
+      ],
+      "provenance": "official_json",
+      "note": "Clamp removed ALL camera errors but cost 61% of the score (0.0318 -> 0.0124). Reverted before Final Evaluation."
+    }
+  ],
+  "key_findings": [
+    "Object-centric domain-randomised training lifted raw hosted discovery from 3/14 to 13/14 frozen targets at IoU>=0.5, and end-to-end emission from 2/14 to 11/14.",
+    "Constraining the camera planner to strictly legal moves REDUCES score: observed twice (V6 0.0178->0.0127, V7 0.0318->0.0124).",
+    "The RunPod HTTPS proxy intermittently loses/delays evaluator requests; app-side latency never exceeded 236 ms in any hosted run."
+  ]
+}
