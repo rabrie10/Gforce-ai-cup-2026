@@ -42,6 +42,7 @@ def make_pipeline(capture):
     pipeline.cfg = SimpleNamespace(
         detector="synthetic", device="cpu", assets="synthetic", max_tracks=300,
         ttl=8, active_camera=True, min_emit_conf=0.05, classify_min_px=22,
+        target_min=0.5,
     )
     pipeline.dev = "cpu"
     pipeline.expert = FakeExpert()
