@@ -19,6 +19,8 @@ from dtos import (OBJECT_CLASSES, DroneFlybyPredictResponseDto, DroneFlybyPredic
 from utils import decode_view
 from v2.geometry import iou, view_to_source
 from v5.gpu.discovery_v54 import RejectingExpert, MergedDiscovery
+from v5.gpu.diagnostic_capture import DiagnosticCapture
+from v5.gpu.diagnostic_capture_adapter import record_v6_diagnostics
 from ultralytics import YOLO
 
 W, H = 3840, 2160
@@ -117,9 +119,11 @@ class V6Pipeline:
                                             device=self.cfg.device)
         self.states = OrderedDict()
         self.lock = threading.RLock()
+        self.capture = DiagnosticCapture()
         self.last_diagnostics = {}
         self.manifest = {"pipeline": "v6", "detector": self.cfg.detector,
-                         "ensemble": bool(self.ensemble)}
+                 "ensemble": bool(self.ensemble),
+                 "diagnostic_capture": self.capture.enabled}
         # warmup
         z = np.zeros((VH, VW, 3), np.uint8)
         self._detect(z, (0, 0, W, H))
@@ -127,6 +131,9 @@ class V6Pipeline:
 
     def empty(self, r):
         return DroneFlybyPredictResponseDto(request_id=r.request_id, frame=r.frame, annotations=[])
+
+    def close(self):
+        self.capture.close()
 
     def _detect(self, view, region):
         r = self.det.predict(view, conf=self.cfg.det_conf, imgsz=self.cfg.det_imgsz,
@@ -292,6 +299,7 @@ class V6Pipeline:
                                  "global_drift": [round(st.gvx, 1), round(st.gvy, 1)],
                                  "requested": None if requested is None else [requested.resolution_level, requested.center_x, requested.center_y],
                                  "total_ms": (time.perf_counter()-start)*1000}
+        record_v6_diagnostics(self.capture, r, image, props, resp)
         return resp
 
     def _legal_step(self, st, goal_level, goal_cx, goal_cy):

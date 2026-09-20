@@ -26,7 +26,11 @@ async def lifespan(app):
         startup_error = f"{type(exc).__name__}: {exc}"
         logging.exception("V6 startup failed")
         pipeline = None
-    yield
+    try:
+        yield
+    finally:
+        if pipeline:
+            pipeline.close()
 
 
 app = FastAPI(lifespan=lifespan)
