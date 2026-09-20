@@ -1,115 +1,144 @@
-# Nordic AI Cup 2026
+# Nordic AI Cup 2026 — Team submissions
 
-Welcome to the **Nordic AI Cup**, hosted by [Ambolt AI](https://ambolt.io/). Previously held as the Danish national competition, the event now spans the whole of the Nordics, with a partner organization in each participating country.  
+Our team's entries for the [Nordic AI Cup 2026](https://nordicaicup.com) (17–20 September 2026),
+hosted by Ambolt AI. The organiser's original competition brief is preserved in
+**[docs/NORDIC_AI_CUP_2026_BRIEF.md](docs/NORDIC_AI_CUP_2026_BRIEF.md)**.
 
-Visit the [Nordic AI Cup Website](https://nordicaicup.com) 
+| Use case | Directory | Status |
+|---|---|---|
+| **Drone Flyby** (main effort) | [`drone-flyby/`](drone-flyby/) | Submitted — Final Evaluation score **0.0246** |
+| Survival Simulator | [`survival-simulator/`](survival-simulator/) | Reinforcement-learning agent |
+| Medical Appointment | [`medical-appointment/`](medical-appointment/) | — |
 
-The Nordic AI Cup begins on **Thursday, September 17 at 10:00 CEST (UTC+2)** and ends on **Sunday, September 20 at 16:00 CEST (UTC+2)**
+---
 
+# Drone Flyby — active-camera aerial object detection
 
-| Country | Partner |
-| --- | --- |
-| 🇸🇪 Sweden | [Wallenberg AI, Autonomous Systems and Software Program (WASP)](https://wasp-sweden.org/) |
-| 🇩🇰 Denmark | [Danish Data Science Academy (DDSA)](https://ddsa.dk/) · [Pioneer Centre for Artificial Intelligence](https://www.aicentre.dk/) |
-| 🇫🇮 Finland | [Finnish Center for Artificial Intelligence (FCAI)](https://fcai.fi/) |
-| 🇳🇴 Norway | [Norwegian Artificial Intelligence Research Consortium (NORA)](https://www.nora.ai/) |
-| 🇮🇸 Iceland | [Center for Analysis and Design of Intelligent Agents (CADIA)](https://cadia.is/) |
+## The problem
 
-In this repository, you will find all the information needed to participate in the event. Please read this in full before proceeding to the use cases, and please make sure to read the full description of every use case. You will be granted points for every use case that you provide a submission for and a total score will be calculated based on the individual submissions. <br> <br>
+A 3840×2160 drone video plays at roughly 3 FPS. For every source frame the service receives
+**one 960×540 observation** and must return detections for **16 specialised classes** (aircraft,
+helicopters, launchers, vehicles, towers and similar), in **global source-frame coordinates**,
+within a **3333 ms** timeout.
 
-<h2>Use cases</h2>
-Below you can find the use cases for the Nordic AI Cup event. <br>
+The twist is that you choose what you get to see next. Each response may request the camera for the
+next frame at one of three zoom levels:
 
-<a href="https://github.com/amboltio/Nordic-AI-Cup-2026/tree/main/survival-simulator">- Survival simulator</a> <br>
-<a href="https://github.com/amboltio/Nordic-AI-Cup-2026/tree/main/drone-flyby"> - Drone Flyby</a> <br>
-<a href="https://github.com/amboltio/Nordic-AI-Cup-2026/tree/main/medical-appointment"> - Medical Appointment</a> <br>
+| Level | Source region | Delivered as | Trade-off |
+|---|---|---|---|
+| **L0** | full 3840×2160 | downscaled to 960×540 | whole scene, 4× detail loss |
+| **L1** | 1920×1080 crop | downscaled to 960×540 | half the scene, 2× detail loss |
+| **L2** | 960×540 crop | native pixels | full detail, 1/16 of the scene |
 
+Camera moves are constrained: only certain level transitions are legal, and the centre may not move
+more than a per-level pixel budget per frame. An illegal request is ignored, and the camera stays
+put. So the system has to trade **coverage against resolution** while tracking objects that drift
+between frames. Scoring is COCO-style macro mAP@0.50 across the 16 classes.
 
-Clone this GitHub repository to download templates for all three use cases.
+## Final result
+
+| Metric | Value |
+|---|---|
+| **Official Final Evaluation score** | **0.024644923331075038** |
+| Attempt UUID | `c594011b82984f9b9c0cf563ee34e1c9` |
+| Best official validation score | 0.03182123481701167 |
+| Previous best (V6 detector) | 0.0178 |
+
+We did **not** place in the top five. Validation and Final Evaluation use different datasets, so
+those two numbers are not directly comparable.
+
+## Architecture (V7, as submitted)
+
 ```
-git clone https://github.com/amboltio/Nordic-AI-Cup-2026.git
+960×540 observation
+   │
+   ├─▶ Discovery          one-class YOLO11s  ──▶ candidate boxes
+   │                      (V7 detector; ~10 ms on an RTX 4090)
+   ├─▶ Merge              greedy cross-source NMS (IoU 0.6)
+   ├─▶ Recognition        frozen DINOv2 encoder + 16-class visual head
+   ├─▶ Target/background  supervised rejection head, P(target) ≥ 0.5
+   ├─▶ Tracking           global-coordinate tracks, per-track velocity +
+   │                      scene-drift estimation, TTL 8 frames
+   ├─▶ Camera policy      L1 coverage tour + periodic targeted L2 refine,
+   │                      legality-guarded against the believed camera state
+   └─▶ Emission           per-track class posterior → global normalised boxes
 ```
 
-Within each use case, you find a template that can be used to setup an API endpoint on your own machine or a dedicated server. <br> 
-The API endpoint will be used for submission and is required. The requirements for the API endpoints are specified in the respective use cases. <br> 
+Discovery is deliberately **class-agnostic**: one model answers "is this an object worth looking
+at", and a separate DINOv2 head decides *what* it is. Measured latency end-to-end: p50 ≈ 53–75 ms,
+max ≈ 230 ms, comfortably inside the 3333 ms budget.
 
-The use cases have been built on top of the <a href="https://fastapi.tiangolo.com/">FastAPI</a> framework, and can be used to specify endpoints in every use case.
+## What changed between V6 and V7
 
-<h2>Discord Server</h2>
-Come hang out and talk to other competitors of the event on our Discord server. Discuss the use cases with each other, or get in touch with the organizers to solve issues or questions that may arise during the competition. <a href="https://discord.gg/z6nnJ6Dsq">Join here!</a> <br>
+V6's detector was fine-tuned on multiscale renderings of 25 reference frames that contain roughly
+**one physical instance per class**, always at the same nadir orientation. It scored well locally
+and poorly when hosted.
 
+To find out why, we captured 20 genuine hosted L1/L2 observations during a diagnostic run,
+annotated the visible targets by hand **before** looking at any model output, and replayed the exact
+production checkpoint over them. The detector produced **no usable proposal for 8 of 14** visible
+targets — including large, obvious ones at native L2 resolution. The bottleneck was discovery, not
+classification or tracking.
 
+V7 keeps the architecture and retrains discovery on an **object-centric, domain-randomised**
+distribution: foreground masks are extracted from the training frames (GrabCut, with soft-alpha
+matting for the classes GrabCut failed on), then composited onto varied backgrounds with full 360°
+rotation, log-uniform scale from 9 to 150 pixels, deliberate edge clipping, occlusion and shadows —
+through the evaluator's real L0/L1/L2 view formation. A visibility gate rejects any paste a human
+could not see, which prevents training the model to fire on empty ground.
 
+### Measured effect
 
+Three different kinds of number, kept separate on purpose:
 
-<h2>Getting started</h2>
-You can check the individual template and find the requirements for the different API endpoints. These have to be exactly the same for the evaluation service to work. Inside each use case's "dtos.py" you can find information on the request and response DTOs, describing the input and output requirements for your API.
+| Measurement | Kind | V6 | V7 |
+|---|---|---|---|
+| Raw proposals at IoU ≥ 0.5 | manually annotated hosted diagnostic, 14 targets | 3/14 | **13/14** |
+| End-to-end emitted at IoU ≥ 0.5 | manually annotated hosted diagnostic, 14 targets | 2/14 | **11/14** |
+| Helsinki replay mAP@0.50 | local metric, our own harness | 0.240 | 0.247 |
+| Hosted score | **official**, organiser-run | 0.0178 | **0.0246** (final) |
 
-<h2>Submission</h2>
-When you are ready for submission, head over to the <a href="https://cases.nordicaicup.com/">Submission Form</a> and submit your solution for a use case by providing the host address for your API and the API key we have provided to you. Make sure that you have tested and validated your connection to the API before you submit! 
+The 14-target figures come from **our own manual annotations** on a 20-frame diagnostic sample —
+they are a diagnostic gate, not an official score and not an unbiased benchmark. Both helicopters
+are localised *and* classified correctly; the tank-like vehicles localise well but receive unstable
+class labels, so recognition remains the weak link.
 
-**You can only submit a single attempt per use case to the evaluation server**, but as many times as you like to the validation server. We therefore highly recommend that you validate your solution before submitting. You can do this on the submission form by using the `QUEUE VALIDATION ATTEMPT` button. When you queue a validation attempt, your score will show up on the scoreboard, so you can see how you compare to the other teams.
+### Negative results worth recording
 
-Note: When you validate your solution on the submission form, it will be evaluated on a validation dataset. But when you submit your solution and get the final score for that use case, your solution will be evaluated on an **evaluation dataset which is different from the validation dataset**. This means that the score you obtained when validating your solution may be different from the score you get when evaluating. Therefore, we encourage you not to overfit to the validation set!
+- **Forcing the camera planner to emit only legal moves lowered the score**, twice: 0.0318 → 0.0124
+  for V7, and 0.0178 → 0.0127 earlier for V6. The clamp is *not* in the submitted build.
+- **Lowering the detector confidence threshold recovered nothing**, only extra background.
+- **One validation scored 0 purely from transport timeouts** — 22 of ~249 requests reached the
+  service, each answered in ≤ 236 ms. Infrastructure, not the model.
 
-<h3>Ranked score and total score </h3>
-The scoreboard will display a score for each use case and a "total score".
-The individual score reflects the placement your best model has achieved relative to the other participants' models.
+## Repository layout
 
-We use a ranking system inspired by the <a href="https://en.wikipedia.org/wiki/List_of_Formula_One_World_Championship_points_scoring_systems">Formula 1 points scoring system</a>, which means that the best entry in each use case is awarded 25 points, the second-best entry is awarded 18 points, and each additional entry gets a decreasing award. 
+| Path | Contents |
+|---|---|
+| [`drone-flyby/FINAL_SUBMISSION.md`](drone-flyby/FINAL_SUBMISSION.md) | **exact submitted commit, checkpoint, config and entry point** |
+| [`drone-flyby/SOLUTION_README.md`](drone-flyby/SOLUTION_README.md) | technical deep-dive and reproduction steps |
+| `drone-flyby/v5/gpu/` | submitted inference pipeline and FastAPI endpoint |
+| `drone-flyby/architecture_experiments/v7_object_centric/` | V7 mask extraction, dataset generator, training, evaluation harnesses |
+| `drone-flyby/architecture_experiments/v6_l1l2_capture/audit/` | hosted failure audit: frozen annotations, failure matrix, overlays |
+| `drone-flyby/architecture_experiments/` | 13 earlier experiment tracks, kept for history |
+| [`docs/`](docs/) | competition brief, handoff report, submission log |
 
-The full point system is as follows:
+## Running the final system
 
-1) 25 points
-2) 18 points
-3) 15 points
-4) 12 points
-5) 10 points
-6) 8 points
-7) 6 points
-8) 4 points
-9) 2 points
-10) 1 point
-11) $>$ 1 point
+Model weights are **not** in Git (see `FINAL_SUBMISSION.md` for their verified local location).
 
-Rank 11-end are awarded points in the range from 1 to 0. 
+```bash
+pip install -r drone-flyby/requirements.txt
+export V6_DETECTOR=/path/to/v7_e15_snapshot.pt   # sha256 52b9fcef…a888b8ba
+export V5_ASSETS=/path/to/assets                 # DINOv2 + visual/background heads
+export V6_CLASSIFY_MIN_PX=16 V6_TARGET_MIN=0.5 V6_DET_CONF=0.15
+export V6_ENSEMBLE=0 V6_DIAGNOSTIC_CAPTURE=0
+cd drone-flyby && uvicorn v5.gpu.endpoint_v6:app --host 0.0.0.0 --port 9053 --workers 1
+```
 
+Score a scene locally: `python local_evaluator.py --url http://127.0.0.1:9053/predict --scene helsinki`
 
-The total score is simply the sum of your individual scores.<br>
+## Tech stack
 
-This format also means that you can lose points / be overtaken by other teams during the week if they submit a model that is better than yours. 
-
-<h3>Deadline for submission</h3>
-<!-- The deadline for submission is: MONTH DAY, 2026 at XX.XX TODO: UPDATE! -->
-
-The deadline for submission is: **September 20, 2026 at 16:00 CEST (UTC+2)**
-
-<h3>Final evaluation</h3>
-Upon completion of the contest, the top 5 highest-ranking teams will be asked to submit their training code and the trained models for validation no later than September 20 at 20:00 CEST (UTC+2). The submissions will be validated by our Scientific Jury who will get back to everyone within top 5 to let them know their placement. 
-
-<h3>Azure for Students</h3>
-You can sign up to <a href="https://azure.microsoft.com/da-dk/free/students/">Azure for Students</a>, where you will get free credits that you can use to create a virtual machine. We expect you all to be able to do this, since the competition is only for students. Alternatively, you can also deploy your submission locally (This requires a public IP). <br> 
-The following contains the necessary links for creating a virtual machine: <br> <br>
-
-* <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/linux/quick-create-portal">Creating a linux virtual machine</a> <br>
-* <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/linux/use-remote-desktop">Install and configure xrdp to use Remote Desktop</a> <br>
-* <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/windows/nsg-quickstart-portal#create-an-inbound-security-rule">Create an inbound security Rule</a> (This ensures that the API endpoints can be accessed when submitting)<br> <br>
-
-<b>Please make sure to get a server up and running early in the competition, and make sure to get connection to the evaluation service as quickly as possible, so if you have any server related issues, we can catch them early and not close to deadline!</b>
-
-
-<h2>Frequently Asked Questions</h2>
-
-**Q: Can I use a pretrained model I found on the internet?**
-
-**A:** Yes you are allowed to use pretrained models. If you can find a pretrained model fitting your purpose, you would save a lot of time, just like you would do if you were solving a problem for a company.
-
-**Q: Should we gather our own data?**
-
-**A:** This depends on the individual use case. If you believe you can create a better model with more data, you should go gather the data yourself. We are only supplying a limited amount of data, as we want you to get creative in your approach to each use case.  
-
-**Please note, that we do not provide servers for training!** You are expected to train your models and solutions using your own hardware, Google Colab, etc.
-
-**Q: Are we allowed to use OpenAI / Google Cloud / AWS / Azure APIs?**
-
-**A:** No, you are not allowed to use cloud APIs during inference. You ARE allowed to use as many cloud APIs that you want to build your models. When we call the /predict endpoints of your services, however, the models should be able to run on their own without additional cloud API calls.
+Python 3.11 · PyTorch · Ultralytics YOLO11 · DINOv2 (ONNX Runtime, CUDA) · FastAPI + Uvicorn ·
+OpenCV · NumPy · trained on an RTX 4090.
