@@ -299,6 +299,8 @@ class V6Pipeline:
                                  "global_drift": [round(st.gvx, 1), round(st.gvy, 1)],
                                  "requested": None if requested is None else [requested.resolution_level, requested.center_x, requested.center_y],
                                  "total_ms": (time.perf_counter()-start)*1000}
+        # props is the post-merge detector candidate list (after cross-detector
+        # greedy NMS), before classification, tracking, and emission filtering.
         record_v6_diagnostics(self.capture, r, image, props, resp)
         return resp
 

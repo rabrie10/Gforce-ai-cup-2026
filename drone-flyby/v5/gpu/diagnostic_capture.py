@@ -53,6 +53,8 @@ class CaptureConfig:
     output_dir: Path = Path("/workspace/v6-diagnostics")
     queue_size: int = 8
     per_level_limit: int = 10
+    frame_window_size: int = 50
+    per_window_limit: int = 2
     quota_bytes: int = 50 * 1024 * 1024
 
     @classmethod
@@ -62,6 +64,8 @@ class CaptureConfig:
             output_dir=Path(os.getenv("V6_DIAGNOSTIC_DIR", "/workspace/v6-diagnostics")),
             queue_size=max(1, int(os.getenv("V6_DIAGNOSTIC_QUEUE_SIZE", "8"))),
             per_level_limit=max(0, int(os.getenv("V6_DIAGNOSTIC_PER_LEVEL", "10"))),
+            frame_window_size=max(1, int(os.getenv("V6_DIAGNOSTIC_WINDOW_SIZE", "50"))),
+            per_window_limit=max(0, int(os.getenv("V6_DIAGNOSTIC_PER_WINDOW", "2"))),
             quota_bytes=max(0, int(os.getenv("V6_DIAGNOSTIC_QUOTA_BYTES", str(50 * 1024 * 1024)))),
         )
 
@@ -118,14 +122,20 @@ class DiagnosticCapture:
         sequence_id = str(request.sequence_id)
         request_id = str(request.request_id)
         key = (sequence_id, level)
+        window = int(request.frame_index) // self.config.frame_window_size
+        window_key = (sequence_id, level, window)
         with self._lock:
             if self._counts.get(key, 0) >= self.config.per_level_limit:
+                self._stats["dropped_quota"] += 1
+                return False
+            if self._counts.get(window_key, 0) >= self.config.per_window_limit:
                 self._stats["dropped_quota"] += 1
                 return False
             if self._queue.full():
                 self._stats["dropped_queue"] += 1
                 return False
             self._counts[key] = self._counts.get(key, 0) + 1
+            self._counts[window_key] = self._counts.get(window_key, 0) + 1
             self._stats["accepted"] += 1
         try:
             copied = np.ascontiguousarray(image).copy()
@@ -148,6 +158,7 @@ class DiagnosticCapture:
                     "sha256": hashlib.sha256(copied.tobytes()).hexdigest(),
                 },
                 "captured_at": datetime.now(timezone.utc).isoformat(),
+                "candidate_stage": "post_merge_detector_candidates",
             }
             item = _CaptureItem(sequence_id, request_id, copied, metadata,
                                 _model_dump(candidates), _model_dump(predictions))
@@ -156,6 +167,7 @@ class DiagnosticCapture:
         except queue.Full:
             with self._lock:
                 self._counts[key] = max(0, self._counts.get(key, 1) - 1)
+                self._counts[window_key] = max(0, self._counts.get(window_key, 1) - 1)
                 self._stats["dropped_queue"] += 1
             return False
         except Exception:

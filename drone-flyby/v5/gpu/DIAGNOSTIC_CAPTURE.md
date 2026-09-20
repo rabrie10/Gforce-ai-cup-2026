@@ -33,6 +33,9 @@ Capture is disabled unless `V6_DIAGNOSTIC_CAPTURE=1`. When enabled:
 
 - only received L1/L2 views are admitted;
 - each sequence is limited to 10 captures per level;
+- each 50-frame window admits at most 2 captures per level, stratifying the
+  approximately 0-249 frame sequence across windows 0-49, 50-99, 100-149,
+  150-199, and 200-249;
 - admission uses `put_nowait` on a bounded queue;
 - PNG encoding and disk writes run on one daemon writer thread;
 - queue overflow, encoding errors, and disk errors drop the diagnostic item;
@@ -41,8 +44,10 @@ Capture is disabled unless `V6_DIAGNOSTIC_CAPTURE=1`. When enabled:
   `request_id`.
 
 The sidecar records the received level, center, source crop, image dimensions,
-frame identity, timestamp, pixel SHA-256, raw detector candidates, and final
-emitted predictions.
+frame identity, timestamp, pixel SHA-256, **post-merge detector candidates**,
+and final emitted predictions. The candidate list is after cross-detector
+greedy NMS and before classification, tracking, and final emission filtering;
+it is not the unmerged output of each detector.
 
 ## Public deployment changes eventually required
 

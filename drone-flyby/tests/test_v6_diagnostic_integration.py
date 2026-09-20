@@ -83,6 +83,7 @@ class V6DiagnosticIntegrationTests(unittest.TestCase):
                 [result.model_dump(mode="json") for result in off_results],
                 [result.model_dump(mode="json") for result in on_results],
             )
+            self.assertTrue(any(result.annotations for result in on_results))
             records = sorted(Path(directory).glob("*.json"))
             self.assertEqual(len(records), 2)
             for record_path in records:
@@ -94,6 +95,7 @@ class V6DiagnosticIntegrationTests(unittest.TestCase):
                 self.assertEqual(record["image"]["height"], 540)
                 self.assertEqual(len(record["candidates"]), 1)
                 self.assertEqual(record["candidates"][0]["src"], "synthetic")
+                self.assertEqual(record["candidate_stage"], "post_merge_detector_candidates")
                 level = record["received_camera"]["resolution_level"]
                 expected_region = list(source_region_for_view(level, 1440, 810))
                 self.assertEqual(record["received_camera"]["source_region_xyxy"], expected_region)
@@ -108,6 +110,7 @@ class V6DiagnosticIntegrationTests(unittest.TestCase):
                 self.assertEqual(record["predictions"], [
                     prediction.model_dump(mode="json") for prediction in on_results[result_index].annotations
                 ])
+                self.assertEqual(record["predictions"][0]["object_id"], "helicopter")
 
     def test_integrated_pipeline_serves_synthetic_request_on_ephemeral_port(self):
         with tempfile.TemporaryDirectory() as directory:

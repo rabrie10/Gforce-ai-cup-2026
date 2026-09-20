@@ -81,11 +81,27 @@ class DiagnosticCaptureTests(unittest.TestCase):
             image = np.zeros((540, 960, 3), dtype=np.uint8)
             self.assertTrue(capture.submit(self.request(level=1, frame=1), image, [], []))
             self.assertTrue(started.wait(1.0))
-            self.assertTrue(capture.submit(self.request(level=1, frame=2), image, [], []))
-            self.assertFalse(capture.submit(self.request(level=1, frame=3), image, [], []))
+            self.assertTrue(capture.submit(self.request(level=1, frame=51), image, [], []))
+            self.assertFalse(capture.submit(self.request(level=1, frame=101), image, [], []))
             release.set()
             capture.close()
             self.assertGreaterEqual(capture.stats()["dropped_queue"], 1)
+
+    def test_stratifies_each_level_across_five_frame_windows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            capture = DiagnosticCapture(CaptureConfig(enabled=True, output_dir=Path(directory), queue_size=32))
+            image = np.zeros((540, 960, 3), dtype=np.uint8)
+            try:
+                for window_start in (0, 50, 100, 150, 200):
+                    for offset in (0, 1, 2):
+                        self.assertEqual(
+                            capture.submit(self.request(level=1, frame=window_start + offset), image, [], []),
+                            offset < 2,
+                        )
+            finally:
+                capture.close()
+            self.assertEqual(capture.stats()["accepted"], 10)
+            self.assertEqual(capture.stats()["written"], 10)
 
     def test_disk_quota_drops_capture_without_raising(self):
         with tempfile.TemporaryDirectory() as directory:

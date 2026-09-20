@@ -16,8 +16,8 @@ def record_v6_diagnostics(
     capture: DiagnosticCapture,
     request: Any,
     decoded_image: Any,
-    raw_candidates: Any,
+    merged_candidates: Any,
     response: Any,
 ) -> None:
     """Best-effort diagnostic handoff; never changes the response path."""
-    capture.submit(request, decoded_image, raw_candidates, response.annotations)
+    capture.submit(request, decoded_image, merged_candidates, response.annotations)
