@@ -4,6 +4,69 @@ Improvise, adapt, overcome!
 
 You are the hivemind of an entire species of herbivores. Ensure their survival by eating fruits and conserving energy, but beware of the predators roaming the territory.
 
+## Our solution
+
+This repo's submitted agent is a **hand-tuned rule-based heuristic**
+(`src/utils/controllers/heuristic_policy.py`), served as-is by
+`agent_server.py`. We also built a full IPPO reinforcement-learning
+pipeline (`training/RL/`) and tested it through several curriculum stages
+and hyperparameter searches, but it never beat the heuristic in a paired
+evaluation, so it was not used for submission. It's kept in this repo as
+reference/future work, not as the active policy (`agent_server.py`
+defaults to the heuristic; the RL path only turns on if `USE_RL_POLICY=1`
+is set, and even then only against a checkpoint verified to beat the
+heuristic first).
+
+### What changed in the heuristic, and why
+
+Two changes were measured against the original heuristic using
+`training/rule_based/` and `training/RL/eval_baselines.py` (paired seeds,
+McNemar's test):
+
+- **Face the predator while fleeing** (`FACE_PREDATOR_WHILE_FLEEING = True`
+  in `heuristic_policy.py`): instead of turning to face directly away from
+  a predator while retreating, the agent keeps turning *toward* it and
+  moves away in the opposite direction. This is a real, statistically
+  significant improvement: +12 points survival on the single-predator
+  stage (74.3% -> 86.3%) and +15 points on the multi-predator stage (22.0%
+  -> 37.0%), both p < 0.001 over 300 paired episodes. It shows no measurable
+  effect on the full-dynamics stage, where starvation and population
+  collapse dominate the outcome rather than individual predator encounters.
+- **Require 2 nearby fruits before spawning**, not just 1
+  (`SPAWN_MIN_FRUITS = 2`): the best of several reproduction-rule variants
+  we tried, but the gain (+44 seconds mean survival on the full-dynamics
+  stage) did not reach statistical significance. It's adopted because it
+  never measured worse than the original rule across seven variants
+  tested, so the downside risk is low.
+
+Other ideas were tried and explicitly rejected by measurement: wall-aware
+escape repulsion (significantly worse -- likely overrides the escape
+direction when cornered), a memory-based "ignore distant, non-closing
+predators" rule (significantly worse -- lets a fast predator close the gap
+undetected), and several population-cap / trait-based reproduction rules
+(no significant effect on any tested stage).
+
+### Reinforcement learning (`training/RL/`)
+
+We built curriculum-based IPPO training (5 stages, `stage1_foraging`
+through `stage5_full_dynamics`), behavior cloning + DAgger to bootstrap a
+policy from the heuristic before PPO fine-tuning, a centralized critic for
+colony-level shaping, and an Optuna hyperparameter search. Behavior cloning
+alone gets close to heuristic performance on some stages, but no
+PPO-fine-tuned checkpoint beat the heuristic in a paired evaluation on the
+stages that matter for the final score. See `training/RL/README.md` and
+`training/rule_based/README.md` for the implementation details and the
+instrumentation used to measure all of the above.
+
+### Running and deploying
+
+Follow the "Install" and "Run on server" sections below to run
+`agent_server.py` locally. For a persistent deployment (e.g. a VM), run it
+under a process manager or terminal multiplexer (`tmux`, `screen`, etc.) so
+it survives your SSH session ending, and keep a separate test port
+alongside your live port so a new candidate can be smoke-tested before it
+replaces the live one.
+
 ## About the game
 You are in control of all members of your species (agents) simultaneously. At every tick you will recieve a list of each agent's observations and status. The agents have a hearing/smelling radius and a vision cone. Any object within the vision cone is added to observations with an object type and data depending on object type. Note that creatures cannot hear/smell walls, only see them and vision can be blocked by walls.
 
