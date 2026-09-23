@@ -1,0 +1,93 @@
+{
+  "detector": "epoch30-final",
+  "rows": [
+    {
+      "target": "t60_heli",
+      "best_iou": 0.0,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 122
+    },
+    {
+      "target": "t60_plane",
+      "best_iou": 0.471,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 122
+    },
+    {
+      "target": "t60_dark",
+      "best_iou": 0.0,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 122
+    },
+    {
+      "target": "t125_heli",
+      "best_iou": 0.0,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 139
+    },
+    {
+      "target": "t125_hangar",
+      "best_iou": 0.061,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 139
+    },
+    {
+      "target": "t125_planeA",
+      "best_iou": 0.152,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 139
+    },
+    {
+      "target": "t125_planeB",
+      "best_iou": 0.078,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 139
+    },
+    {
+      "target": "t125_planeC",
+      "best_iou": 0.096,
+      "any_iou_ge_0.5": false,
+      "best_qualifying_candidate_rank": null,
+      "survive_32": false,
+      "survive_64": false,
+      "survive_128": false,
+      "survive_256": false,
+      "raw_total": 139
+    }
+  ]
+}

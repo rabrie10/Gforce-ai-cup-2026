@@ -1,0 +1,207 @@
+{
+ "archive": "Nordic-AI-Cup-2026-Final-Archive",
+ "created": "2026-09-20T16:25:13.560279+02:00",
+ "competition": "Nordic AI Cup 2026 - Drone Flyby",
+ "final_score": 0.024644923331075038,
+ "final_attempt_uuid": "c594011b82984f9b9c0cf563ee34e1c9",
+ "submitted_detector_sha256": "52b9fcef703d3fc5f35993f3088381f545b50d1091c862f52ff0c4df1cd091b8",
+ "git_commit_at_submission": "f3c247fb68323f6202a21d19b6f835e2c869a23d",
+ "note": "Long Runpod filenames are stored inside .tgz archives to stay within the Windows 260-char path limit.",
+ "total_files_in_archive": 30,
+ "manifest_bytes": 2165229169,
+ "entries": [
+  {
+   "archived_path": "checkpoints/v7_e15_snapshot.pt",
+   "original_source": "/workspace/v7_e15_snapshot.pt",
+   "classification": "ESSENTIAL",
+   "description": "SUBMITTED detector",
+   "bytes": 76010723,
+   "sha256": "52b9fcef703d3fc5f35993f3088381f545b50d1091c862f52ff0c4df1cd091b8"
+  },
+  {
+   "archived_path": "checkpoints/v7_final_e30.pt",
+   "original_source": "/workspace/v7_final_e30.pt",
+   "classification": "ESSENTIAL",
+   "description": "epoch-30 alt (not submitted)",
+   "bytes": 19189466,
+   "sha256": "cd370c1f91cf845bac8e4091079c236b69f8c6638a52b7a14949f77f8514edd1"
+  },
+  {
+   "archived_path": "checkpoints/ms1_best.pt",
+   "original_source": "/workspace/training/ms1/weights/best.pt",
+   "classification": "ESSENTIAL",
+   "description": "V6 baseline detector",
+   "bytes": 19198362,
+   "sha256": "e5172a375c6dcd8f72d84779fef27a48afba7aff0c9e5cec2422caa6a888b8ba"
+  },
+  {
+   "archived_path": "checkpoints/v7a_last_e30.pt",
+   "original_source": "/workspace/training/v7a/weights/last.pt",
+   "classification": "ESSENTIAL",
+   "description": "V7 run last epoch",
+   "bytes": 19189466,
+   "sha256": "1d2f2a15aec78cb659582aff847ed4a54afabface4670bbd8cd9b75cda0d968a"
+  },
+  {
+   "archived_path": "checkpoints/bg_head.npz",
+   "original_source": "/workspace/assets/bg_head.npz",
+   "classification": "ESSENTIAL",
+   "description": "custom target/bg head",
+   "bytes": 2536,
+   "sha256": "b1d0f4db02f944615ca7b0e7f3c2dc26dbe6b5e315444974072358882e377910"
+  },
+  {
+   "archived_path": "checkpoints/bg_head_data.npz",
+   "original_source": "/workspace/assets/bg_head_data.npz",
+   "classification": "ESSENTIAL",
+   "description": "bg head training features",
+   "bytes": 10015358,
+   "sha256": "ffff63c56d4e32d0d7624ef305f6365d4b46598e25275510a396dd7f4a9f90f6"
+  },
+  {
+   "archived_path": "checkpoints/visual_head.npz",
+   "original_source": "/workspace/assets/visual_head.npz",
+   "classification": "ESSENTIAL",
+   "description": "custom 16-class head",
+   "bytes": 795539,
+   "sha256": "b1c04093f1c9b261fc568432817a97302ca8d6441d597b1fdddefaeff3b387d6"
+  },
+  {
+   "archived_path": "checkpoints/dinov2_224.onnx",
+   "original_source": "/workspace/assets/dinov2_224.onnx",
+   "classification": "ESSENTIAL",
+   "description": "DINOv2 encoder export",
+   "bytes": 88356302,
+   "sha256": "ddacda6384a4f5b1a035a976253a1a45a7ae97f6c61cb2099dbc47563099b9ea"
+  },
+  {
+   "archived_path": "checkpoints/discovery.onnx",
+   "original_source": "/workspace/assets/discovery.onnx",
+   "classification": "ESSENTIAL",
+   "description": "legacy discovery export",
+   "bytes": 37888655,
+   "sha256": "66a77dfba65c4c69257b9473336840049856aceb295e20e7d37a5559c06dd1fb"
+  },
+  {
+   "archived_path": "checkpoints/bg_head_metrics.json",
+   "original_source": "/workspace/assets/bg_head_metrics.json",
+   "classification": "ESSENTIAL",
+   "description": "bg head metrics",
+   "bytes": 133,
+   "sha256": "23ac0a752d375316a90d6d57fb27facc1be2f26a4f449e0992cda9c36f8d7402"
+  },
+  {
+   "archived_path": "checkpoints/bg_head_provenance.json",
+   "original_source": "/workspace/assets/bg_head_provenance.json",
+   "classification": "ESSENTIAL",
+   "description": "bg head provenance",
+   "bytes": 1329,
+   "sha256": "a2806f0f45b053c64fc4690c9b81c536b0f3fd7bb639ffd14a1e3731ba9144a2"
+  },
+  {
+   "archived_path": "checkpoints/manifest.json",
+   "original_source": "/workspace/assets/manifest.json",
+   "classification": "ESSENTIAL",
+   "description": "assets manifest",
+   "bytes": 415,
+   "sha256": "be427f9b6c0490939c1fa5e34ca51284edf9d8142d76a0c4f5d80bca72554bd2"
+  },
+  {
+   "archived_path": "diagnostics/ev_diagnostics.tgz",
+   "original_source": "/workspace/diagnostic-validations + /workspace/v6-diagnostics-8ae3b97",
+   "classification": "ESSENTIAL",
+   "description": "hosted diagnostic captures (long filenames -> tar)",
+   "bytes": 42579035,
+   "sha256": "7a1ba4d1e41961b05b80388db74ccbc3b5674398c1b3ec51faf3cc2b449f20af"
+  },
+  {
+   "archived_path": "diagnostics/ev_audit.tgz",
+   "original_source": "/workspace/audit-l1l2",
+   "classification": "ESSENTIAL",
+   "description": "frozen annotations, overlays, comparisons, ablations",
+   "bytes": 21950803,
+   "sha256": "06e0a6441eafb4467bf415da8394c2fd25238cf46567024fa15edfa9becdda4b"
+  },
+  {
+   "archived_path": "diagnostics/ev_incident.tgz",
+   "original_source": "/workspace/v7-validation-incident-7306c67f + monitors + preserved states",
+   "classification": "ESSENTIAL",
+   "description": "transport incident + retry/final telemetry",
+   "bytes": 88735,
+   "sha256": "e49af4cfa22f7f825a6b78490d10498d7bcdd104e5453170457b32d6700274ce"
+  },
+  {
+   "archived_path": "training/training_runs.tgz",
+   "original_source": "/workspace/training (weights excluded)",
+   "classification": "ESSENTIAL",
+   "description": "results.csv, args.yaml for ms1/v7a/da1",
+   "bytes": 5036767,
+   "sha256": "31fe1ae8e5a5c40b1f92e7aea140f372fbfde8e631c1d2084e6c08708493b27c"
+  },
+  {
+   "archived_path": "datasets/v7_objects.tgz",
+   "original_source": "/workspace/assets/v7_objects + dataset_v7 manifests",
+   "classification": "ESSENTIAL",
+   "description": "extracted masks + generator manifests",
+   "bytes": 3060219,
+   "sha256": "53c48b99fb40fe1e8e37d96b773803f6528d6f1f33aa7cadb28c604da78ddb18"
+  },
+  {
+   "archived_path": "datasets/dataset_v7.tgz",
+   "original_source": "/workspace/assets/dataset_v7",
+   "classification": "REGENERABLE",
+   "description": "full generated dataset 3600+420",
+   "bytes": 1091426374,
+   "sha256": "1630e21aaa4e3c9193f548fd672c290c8aad4ad57ce00032637b2db5e18f1c1d"
+  },
+  {
+   "archived_path": "deployment/scripts_cfg.tgz",
+   "original_source": "/workspace/*.py,*.sh",
+   "classification": "ESSENTIAL",
+   "description": "generator/training/eval/deploy scripts + env template",
+   "bytes": 28237,
+   "sha256": "ddede79c65216304c51a84936632d81f0d1bc9ad3ce4c738ca79651db314750f"
+  },
+  {
+   "archived_path": "deployment/SUBMITTED_pipeline_v6.py",
+   "original_source": "/workspace/v7-release-candidate/v5/gpu/pipeline_v6.py",
+   "classification": "ESSENTIAL",
+   "description": "exact submitted serving code",
+   "bytes": 19775,
+   "sha256": "6f9be14ef9b59875f2b1c6340b321ccb32b31c33489bc9c071a877c865bb83de"
+  },
+  {
+   "archived_path": "experiments/NOT_SUBMITTED_pipeline_v6_cameraclamp.py",
+   "original_source": "/workspace/v7b-release/v5/gpu/pipeline_v6.py",
+   "classification": "ESSENTIAL",
+   "description": "camera clamp variant - DO NOT DEPLOY",
+   "bytes": 21212,
+   "sha256": "ebec47bda72d8b31b739c5573626093cc21e01c86b192d05730bb6f233e77026"
+  },
+  {
+   "archived_path": "logs/logs.tgz",
+   "original_source": "/workspace/logs",
+   "classification": "ESSENTIAL",
+   "description": "service + training logs",
+   "bytes": 267154,
+   "sha256": "2e80f9a9aac3da652d71179c925fcffabfa1140ae8fc7c02db402175b916a679"
+  },
+  {
+   "archived_path": "source/repo-all-refs.bundle",
+   "original_source": "local git repo (all refs)",
+   "classification": "ESSENTIAL",
+   "description": "complete git history incl. final commit",
+   "bytes": 730097480,
+   "sha256": "0e8a5028c7f75798aac71d198a02343564f6a1f4bc5cf1842393f6359bbeb68c"
+  },
+  {
+   "archived_path": "evaluations/OFFICIAL_RESULTS.json",
+   "original_source": "session portal responses",
+   "classification": "ESSENTIAL",
+   "description": "official scores + provenance flags",
+   "bytes": 5094,
+   "sha256": "af91b9fa4338c4a53e6e4c660b5ecb2bde19d4d22576eedac79890035010c0d8"
+  }
+ ],
+ "missing": []
+}

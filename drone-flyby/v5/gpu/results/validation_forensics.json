@@ -1,0 +1,14 @@
+{
+  "attempt_uuid": "2c59641e01574c2593747fe302dcba43",
+  "commit": "dc55f76",
+  "official_raw_score": 0.0025387154100025384,
+  "reported_error": "Frame 51 did not answer within 3333 ms",
+  "endpoint_predict_requests": 142,
+  "endpoint_non200": 0,
+  "endpoint_errors": 0,
+  "annotated_folder": "25 Helsinki overlay renders (frames 0-24); NOT new data; real GT is src/helsinki/annotations already used",
+  "official_helsinki_map50": {"oracle": 1.0, "L0_only_active_camera_off": 0.0, "active_camera_existing_scheduler": 0.006, "L0_plus_3x2_tiling_budget96": 0.048},
+  "target_px_at_L0": "5-42 (most 5-13)",
+  "root_cause": "targets unresolvable at L0; validation ran L0-only (active_camera off) -> 0 detections match GT",
+  "next_action": "systematic L1/L2 acquisition scan + temporal global retention; prototype against offline official scorer before next hosted Validation"
+}

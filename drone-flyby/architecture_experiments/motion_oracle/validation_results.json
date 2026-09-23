@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "independent_prediction_rows": 12280,
+  "common_cohort_keys": 2213,
+  "independently_checked_summary_rows": 2510,
+  "donor_updates": 408,
+  "independently_checked_loo_transitions": 243,
+  "audit_cv_rows_matched": 2213,
+  "future_target_poisoning_origins": 243,
+  "no_support_checks": "PASS",
+  "fixed_shared_hybrid_equals_cv": "PASS",
+  "unchanged_inputs": 30,
+  "figures": 8
+}

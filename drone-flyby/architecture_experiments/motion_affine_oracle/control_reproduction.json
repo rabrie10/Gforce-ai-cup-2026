@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "exact_rows": 12280,
+  "cv_baseline": {
+    "1": {
+      "valid": 227,
+      "eligible": 227
+    },
+    "2": {
+      "valid": 207,
+      "eligible": 212
+    },
+    "3": {
+      "valid": 179,
+      "eligible": 197
+    },
+    "4": {
+      "valid": 146,
+      "eligible": 182
+    },
+    "5": {
+      "valid": 104,
+      "eligible": 168
+    },
+    "6": {
+      "valid": 58,
+      "eligible": 155
+    },
+    "9": {
+      "valid": 0,
+      "eligible": 117
+    },
+    "all_audit_cv_rows_matched": 2213
+  },
+  "translation_validation": "PASS",
+  "similarity_validation": "PASS"
+}

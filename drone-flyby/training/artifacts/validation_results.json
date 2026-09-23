@@ -1,0 +1,60 @@
+{
+  "status": "PASS_WITH_DOCKER_ENGINE_BLOCKED",
+  "branch": "drone-minimal-e2e-baseline",
+  "base_commit": "0ffe65733aef68f5c0109714e48de88ac2cbbe84",
+  "frozen_candidate": {
+    "model": "YOLO11n",
+    "epochs": 60,
+    "imgsz": 960,
+    "batch": 4,
+    "seed": 20260918,
+    "class_agnostic_nms": true,
+    "camera_policy": "always-L0",
+    "temporal_state": false,
+    "gmc": false,
+    "torch_threads": 4,
+    "weight_path": "models/drone_yolo11n_l0.pt",
+    "weight_bytes": 5494554,
+    "weight_sha256": "4C44E404E03673E8AA15FC85BAF90F2D09B67D90C1FD94C9B6C9A4C1F35204CE"
+  },
+  "tests": {
+    "direct_unittest": {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests/test_baseline.py -v",
+      "tests_run": 5,
+      "failures": 0,
+      "errors": 0,
+      "status": "PASS"
+    },
+    "compileall": "PASS",
+    "dataset_rebuild_hash_match": "PASS",
+    "oracle_map50": 1.0,
+    "oracle_all_16_classes_ap50": 1.0,
+    "historical_probe_suite_exit_code": 0,
+    "historical_probe_authoritative_inputs_unchanged": true
+  },
+  "realtime_diagnosis": {
+    "sent_frame_indices": [0, 3, 6, 9, 12, 15, 18, 21],
+    "offline_and_realtime_predictions_identical_on_sent_frames": true,
+    "different_sent_frames": [],
+    "offline_prediction_count": 235,
+    "realtime_prediction_count": 74,
+    "cause": "The evaluator skipped 17 source frames under its realtime schedule. Camera state stayed at L0 and predictions on every sent frame matched the offline run exactly."
+  },
+  "docker": {
+    "build_command": "docker build --progress=plain -t drone-flyby-baseline:local .",
+    "status": "BLOCKED_ENGINE_NOT_RUNNING",
+    "error": "ERROR: error during connect: in the default daemon configuration on Windows, the docker client must be run with elevated privileges to connect: Head \"http://%2F%2F.%2Fpipe%2Fdocker_engine/_ping\": open //./pipe/docker_engine: The system cannot find the file specified.",
+    "classification": "local Docker service/runtime availability",
+    "static_context_checks": {
+      "dockerfile_copies_models_directory": true,
+      "dockerignore_keeps_models_directory": true,
+      "container_command": "python api.py",
+      "container_port": 9053,
+      "runtime_model_download_required": false
+    },
+    "image_build_verified": false,
+    "health_verified": false,
+    "predict_verified": false,
+    "warm_latency_verified": false
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "detector": "da1",
+  "result": {
+    "full": {
+      "hits_ge_0.5": 0,
+      "per_target": {
+        "t60_heli": 0.0,
+        "t60_plane": 0.396,
+        "t60_dark": 0.182,
+        "t125_heli": 0.0,
+        "t125_hangar": 0.037,
+        "t125_planeA": 0.0,
+        "t125_planeB": 0.185,
+        "t125_planeC": 0.044
+      }
+    },
+    "full+4x3tiled": {
+      "hits_ge_0.5": 0,
+      "per_target": {
+        "t60_heli": 0.273,
+        "t60_plane": 0.437,
+        "t60_dark": 0.182,
+        "t125_heli": 0.0,
+        "t125_hangar": 0.055,
+        "t125_planeA": 0.142,
+        "t125_planeB": 0.286,
+        "t125_planeC": 0.056
+      }
+    }
+  }
+}

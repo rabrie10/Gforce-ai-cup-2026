@@ -1,0 +1,17 @@
+actual_class,hangar,helicopter,jet_plane,large_launcher,large_tower,medium_launcher,medium_plane,mine_roller,small_launcher,small_plane,small_tower,ta-ta,tank,condor,jammer,spacecraft,no_detection
+hangar,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2
+helicopter,0,19,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+jet_plane,0,0,21,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+large_launcher,0,0,0,25,0,0,0,0,0,0,0,0,0,0,0,0,0
+large_tower,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,19
+medium_launcher,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10
+medium_plane,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5
+mine_roller,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2
+small_launcher,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,25
+small_plane,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9
+small_tower,0,0,0,0,0,0,0,0,0,0,19,0,0,0,0,0,1
+ta-ta,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,25
+tank,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,7,17
+condor,0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,2
+jammer,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,12
+spacecraft,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,20,1

@@ -1,0 +1,1000 @@
+{
+  "experiment": "V3 STAGE 2: CONTROLLED FULL-PIPELINE INTEGRATION",
+  "v3_discovery_commit": "74d1e0181d794b425f06d13a625df3de2fb6f7dd",
+  "frozen_v2_commit": "6fb764e5b9fb5f7eefcb832c72b35553165219e5",
+  "model_hashes": {
+    "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\models\\v3_oneclass_standard.onnx": "2daeabaeee41ffca9285485920238ce09c7762423d2d4fc41e406625d1b44d8f",
+    "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\models\\v3_oneclass_standard.pt": "126aa31373775b324cf0df37c683b983202f9bc4dbfafd6105f40d98fafcec07"
+  },
+  "configs": [
+    {
+      "backend": "v2",
+      "budget": 32,
+      "confidence_threshold": 0.01,
+      "nms_iou": 0.55
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 8,
+      "confidence_threshold": 0.01,
+      "nms_iou": 0.55
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 16,
+      "confidence_threshold": 0.01,
+      "nms_iou": 0.55
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 24,
+      "confidence_threshold": 0.01,
+      "nms_iou": 0.55
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 32,
+      "confidence_threshold": 0.01,
+      "nms_iou": 0.55
+    }
+  ],
+  "helsinki": [
+    {
+      "backend": "v2",
+      "budget": 32,
+      "harness": "offline-complete",
+      "map50": 0.43058011210323227,
+      "per_class_ap": {
+        "hangar": 0.6633663366336634,
+        "helicopter": 0.9446571154811334,
+        "jet_plane": 0.919275801819533,
+        "large_launcher": 0.9845447959430089,
+        "large_tower": 0.0,
+        "medium_launcher": 0.0,
+        "medium_plane": 0.0,
+        "mine_roller": 0.0,
+        "small_launcher": 0.0,
+        "small_plane": 0.0,
+        "small_tower": 0.9351935193519352,
+        "ta-ta": 0.0,
+        "tank": 0.6039603960396039,
+        "condor": 0.900990099009901,
+        "jammer": 0.0,
+        "spacecraft": 0.9372937293729372
+      },
+      "frames_total": 25,
+      "accepted_frames": 25,
+      "skipped_frames": 0,
+      "invalid_responses": 0,
+      "invalid_commands": 0,
+      "annotations_per_accepted_frame": 22.52,
+      "distinct_emitted_classes": [
+        "condor",
+        "hangar",
+        "helicopter",
+        "jammer",
+        "jet_plane",
+        "large_launcher",
+        "large_tower",
+        "medium_launcher",
+        "medium_plane",
+        "mine_roller",
+        "small_launcher",
+        "small_plane",
+        "small_tower",
+        "spacecraft",
+        "tank"
+      ],
+      "emitted_class_distribution": {
+        "condor": 32,
+        "hangar": 4,
+        "helicopter": 78,
+        "jammer": 2,
+        "jet_plane": 74,
+        "large_launcher": 130,
+        "large_tower": 80,
+        "medium_launcher": 20,
+        "medium_plane": 2,
+        "mine_roller": 4,
+        "small_launcher": 23,
+        "small_plane": 5,
+        "small_tower": 49,
+        "spacecraft": 44,
+        "tank": 16
+      },
+      "track_bank_mean": 9.8,
+      "track_bank_max": 15,
+      "track_bank_saturation_frames": 0,
+      "tracks_created": 29,
+      "tracks_removed": 24,
+      "candidate_to_output_conversion": 2.815,
+      "latency_ms": {
+        "decode": {
+          "p50_ms": 49.72,
+          "p95_ms": 62.223999999999975,
+          "max_ms": 67.13
+        },
+        "emit": {
+          "p50_ms": 2.2,
+          "p95_ms": 3.815999999999999,
+          "max_ms": 5.06
+        },
+        "gmc": {
+          "p50_ms": 25.04,
+          "p95_ms": 40.41999999999998,
+          "max_ms": 48.16
+        },
+        "predict_state": {
+          "p50_ms": 0.36,
+          "p95_ms": 0.997999999999999,
+          "max_ms": 1.75
+        },
+        "proposals": {
+          "p50_ms": 174.48,
+          "p95_ms": 207.49399999999997,
+          "max_ms": 211.83
+        },
+        "recognize": {
+          "p50_ms": 119.82,
+          "p95_ms": 171.2,
+          "max_ms": 177.91
+        },
+        "schedule": {
+          "p50_ms": 0.13,
+          "p95_ms": 0.15799999999999997,
+          "max_ms": 0.34
+        },
+        "total": {
+          "p50_ms": 369.3,
+          "p95_ms": 442.6959999999999,
+          "max_ms": 446.83
+        },
+        "update_state": {
+          "p50_ms": 0.86,
+          "p95_ms": 2.0739999999999994,
+          "max_ms": 2.38
+        }
+      },
+      "realtime": {
+        "accepted_frames": 8,
+        "skipped_frames": 17,
+        "invalid_responses": 0,
+        "invalid_commands": 0,
+        "map50": 0.11067792047061849,
+        "latency_ms": {
+          "decode": {
+            "p50_ms": 49.405,
+            "p95_ms": 64.146,
+            "max_ms": 68.43
+          },
+          "emit": {
+            "p50_ms": 1.6099999999999999,
+            "p95_ms": 3.0429999999999997,
+            "max_ms": 3.33
+          },
+          "gmc": {
+            "p50_ms": 22.495,
+            "p95_ms": 32.317,
+            "max_ms": 33.29
+          },
+          "predict_state": {
+            "p50_ms": 0.77,
+            "p95_ms": 1.8944999999999996,
+            "max_ms": 2.01
+          },
+          "proposals": {
+            "p50_ms": 175.99,
+            "p95_ms": 195.6885,
+            "max_ms": 198.52
+          },
+          "recognize": {
+            "p50_ms": 102.31,
+            "p95_ms": 176.61899999999997,
+            "max_ms": 203.24
+          },
+          "schedule": {
+            "p50_ms": 0.13,
+            "p95_ms": 0.23199999999999996,
+            "max_ms": 0.26
+          },
+          "total": {
+            "p50_ms": 363.275,
+            "p95_ms": 436.64099999999996,
+            "max_ms": 464.83
+          },
+          "update_state": {
+            "p50_ms": 0.525,
+            "p95_ms": 1.4765,
+            "max_ms": 1.48
+          }
+        }
+      }
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 8,
+      "harness": "offline-complete",
+      "map50": 0.4591333214203773,
+      "per_class_ap": {
+        "hangar": 0.0,
+        "helicopter": 0.9028586682197631,
+        "jet_plane": 0.9443069306930693,
+        "large_launcher": 0.9895165987186954,
+        "large_tower": 0.0,
+        "medium_launcher": 0.0,
+        "medium_plane": 0.0,
+        "mine_roller": 0.0,
+        "small_launcher": 0.0,
+        "small_plane": 0.0,
+        "small_tower": 0.9351935193519352,
+        "ta-ta": 0.0,
+        "tank": 0.9603960396039604,
+        "condor": 0.900990099009901,
+        "jammer": 0.7623762376237624,
+        "spacecraft": 0.9504950495049505
+      },
+      "frames_total": 25,
+      "accepted_frames": 25,
+      "skipped_frames": 0,
+      "invalid_responses": 0,
+      "invalid_commands": 0,
+      "annotations_per_accepted_frame": 20.8,
+      "distinct_emitted_classes": [
+        "condor",
+        "hangar",
+        "helicopter",
+        "jammer",
+        "jet_plane",
+        "large_launcher",
+        "large_tower",
+        "medium_launcher",
+        "medium_plane",
+        "mine_roller",
+        "small_launcher",
+        "small_plane",
+        "small_tower",
+        "spacecraft",
+        "ta-ta",
+        "tank"
+      ],
+      "emitted_class_distribution": {
+        "condor": 20,
+        "hangar": 3,
+        "helicopter": 54,
+        "jammer": 19,
+        "jet_plane": 89,
+        "large_launcher": 82,
+        "large_tower": 57,
+        "medium_launcher": 14,
+        "medium_plane": 3,
+        "mine_roller": 3,
+        "small_launcher": 14,
+        "small_plane": 2,
+        "small_tower": 45,
+        "spacecraft": 52,
+        "ta-ta": 6,
+        "tank": 57
+      },
+      "track_bank_mean": 9.56,
+      "track_bank_max": 12,
+      "track_bank_saturation_frames": 0,
+      "tracks_created": 37,
+      "tracks_removed": 25,
+      "candidate_to_output_conversion": 2.6,
+      "latency_ms": {
+        "decode": {
+          "p50_ms": 44.98,
+          "p95_ms": 66.76999999999997,
+          "max_ms": 75.59
+        },
+        "emit": {
+          "p50_ms": 1.48,
+          "p95_ms": 2.8739999999999983,
+          "max_ms": 3.96
+        },
+        "gmc": {
+          "p50_ms": 21.7,
+          "p95_ms": 33.35599999999999,
+          "max_ms": 34.64
+        },
+        "predict_state": {
+          "p50_ms": 0.34,
+          "p95_ms": 0.8759999999999992,
+          "max_ms": 2.05
+        },
+        "proposals": {
+          "p50_ms": 178.46,
+          "p95_ms": 210.82599999999994,
+          "max_ms": 232.97
+        },
+        "recognize": {
+          "p50_ms": 116.92,
+          "p95_ms": 155.22999999999996,
+          "max_ms": 262.82
+        },
+        "schedule": {
+          "p50_ms": 0.11,
+          "p95_ms": 0.15,
+          "max_ms": 0.22
+        },
+        "total": {
+          "p50_ms": 374.3,
+          "p95_ms": 431.5419999999999,
+          "max_ms": 521.52
+        },
+        "update_state": {
+          "p50_ms": 0.63,
+          "p95_ms": 1.0559999999999998,
+          "max_ms": 1.34
+        }
+      },
+      "realtime": {
+        "accepted_frames": 8,
+        "skipped_frames": 17,
+        "invalid_responses": 0,
+        "invalid_commands": 0,
+        "map50": 0.12594295143800094,
+        "latency_ms": {
+          "decode": {
+            "p50_ms": 42.870000000000005,
+            "p95_ms": 162.6604999999999,
+            "max_ms": 223.27
+          },
+          "emit": {
+            "p50_ms": 1.19,
+            "p95_ms": 2.285499999999999,
+            "max_ms": 2.8
+          },
+          "gmc": {
+            "p50_ms": 21.025,
+            "p95_ms": 28.725499999999997,
+            "max_ms": 30.85
+          },
+          "predict_state": {
+            "p50_ms": 0.8,
+            "p95_ms": 1.2534999999999998,
+            "max_ms": 1.39
+          },
+          "proposals": {
+            "p50_ms": 168.71499999999997,
+            "p95_ms": 240.01649999999992,
+            "max_ms": 275.09
+          },
+          "recognize": {
+            "p50_ms": 113.77,
+            "p95_ms": 146.7565,
+            "max_ms": 160.62
+          },
+          "schedule": {
+            "p50_ms": 0.10500000000000001,
+            "p95_ms": 0.20149999999999993,
+            "max_ms": 0.24
+          },
+          "total": {
+            "p50_ms": 355.33500000000004,
+            "p95_ms": 536.7379999999999,
+            "max_ms": 608.95
+          },
+          "update_state": {
+            "p50_ms": 0.5,
+            "p95_ms": 1.6414999999999997,
+            "max_ms": 1.82
+          }
+        }
+      }
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 16,
+      "harness": "offline-complete",
+      "map50": 0.45525418633633896,
+      "per_class_ap": {
+        "hangar": 0.0,
+        "helicopter": 0.8066236089653641,
+        "jet_plane": 0.917028402347624,
+        "large_launcher": 0.9810231023102308,
+        "large_tower": 0.0,
+        "medium_launcher": 0.0,
+        "medium_plane": 0.0,
+        "mine_roller": 0.0,
+        "small_launcher": 0.0,
+        "small_plane": 0.0,
+        "small_tower": 0.818815810152444,
+        "ta-ta": 0.0,
+        "tank": 0.9495949594959497,
+        "condor": 0.8604860486048602,
+        "jammer": 1.0,
+        "spacecraft": 0.9504950495049505
+      },
+      "frames_total": 25,
+      "accepted_frames": 25,
+      "skipped_frames": 0,
+      "invalid_responses": 0,
+      "invalid_commands": 0,
+      "annotations_per_accepted_frame": 41.76,
+      "distinct_emitted_classes": [
+        "condor",
+        "hangar",
+        "helicopter",
+        "jammer",
+        "jet_plane",
+        "large_launcher",
+        "large_tower",
+        "medium_launcher",
+        "medium_plane",
+        "mine_roller",
+        "small_launcher",
+        "small_plane",
+        "small_tower",
+        "spacecraft",
+        "ta-ta",
+        "tank"
+      ],
+      "emitted_class_distribution": {
+        "condor": 54,
+        "hangar": 3,
+        "helicopter": 120,
+        "jammer": 31,
+        "jet_plane": 172,
+        "large_launcher": 177,
+        "large_tower": 146,
+        "medium_launcher": 46,
+        "medium_plane": 3,
+        "mine_roller": 13,
+        "small_launcher": 28,
+        "small_plane": 22,
+        "small_tower": 54,
+        "spacecraft": 76,
+        "ta-ta": 8,
+        "tank": 91
+      },
+      "track_bank_mean": 16.92,
+      "track_bank_max": 20,
+      "track_bank_saturation_frames": 0,
+      "tracks_created": 65,
+      "tracks_removed": 50,
+      "candidate_to_output_conversion": 2.7329842931937174,
+      "latency_ms": {
+        "decode": {
+          "p50_ms": 45.73,
+          "p95_ms": 56.489999999999995,
+          "max_ms": 60.06
+        },
+        "emit": {
+          "p50_ms": 3.11,
+          "p95_ms": 5.997999999999999,
+          "max_ms": 6.06
+        },
+        "gmc": {
+          "p50_ms": 22.26,
+          "p95_ms": 28.488,
+          "max_ms": 38.05
+        },
+        "predict_state": {
+          "p50_ms": 0.55,
+          "p95_ms": 0.9279999999999996,
+          "max_ms": 2.0
+        },
+        "proposals": {
+          "p50_ms": 180.57,
+          "p95_ms": 192.892,
+          "max_ms": 193.28
+        },
+        "recognize": {
+          "p50_ms": 206.09,
+          "p95_ms": 276.38999999999993,
+          "max_ms": 304.21
+        },
+        "schedule": {
+          "p50_ms": 0.13,
+          "p95_ms": 0.15799999999999997,
+          "max_ms": 0.41
+        },
+        "total": {
+          "p50_ms": 464.63,
+          "p95_ms": 540.4259999999998,
+          "max_ms": 568.72
+        },
+        "update_state": {
+          "p50_ms": 1.44,
+          "p95_ms": 2.529999999999999,
+          "max_ms": 2.76
+        }
+      },
+      "realtime": {
+        "accepted_frames": 7,
+        "skipped_frames": 18,
+        "invalid_responses": 0,
+        "invalid_commands": 0,
+        "map50": 0.12280837458745875,
+        "latency_ms": {
+          "decode": {
+            "p50_ms": 43.23,
+            "p95_ms": 45.507,
+            "max_ms": 45.51
+          },
+          "emit": {
+            "p50_ms": 3.12,
+            "p95_ms": 4.095999999999999,
+            "max_ms": 4.36
+          },
+          "gmc": {
+            "p50_ms": 20.65,
+            "p95_ms": 24.663999999999998,
+            "max_ms": 25.36
+          },
+          "predict_state": {
+            "p50_ms": 1.43,
+            "p95_ms": 1.738,
+            "max_ms": 1.81
+          },
+          "proposals": {
+            "p50_ms": 173.26,
+            "p95_ms": 194.91,
+            "max_ms": 196.08
+          },
+          "recognize": {
+            "p50_ms": 199.07,
+            "p95_ms": 307.728,
+            "max_ms": 324.66
+          },
+          "schedule": {
+            "p50_ms": 0.13,
+            "p95_ms": 0.161,
+            "max_ms": 0.17
+          },
+          "total": {
+            "p50_ms": 457.3,
+            "p95_ms": 559.847,
+            "max_ms": 569.36
+          },
+          "update_state": {
+            "p50_ms": 1.2,
+            "p95_ms": 2.167,
+            "max_ms": 2.23
+          }
+        }
+      }
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 24,
+      "harness": "offline-complete",
+      "map50": 0.46050049293027884,
+      "per_class_ap": {
+        "hangar": 0.0,
+        "helicopter": 0.8094189422488556,
+        "jet_plane": 0.9104666743465527,
+        "large_launcher": 0.969423959281482,
+        "large_tower": 0.0,
+        "medium_launcher": 0.0,
+        "medium_plane": 0.0,
+        "mine_roller": 0.0,
+        "small_launcher": 0.0,
+        "small_plane": 0.0,
+        "small_tower": 0.914002828854314,
+        "ta-ta": 0.07746068724519511,
+        "tank": 0.9434229137199434,
+        "condor": 0.7933168316831684,
+        "jammer": 1.0,
+        "spacecraft": 0.9504950495049505
+      },
+      "frames_total": 25,
+      "accepted_frames": 25,
+      "skipped_frames": 0,
+      "invalid_responses": 0,
+      "invalid_commands": 0,
+      "annotations_per_accepted_frame": 57.0,
+      "distinct_emitted_classes": [
+        "condor",
+        "hangar",
+        "helicopter",
+        "jammer",
+        "jet_plane",
+        "large_launcher",
+        "large_tower",
+        "medium_launcher",
+        "medium_plane",
+        "mine_roller",
+        "small_launcher",
+        "small_plane",
+        "small_tower",
+        "spacecraft",
+        "ta-ta",
+        "tank"
+      ],
+      "emitted_class_distribution": {
+        "condor": 58,
+        "hangar": 3,
+        "helicopter": 138,
+        "jammer": 59,
+        "jet_plane": 226,
+        "large_launcher": 241,
+        "large_tower": 196,
+        "medium_launcher": 58,
+        "medium_plane": 3,
+        "mine_roller": 24,
+        "small_launcher": 39,
+        "small_plane": 35,
+        "small_tower": 74,
+        "spacecraft": 113,
+        "ta-ta": 29,
+        "tank": 129
+      },
+      "track_bank_mean": 22.16,
+      "track_bank_max": 29,
+      "track_bank_saturation_frames": 0,
+      "tracks_created": 86,
+      "tracks_removed": 71,
+      "candidate_to_output_conversion": 2.8051181102362204,
+      "latency_ms": {
+        "decode": {
+          "p50_ms": 45.11,
+          "p95_ms": 71.69799999999998,
+          "max_ms": 123.18
+        },
+        "emit": {
+          "p50_ms": 5.15,
+          "p95_ms": 7.877999999999998,
+          "max_ms": 8.4
+        },
+        "gmc": {
+          "p50_ms": 22.92,
+          "p95_ms": 31.17799999999999,
+          "max_ms": 41.96
+        },
+        "predict_state": {
+          "p50_ms": 0.75,
+          "p95_ms": 0.9719999999999999,
+          "max_ms": 0.99
+        },
+        "proposals": {
+          "p50_ms": 179.33,
+          "p95_ms": 227.84399999999994,
+          "max_ms": 236.19
+        },
+        "recognize": {
+          "p50_ms": 237.0,
+          "p95_ms": 358.77599999999995,
+          "max_ms": 386.24
+        },
+        "schedule": {
+          "p50_ms": 0.12,
+          "p95_ms": 0.19799999999999982,
+          "max_ms": 0.21
+        },
+        "total": {
+          "p50_ms": 508.85,
+          "p95_ms": 616.05,
+          "max_ms": 637.5
+        },
+        "update_state": {
+          "p50_ms": 1.93,
+          "p95_ms": 3.9579999999999984,
+          "max_ms": 4.23
+        }
+      },
+      "realtime": {
+        "accepted_frames": 7,
+        "skipped_frames": 18,
+        "invalid_responses": 0,
+        "invalid_commands": 0,
+        "map50": 0.12215721572157215,
+        "latency_ms": {
+          "decode": {
+            "p50_ms": 44.89,
+            "p95_ms": 49.56699999999999,
+            "max_ms": 50.83
+          },
+          "emit": {
+            "p50_ms": 2.88,
+            "p95_ms": 5.234999999999999,
+            "max_ms": 5.43
+          },
+          "gmc": {
+            "p50_ms": 23.14,
+            "p95_ms": 29.265999999999995,
+            "max_ms": 31.33
+          },
+          "predict_state": {
+            "p50_ms": 2.09,
+            "p95_ms": 2.461,
+            "max_ms": 2.5
+          },
+          "proposals": {
+            "p50_ms": 185.03,
+            "p95_ms": 224.828,
+            "max_ms": 230.3
+          },
+          "recognize": {
+            "p50_ms": 293.53,
+            "p95_ms": 332.076,
+            "max_ms": 340.29
+          },
+          "schedule": {
+            "p50_ms": 0.11,
+            "p95_ms": 0.18499999999999997,
+            "max_ms": 0.2
+          },
+          "total": {
+            "p50_ms": 582.52,
+            "p95_ms": 592.779,
+            "max_ms": 593.43
+          },
+          "update_state": {
+            "p50_ms": 1.15,
+            "p95_ms": 2.1109999999999998,
+            "max_ms": 2.15
+          }
+        }
+      }
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 32,
+      "harness": "offline-complete",
+      "map50": 0.459771205428189,
+      "per_class_ap": {
+        "hangar": 0.0,
+        "helicopter": 0.8093668407654153,
+        "jet_plane": 0.9078907890789081,
+        "large_launcher": 0.9686891766099686,
+        "large_tower": 0.0,
+        "medium_launcher": 0.0,
+        "medium_plane": 0.0,
+        "mine_roller": 0.0,
+        "small_launcher": 0.0,
+        "small_plane": 0.0,
+        "small_tower": 0.9171022692331345,
+        "ta-ta": 0.07746068724519511,
+        "tank": 0.9428966152429197,
+        "condor": 0.7824378591705322,
+        "jammer": 1.0,
+        "spacecraft": 0.9504950495049505
+      },
+      "frames_total": 25,
+      "accepted_frames": 25,
+      "skipped_frames": 0,
+      "invalid_responses": 0,
+      "invalid_commands": 0,
+      "annotations_per_accepted_frame": 60.56,
+      "distinct_emitted_classes": [
+        "condor",
+        "hangar",
+        "helicopter",
+        "jammer",
+        "jet_plane",
+        "large_launcher",
+        "large_tower",
+        "medium_launcher",
+        "medium_plane",
+        "mine_roller",
+        "small_launcher",
+        "small_plane",
+        "small_tower",
+        "spacecraft",
+        "ta-ta",
+        "tank"
+      ],
+      "emitted_class_distribution": {
+        "condor": 59,
+        "hangar": 3,
+        "helicopter": 148,
+        "jammer": 63,
+        "jet_plane": 238,
+        "large_launcher": 274,
+        "large_tower": 209,
+        "medium_launcher": 60,
+        "medium_plane": 3,
+        "mine_roller": 24,
+        "small_launcher": 41,
+        "small_plane": 34,
+        "small_tower": 81,
+        "spacecraft": 119,
+        "ta-ta": 26,
+        "tank": 132
+      },
+      "track_bank_mean": 23.2,
+      "track_bank_max": 32,
+      "track_bank_saturation_frames": 0,
+      "tracks_created": 89,
+      "tracks_removed": 74,
+      "candidate_to_output_conversion": 2.8783269961977185,
+      "latency_ms": {
+        "decode": {
+          "p50_ms": 47.28,
+          "p95_ms": 69.16999999999994,
+          "max_ms": 76.26
+        },
+        "emit": {
+          "p50_ms": 5.68,
+          "p95_ms": 9.926,
+          "max_ms": 10.56
+        },
+        "gmc": {
+          "p50_ms": 24.1,
+          "p95_ms": 31.598000000000003,
+          "max_ms": 34.71
+        },
+        "predict_state": {
+          "p50_ms": 0.89,
+          "p95_ms": 2.268,
+          "max_ms": 4.44
+        },
+        "proposals": {
+          "p50_ms": 185.05,
+          "p95_ms": 224.468,
+          "max_ms": 228.8
+        },
+        "recognize": {
+          "p50_ms": 263.25,
+          "p95_ms": 339.138,
+          "max_ms": 392.8
+        },
+        "schedule": {
+          "p50_ms": 0.11,
+          "p95_ms": 0.22399999999999975,
+          "max_ms": 0.25
+        },
+        "total": {
+          "p50_ms": 526.34,
+          "p95_ms": 630.7399999999999,
+          "max_ms": 678.48
+        },
+        "update_state": {
+          "p50_ms": 2.16,
+          "p95_ms": 5.294,
+          "max_ms": 6.07
+        }
+      },
+      "realtime": {
+        "accepted_frames": 7,
+        "skipped_frames": 18,
+        "invalid_responses": 0,
+        "invalid_commands": 0,
+        "map50": 0.12382800780078007,
+        "latency_ms": {
+          "decode": {
+            "p50_ms": 48.68,
+            "p95_ms": 56.172,
+            "max_ms": 56.85
+          },
+          "emit": {
+            "p50_ms": 2.76,
+            "p95_ms": 4.209999999999999,
+            "max_ms": 4.39
+          },
+          "gmc": {
+            "p50_ms": 22.8,
+            "p95_ms": 30.738999999999994,
+            "max_ms": 32.44
+          },
+          "predict_state": {
+            "p50_ms": 1.85,
+            "p95_ms": 4.297999999999999,
+            "max_ms": 4.55
+          },
+          "proposals": {
+            "p50_ms": 186.37,
+            "p95_ms": 252.27399999999997,
+            "max_ms": 273.22
+          },
+          "recognize": {
+            "p50_ms": 260.15,
+            "p95_ms": 326.299,
+            "max_ms": 341.62
+          },
+          "schedule": {
+            "p50_ms": 0.1,
+            "p95_ms": 0.127,
+            "max_ms": 0.13
+          },
+          "total": {
+            "p50_ms": 521.35,
+            "p95_ms": 662.0789999999998,
+            "max_ms": 698.43
+          },
+          "update_state": {
+            "p50_ms": 1.25,
+            "p95_ms": 2.4179999999999997,
+            "max_ms": 2.52
+          }
+        }
+      }
+    }
+  ],
+  "proposal_budget_comparison": [
+    {
+      "backend": "v2",
+      "budget": 32,
+      "helsinki_map50": 0.43058011210323227,
+      "helsinki_offline_accepted_frames": 25,
+      "helsinki_realtime_accepted_frames": 8,
+      "helsinki_realtime_skipped_frames": 17,
+      "helsinki_realtime_map50": 0.11067792047061849,
+      "helsinki_annotations_per_frame": 22.52,
+      "helsinki_track_bank_mean": 9.8,
+      "helsinki_track_bank_max": 15,
+      "helsinki_total_p95_ms": 442.6959999999999,
+      "hosted_proposals_before_budget_mean": 0.82,
+      "hosted_proposals_after_budget_mean": 0.82,
+      "hosted_rejection_fraction_mean": 0.026666666666666665,
+      "hosted_observations_per_image": 0.76,
+      "hosted_discovery_recognition_p95_ms": 237.8793949901592
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 8,
+      "helsinki_map50": 0.4591333214203773,
+      "helsinki_offline_accepted_frames": 25,
+      "helsinki_realtime_accepted_frames": 8,
+      "helsinki_realtime_skipped_frames": 17,
+      "helsinki_realtime_map50": 0.12594295143800094,
+      "helsinki_annotations_per_frame": 20.8,
+      "helsinki_track_bank_mean": 9.56,
+      "helsinki_track_bank_max": 12,
+      "helsinki_total_p95_ms": 431.5419999999999,
+      "hosted_proposals_before_budget_mean": 54.72,
+      "hosted_proposals_after_budget_mean": 8,
+      "hosted_rejection_fraction_mean": 0.2175,
+      "hosted_observations_per_image": 6.26,
+      "hosted_discovery_recognition_p95_ms": 314.22849498776486
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 16,
+      "helsinki_map50": 0.45525418633633896,
+      "helsinki_offline_accepted_frames": 25,
+      "helsinki_realtime_accepted_frames": 7,
+      "helsinki_realtime_skipped_frames": 18,
+      "helsinki_realtime_map50": 0.12280837458745875,
+      "helsinki_annotations_per_frame": 41.76,
+      "helsinki_track_bank_mean": 16.92,
+      "helsinki_track_bank_max": 20,
+      "helsinki_total_p95_ms": 540.4259999999998,
+      "hosted_proposals_before_budget_mean": 54.72,
+      "hosted_proposals_after_budget_mean": 16,
+      "hosted_rejection_fraction_mean": 0.22,
+      "hosted_observations_per_image": 12.48,
+      "hosted_discovery_recognition_p95_ms": 406.6947049985174
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 24,
+      "helsinki_map50": 0.46050049293027884,
+      "helsinki_offline_accepted_frames": 25,
+      "helsinki_realtime_accepted_frames": 7,
+      "helsinki_realtime_skipped_frames": 18,
+      "helsinki_realtime_map50": 0.12215721572157215,
+      "helsinki_annotations_per_frame": 57.0,
+      "helsinki_track_bank_mean": 22.16,
+      "helsinki_track_bank_max": 29,
+      "helsinki_total_p95_ms": 616.05,
+      "hosted_proposals_before_budget_mean": 54.72,
+      "hosted_proposals_after_budget_mean": 24,
+      "hosted_rejection_fraction_mean": 0.22,
+      "hosted_observations_per_image": 18.72,
+      "hosted_discovery_recognition_p95_ms": 503.39234500279406
+    },
+    {
+      "backend": "v3_standard",
+      "budget": 32,
+      "helsinki_map50": 0.459771205428189,
+      "helsinki_offline_accepted_frames": 25,
+      "helsinki_realtime_accepted_frames": 7,
+      "helsinki_realtime_skipped_frames": 18,
+      "helsinki_realtime_map50": 0.12382800780078007,
+      "helsinki_annotations_per_frame": 60.56,
+      "helsinki_track_bank_mean": 23.2,
+      "helsinki_track_bank_max": 32,
+      "helsinki_total_p95_ms": 630.7399999999999,
+      "hosted_proposals_before_budget_mean": 54.72,
+      "hosted_proposals_after_budget_mean": 31.82,
+      "hosted_rejection_fraction_mean": 0.22907659151193635,
+      "hosted_observations_per_image": 24.54,
+      "hosted_discovery_recognition_p95_ms": 564.0989400046237
+    }
+  ],
+  "hosted_images": 50,
+  "hosted_method": "GT-free, stride-5 captures, independent discovery/recognition; no temporal metrics"
+}

@@ -12,3 +12,13 @@ requests>=2.31            # [2.34.2]
 # Only needed by local_evaluator.py. It is the same scorer the competition
 # uses, and the same version range.
 faster-coco-eval>=1.7.2,<2  # [1.7.2]
+
+# Local nano detector. Pinned to the stack used for the recorded baseline.
+ultralytics==8.4.155
+torch==2.14.0
+torchvision==0.29.0
+
+# The proposal detector is served from its ONNX export: measured 185 ms -> 113 ms
+# per frame against a 333 ms frame interval, with identical proposals. Only the
+# runtime is needed to serve; `onnx` itself is an export-time dependency.
+onnxruntime==1.30.0

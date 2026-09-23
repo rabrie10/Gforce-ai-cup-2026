@@ -1,0 +1,10 @@
+.venv
+__pycache__
+*.pyc
+src
+training
+tests
+architecture_experiments
+scene_audit
+evaluator_probes
+images

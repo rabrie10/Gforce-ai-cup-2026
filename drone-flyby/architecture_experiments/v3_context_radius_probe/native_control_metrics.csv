@@ -1,0 +1,9 @@
+source_class,source_frame,source_bbox_x1,source_bbox_y1,source_bbox_x2,source_bbox_y2,rank_at_iou_030,rank_at_iou_050,best_matching_score,best_matching_score_iou_050,max_iou,above_production_threshold,proposal_count,recall_at_1_iou_030,recall_at_5_iou_030,recall_at_20_iou_030,recall_at_1_iou_050,recall_at_5_iou_050,recall_at_20_iou_050,valid_native_control,weak_control_reason
+condor,3,2673,1583,2844,1749,5,5,0.049265921115875244,0.049265921115875244,0.8690181668806202,True,2290,False,True,True,False,True,True,True,
+helicopter,8,2251,1373,2367,1467,1,1,0.9361262917518616,0.9361262917518616,0.8449819362059344,True,2128,True,True,True,True,True,True,True,
+jammer,1,1493,1314,1525,1358,19,19,0.005901724100112915,0.005901724100112915,0.7145684933955786,False,2379,False,False,True,False,False,True,True,
+large_launcher,9,3552,897,3701,1005,1,1,0.9761446118354797,0.9761446118354797,0.8281400011329699,True,2112,True,True,True,True,True,True,True,
+small_launcher,12,1777,923,1799,953,,,0.0,0.0,0.22655237003225345,False,2013,False,False,False,False,False,False,False,native target not top-20 at IoU>=0.30
+spacecraft,10,1496,1259,1540,1308,3,3,0.8773379325866699,0.8773379325866699,0.9006332711136652,True,2091,False,True,True,False,True,True,True,
+ta-ta,17,995,1339,1029,1355,,,0.0,0.0,0.22365529851100982,False,1847,False,False,False,False,False,False,False,native target not top-20 at IoU>=0.30
+tank,13,795,695,845,742,7,7,0.014325886964797974,0.014325886964797974,0.935598729682956,True,2068,False,False,True,False,False,True,True,

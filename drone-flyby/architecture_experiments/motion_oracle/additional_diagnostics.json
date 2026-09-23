@@ -1,0 +1,96 @@
+{
+  "used_donor_updates": 248,
+  "used_donor_statistics": {
+    "donor_count": {
+      "n": 248,
+      "min": 7.0,
+      "median": 9.0,
+      "mean": 9.225806451612904,
+      "max": 11.0
+    },
+    "mad_dx": {
+      "n": 248,
+      "min": 2.75,
+      "median": 5.0,
+      "mean": 5.397177419354839,
+      "max": 9.5
+    },
+    "mad_dy": {
+      "n": 248,
+      "min": 3.25,
+      "median": 6.0,
+      "mean": 6.164314516129032,
+      "max": 9.0
+    },
+    "residual_median": {
+      "n": 248,
+      "min": 6.726812023536855,
+      "median": 9.604686356149273,
+      "mean": 9.6660933863034,
+      "max": 16.32482771731451
+    }
+  },
+  "spatial_correlations": {
+    "all": {
+      "n": 243,
+      "valid": 182,
+      "corr_x_signed_dx_error": -0.9648213125134528,
+      "corr_y_signed_dy_error": -0.8205676592306824
+    },
+    "nonboundary": {
+      "n": 220,
+      "valid": 172,
+      "corr_x_signed_dx_error": -0.9646629952838427,
+      "corr_y_signed_dy_error": -0.9626116018027222
+    }
+  },
+  "clean_shared_scale": {
+    "clean_width_ratio": {
+      "n": 24,
+      "min": 1.0,
+      "median": 1.0055665512122711,
+      "mean": 1.004833710191938,
+      "max": 1.0137485970819304
+    },
+    "clean_height_ratio": {
+      "n": 24,
+      "min": 0.9918032786885246,
+      "median": 1.0,
+      "mean": 1.0009601633591176,
+      "max": 1.010989010989011
+    },
+    "clean_width_ratio_mad": {
+      "n": 24,
+      "min": 0.0,
+      "median": 0.00556655121227112,
+      "mean": 0.004493649460684053,
+      "max": 0.010752688172043001
+    },
+    "clean_height_ratio_mad": {
+      "n": 24,
+      "min": 0.0,
+      "median": 0.006749532210638898,
+      "mean": 0.0059812586834376335,
+      "max": 0.01666666666666672
+    }
+  },
+  "shared_first_last": {
+    "dx": [
+      1.0,
+      -4.25
+    ],
+    "dy": [
+      62.0,
+      69.75
+    ],
+    "magnitude": [
+      62.00806399170998,
+      69.87936032906998
+    ],
+    "direction_deg": [
+      89.07595464722729,
+      93.48682977103714
+    ]
+  },
+  "note": "Pearson correlations are descriptive and confounded by class, time and boundary; no significance claim."
+}

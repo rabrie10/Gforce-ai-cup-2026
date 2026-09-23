@@ -1,0 +1,499 @@
+{
+  "artifact_hash_verification": {
+    "all_match": true,
+    "artifacts": {
+      "drone-flyby/models/drone_yolo11n_l0.onnx": {
+        "actual_sha256": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+        "expected_sha256": "d480d3369feba50faa7d1ef0d901f6e5d96f564bf0953bd058f1de42a0ac2ca9",
+        "matches": true,
+        "size_bytes": 11098170
+      },
+      "drone-flyby/models/drone_yolo11n_l0.pt": {
+        "actual_sha256": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+        "expected_sha256": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce",
+        "matches": true,
+        "size_bytes": 5494554
+      },
+      "drone-flyby/models/reference_gallery.npz": {
+        "actual_sha256": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+        "expected_sha256": "ef226de6a9bd624a1e7fd60291812677c5d7815f3a667bfea607b0158867b67e",
+        "matches": true,
+        "size_bytes": 2277374
+      }
+    }
+  },
+  "conclusion": "The mandated primary recognition replay from proposal coordinates recorded to 0.1 pixel does not reproduce every hosted recognition value, so the strict classification is Outcome B. The disagreement is fully attributable to telemetry precision changing integer crop boundaries: the secondary end-to-end replay with unrounded detector coordinates reproduces hosted recognition exactly at recorded precision. This is not evidence of model/config/runtime drift, but the primary gate does not permit a domain-generalization conclusion.",
+  "confidence": "High for the 50 sampled images at recorded telemetry precision; not a statement about hidden ground truth.",
+  "earliest_stage_of_disagreement": "recognition stage",
+  "exactly_one_next_action": "Extend diagnostic telemetry to preserve full-precision proposal crop bounds and a SHA256 for each 64x64 recognition crop before any future authorized hosted capture.",
+  "experiment": {
+    "frame_indices": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60,
+      65,
+      70,
+      75,
+      80,
+      85,
+      90,
+      95,
+      100,
+      105,
+      110,
+      115,
+      120,
+      125,
+      130,
+      135,
+      140,
+      145,
+      150,
+      155,
+      160,
+      165,
+      170,
+      175,
+      180,
+      185,
+      190,
+      195,
+      200,
+      205,
+      210,
+      215,
+      220,
+      225,
+      230,
+      235,
+      240,
+      245
+    ],
+    "frozen_v2_commit": "6fb764e5b9fb5f7eefcb832c72b35553165219e5",
+    "ground_truth_available": false,
+    "hosted_validation_uuid": "6a86911aebf64be79a3b6a6742de0686",
+    "sampled_images": 50
+  },
+  "final_classification": "OUTCOME B",
+  "image_byte_verification": {
+    "all_decode_960x540": true,
+    "all_sha256_recorded": true,
+    "bytes_modified": false,
+    "images": 50
+  },
+  "internal_consistency_checks": {
+    "expected_proposal_comparison_rows": 41,
+    "expected_recognition_comparison_rows": 41,
+    "image_manifest_rows": 50,
+    "per_frame_summary_rows": 50,
+    "proposal_comparison_rows": 41,
+    "recognition_comparison_rows": 41
+  },
+  "limitations": [
+    "Hosted proposal coordinates are recorded to 0.1 pixel and scores/posteriors/quality to four decimals.",
+    "Recognition replay necessarily crops from telemetry-rounded hosted proposal boxes, not the unavailable full-precision in-memory boxes.",
+    "Only 50 stride-5 images were captured; unsampled frames were not replayed.",
+    "There is no hosted ground truth, so recall, detection accuracy, classification accuracy, hidden-object IoU/AP, and hidden object scale are NOT OBSERVABLE."
+  ],
+  "proposal_replay": {
+    "agreement_at_telemetry_precision": true,
+    "backend_details": [
+      {
+        "class": "OnnxYoloProposer",
+        "name": "yolo",
+        "providers": [
+          "CPUExecutionProvider"
+        ],
+        "weights": "C:\\Users\\mbnas\\.vscode\\nordicAI\\Gforce-ai-cup-2026\\drone-flyby\\models\\drone_yolo11n_l0.onnx"
+      }
+    ],
+    "bbox_max_abs_error_px": {
+      "count": 41,
+      "max": 0.04991455078123863,
+      "mean": 0.03864651191524988,
+      "median": 0.04158325195311363,
+      "min": 0.01610107421873863,
+      "p95": 0.04953613281247726
+    },
+    "both_zero_frames": 24,
+    "comparison_precision": {
+      "bbox_decimals": 1,
+      "score_decimals": 4
+    },
+    "exact_proposal_count_match_rate": 1.0,
+    "hosted_proposal_total": 41,
+    "hosted_zero_replay_nonzero_frames": 0,
+    "largest_disagreement_frames": [
+      {
+        "frame_index": 65,
+        "hosted_proposal_count": 2,
+        "proposal_all_pairs_equal_at_telemetry_precision": true,
+        "proposal_count_abs_error": 0,
+        "proposal_count_error": 0,
+        "proposal_count_match": true,
+        "proposal_max_bbox_error_px": 0.04991455078123863,
+        "proposal_max_score_error": 2.022304534912006e-05,
+        "proposal_min_matched_iou": 0.9929772414805981,
+        "proposal_ordering_match": true,
+        "replay_proposal_count": 2
+      },
+      {
+        "frame_index": 55,
+        "hosted_proposal_count": 3,
+        "proposal_all_pairs_equal_at_telemetry_precision": true,
+        "proposal_count_abs_error": 0,
+        "proposal_count_error": 0,
+        "proposal_count_match": true,
+        "proposal_max_bbox_error_px": 0.04978027343747726,
+        "proposal_max_score_error": 2.3887634277344402e-05,
+        "proposal_min_matched_iou": 0.9941218972667387,
+        "proposal_ordering_match": true,
+        "replay_proposal_count": 3
+      },
+      {
+        "frame_index": 145,
+        "hosted_proposal_count": 2,
+        "proposal_all_pairs_equal_at_telemetry_precision": true,
+        "proposal_count_abs_error": 0,
+        "proposal_count_error": 0,
+        "proposal_count_match": true,
+        "proposal_max_bbox_error_px": 0.04953613281247726,
+        "proposal_max_score_error": 2.7436685562133578e-05,
+        "proposal_min_matched_iou": 0.9895982641846294,
+        "proposal_ordering_match": true,
+        "replay_proposal_count": 2
+      },
+      {
+        "frame_index": 60,
+        "hosted_proposal_count": 1,
+        "proposal_all_pairs_equal_at_telemetry_precision": true,
+        "proposal_count_abs_error": 0,
+        "proposal_count_error": 0,
+        "proposal_count_match": true,
+        "proposal_max_bbox_error_px": 0.04945068359376137,
+        "proposal_max_score_error": 2.593231201171442e-06,
+        "proposal_min_matched_iou": 0.9924819804315795,
+        "proposal_ordering_match": true,
+        "replay_proposal_count": 1
+      },
+      {
+        "frame_index": 220,
+        "hosted_proposal_count": 1,
+        "proposal_all_pairs_equal_at_telemetry_precision": true,
+        "proposal_count_abs_error": 0,
+        "proposal_count_error": 0,
+        "proposal_count_match": true,
+        "proposal_max_bbox_error_px": 0.04880371093747726,
+        "proposal_max_score_error": 4.807977676391656e-05,
+        "proposal_min_matched_iou": 0.9939299449927488,
+        "proposal_ordering_match": true,
+        "replay_proposal_count": 1
+      }
+    ],
+    "matched_proposal_iou": {
+      "count": 41,
+      "max": 0.9972919333708078,
+      "mean": 0.9933074453698459,
+      "median": 0.9939299449927488,
+      "min": 0.9858605261862704,
+      "p95": 0.9965211769108699
+    },
+    "ordering_match_rate": 1.0,
+    "proposal_count_mae": 0.0,
+    "replay_proposal_total": 41,
+    "replay_zero_hosted_nonzero_frames": 0,
+    "score_abs_error": {
+      "count": 41,
+      "max": 4.96685028076177e-05,
+      "mean": 2.3509344240513995e-05,
+      "median": 2.097477912902518e-05,
+      "min": 2.0480155944746503e-07,
+      "p95": 4.693655967712325e-05
+    }
+  },
+  "recognition_replay": {
+    "agreement_at_telemetry_precision": false,
+    "background_rejection_frame_agreement_rate": 1.0,
+    "background_rejection_proposal_agreement_rate": 1.0,
+    "full_count_match_rate": 1.0,
+    "hosted_crop_total": 41,
+    "hosted_observation_total": 38,
+    "hosted_positive_proposal_frames": 26,
+    "hosted_rejected_total": 3,
+    "largest_disagreement_frames": [
+      {
+        "background_rejection_agreement": true,
+        "frame_index": 100,
+        "hosted_crop_count": 2,
+        "hosted_observation_count": 1,
+        "hosted_rejected_as_background": 1,
+        "mean_margin_abs_error": 0.0035853257179260254,
+        "mean_margin_equal_at_telemetry_precision": false,
+        "mean_margin_hosted": 0.001,
+        "mean_margin_replay": 0.004585325717926025,
+        "mean_objectness_abs_error": 0.033495945579437914,
+        "mean_objectness_equal_at_telemetry_precision": false,
+        "mean_objectness_hosted": 0.5406,
+        "mean_objectness_replay": 0.5740959455794379,
+        "recognition_all_observable_values_equal_at_telemetry_precision": false,
+        "recognition_counts_match": true,
+        "recognition_input_source": "original recorded hosted proposal boxes (primary)",
+        "replay_crop_count": 2,
+        "replay_observation_count": 1,
+        "replay_rejected_as_background": 1,
+        "top_class_agreement_rate": 1.0
+      },
+      {
+        "background_rejection_agreement": true,
+        "frame_index": 225,
+        "hosted_crop_count": 1,
+        "hosted_observation_count": 1,
+        "hosted_rejected_as_background": 0,
+        "mean_margin_abs_error": 0.01699972839355468,
+        "mean_margin_equal_at_telemetry_precision": false,
+        "mean_margin_hosted": 0.0797,
+        "mean_margin_replay": 0.06270027160644531,
+        "mean_objectness_abs_error": 0.026983697418573427,
+        "mean_objectness_equal_at_telemetry_precision": false,
+        "mean_objectness_hosted": 0.6447,
+        "mean_objectness_replay": 0.6716836974185735,
+        "recognition_all_observable_values_equal_at_telemetry_precision": false,
+        "recognition_counts_match": true,
+        "recognition_input_source": "original recorded hosted proposal boxes (primary)",
+        "replay_crop_count": 1,
+        "replay_observation_count": 1,
+        "replay_rejected_as_background": 0,
+        "top_class_agreement_rate": 1.0
+      },
+      {
+        "background_rejection_agreement": true,
+        "frame_index": 80,
+        "hosted_crop_count": 1,
+        "hosted_observation_count": 1,
+        "hosted_rejected_as_background": 0,
+        "mean_margin_abs_error": 0.014803359508514406,
+        "mean_margin_equal_at_telemetry_precision": false,
+        "mean_margin_hosted": 0.0525,
+        "mean_margin_replay": 0.0673033595085144,
+        "mean_objectness_abs_error": 0.006015301438705212,
+        "mean_objectness_equal_at_telemetry_precision": false,
+        "mean_objectness_hosted": 0.8984,
+        "mean_objectness_replay": 0.9044153014387052,
+        "recognition_all_observable_values_equal_at_telemetry_precision": false,
+        "recognition_counts_match": true,
+        "recognition_input_source": "original recorded hosted proposal boxes (primary)",
+        "replay_crop_count": 1,
+        "replay_observation_count": 1,
+        "replay_rejected_as_background": 0,
+        "top_class_agreement_rate": 1.0
+      },
+      {
+        "background_rejection_agreement": true,
+        "frame_index": 50,
+        "hosted_crop_count": 3,
+        "hosted_observation_count": 3,
+        "hosted_rejected_as_background": 0,
+        "mean_margin_abs_error": 0.0017103394508361826,
+        "mean_margin_equal_at_telemetry_precision": false,
+        "mean_margin_hosted": 0.0159,
+        "mean_margin_replay": 0.014189660549163818,
+        "mean_objectness_abs_error": 0.0025096518543341606,
+        "mean_objectness_equal_at_telemetry_precision": false,
+        "mean_objectness_hosted": 0.8982,
+        "mean_objectness_replay": 0.9007096518543342,
+        "recognition_all_observable_values_equal_at_telemetry_precision": false,
+        "recognition_counts_match": true,
+        "recognition_input_source": "original recorded hosted proposal boxes (primary)",
+        "replay_crop_count": 3,
+        "replay_observation_count": 3,
+        "replay_rejected_as_background": 0,
+        "top_class_agreement_rate": 0.6666666666666666
+      },
+      {
+        "background_rejection_agreement": true,
+        "frame_index": 145,
+        "hosted_crop_count": 2,
+        "hosted_observation_count": 1,
+        "hosted_rejected_as_background": 1,
+        "mean_margin_abs_error": 5.1979064941420905e-06,
+        "mean_margin_equal_at_telemetry_precision": true,
+        "mean_margin_hosted": 0.0204,
+        "mean_margin_replay": 0.02039480209350586,
+        "mean_objectness_abs_error": 4.786376169169104e-05,
+        "mean_objectness_equal_at_telemetry_precision": true,
+        "mean_objectness_hosted": 0.4067,
+        "mean_objectness_replay": 0.4066521362383083,
+        "recognition_all_observable_values_equal_at_telemetry_precision": true,
+        "recognition_counts_match": true,
+        "recognition_input_source": "original recorded hosted proposal boxes (primary)",
+        "replay_crop_count": 2,
+        "replay_observation_count": 1,
+        "replay_rejected_as_background": 1,
+        "top_class_agreement_rate": 1.0
+      }
+    ],
+    "not_observable": [
+      "per-crop hosted objectness",
+      "per-crop hosted margin",
+      "hosted top class/posterior/quality for rejected crops",
+      "non-top hosted class posterior values"
+    ],
+    "observation_count_match_rate": 1.0,
+    "per_frame_mean_margin_abs_error": {
+      "count": 26,
+      "max": 0.01699972839355468,
+      "mean": 0.00148546691766152,
+      "median": 3.081189791361537e-05,
+      "min": 1.2036323547362504e-06,
+      "p95": 0.01199885106086731
+    },
+    "per_frame_mean_objectness_abs_error": {
+      "count": 26,
+      "max": 0.033495945579437914,
+      "mean": 0.0026765717370437225,
+      "median": 3.317691729287642e-05,
+      "min": 1.5688060301943807e-06,
+      "p95": 0.021741598423606373
+    },
+    "primary_input": "original recorded hosted proposal boxes",
+    "quality_abs_error": {
+      "count": 38,
+      "max": 0.04373299928114094,
+      "mean": 0.0026800727487867795,
+      "median": 2.8343034890160324e-05,
+      "min": 9.682121726584114e-08,
+      "p95": 0.016450232516031067
+    },
+    "ranked_plausible_causes": [
+      {
+        "cause": "preprocessing mismatch from telemetry-rounded proposal geometry",
+        "rank": 1,
+        "status": "CONFIRMED for the primary replay disagreement"
+      },
+      {
+        "cause": "model artifact or effective config mismatch",
+        "rank": 2,
+        "status": "CONTRADICTED by matching hashes and exact full-precision sensitivity replay"
+      },
+      {
+        "cause": "image decode difference",
+        "rank": 3,
+        "status": "CONTRADICTED by exact discovery reproduction and full-precision sensitivity replay"
+      },
+      {
+        "cause": "ONNX/runtime/library/thread/provider behavior",
+        "rank": 4,
+        "status": "NOT SUPPORTED; full-precision end-to-end inference reproduces hosted telemetry"
+      },
+      {
+        "cause": "other deployment/runtime drift",
+        "rank": 5,
+        "status": "NOT SUPPORTED on the 50 sampled images"
+      }
+    ],
+    "recognizer": {
+      "available": true,
+      "backbone": "resnet18",
+      "background_normalize": true,
+      "background_prototypes": 192,
+      "classes_covered": 16,
+      "context": 1.25,
+      "crop_size": 64,
+      "dimension": 512,
+      "per_class": {
+        "condor": 72,
+        "hangar": 72,
+        "helicopter": 72,
+        "jammer": 72,
+        "jet_plane": 72,
+        "large_launcher": 72,
+        "large_tower": 72,
+        "medium_launcher": 72,
+        "medium_plane": 72,
+        "mine_roller": 72,
+        "small_launcher": 72,
+        "small_plane": 72,
+        "small_tower": 72,
+        "spacecraft": 72,
+        "ta-ta": 72,
+        "tank": 72
+      },
+      "per_level": {
+        "0": 576,
+        "1": 384,
+        "2": 384
+      },
+      "prototypes": 1344,
+      "version": 3
+    },
+    "replay_crop_total": 41,
+    "replay_observation_total": 38,
+    "replay_rejected_total": 3,
+    "secondary_full_precision_box_sensitivity": {
+      "agreement_at_telemetry_precision": true,
+      "background_rejection_proposal_agreement_rate": 1.0,
+      "is_primary_comparison": false,
+      "observation_count_match_rate": 1.0,
+      "purpose": "Tests whether any primary mismatch is explained by telemetry rounding proposal coordinates to 0.1 pixel before crop reconstruction.",
+      "quality_abs_error": {
+        "count": 38,
+        "max": 4.899192171836653e-05,
+        "mean": 2.3083941820705984e-05,
+        "median": 2.5819856441677835e-05,
+        "min": 9.682121726584114e-08,
+        "p95": 4.7474737640670896e-05
+      },
+      "top_class_agreement_rate": 1.0,
+      "top_posterior_abs_error": {
+        "count": 38,
+        "max": 4.995236396790337e-05,
+        "mean": 2.7539442087473754e-05,
+        "median": 3.115565776824758e-05,
+        "min": 9.70292091367897e-07,
+        "p95": 4.784893512726762e-05
+      }
+    },
+    "telemetry_rounding_attribution": {
+      "all_primary_disagreement_frames_have_changed_crop_bounds": true,
+      "changed_crop_window_frames": [
+        50,
+        80,
+        100,
+        210,
+        225
+      ],
+      "full_precision_sensitivity_reproduces_hosted": true,
+      "interpretation": "The primary recognition disagreement is attributable to reconstructing crops from proposal coordinates serialized to 0.1 pixel. All primary disagreement frames are exactly the frames where rounding changes a floor/ceil crop boundary, while the secondary replay with the detector's unrounded coordinates reproduces hosted recognition at recorded precision.",
+      "primary_disagreement_frames": [
+        50,
+        80,
+        100,
+        210,
+        225
+      ],
+      "primary_observable_disagreement_proposals": 4,
+      "proposals_whose_integer_crop_bounds_changed": 5,
+      "recorded_box_precision_px": 0.1,
+      "total_proposals": 41
+    },
+    "top_class_agreement_rate": 0.9473684210526315,
+    "top_posterior_abs_error": {
+      "count": 38,
+      "max": 0.07093804950714111,
+      "mean": 0.0022854652536542786,
+      "median": 3.4149122238161245e-05,
+      "min": 9.70292091367897e-07,
+      "p95": 0.004222490031719187
+    }
+  }
+}

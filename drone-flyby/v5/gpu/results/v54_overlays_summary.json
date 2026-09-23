@@ -1,0 +1,96 @@
+[
+  {
+    "idx": 60,
+    "src": 61,
+    "raw": 7,
+    "selected": 7,
+    "emitted": 5,
+    "timing_ms": 130.6,
+    "targets": [
+      {
+        "id": "t60_heli",
+        "best_raw_iou": 0.0,
+        "best_sel_iou": 0.0,
+        "best_emitted_iou": 0.0,
+        "emitted_label": null
+      },
+      {
+        "id": "t60_plane",
+        "best_raw_iou": 0.119,
+        "best_sel_iou": 0.119,
+        "best_emitted_iou": 0.119,
+        "emitted_label": "spacecraft 0.20"
+      },
+      {
+        "id": "t60_dark",
+        "best_raw_iou": 0.0,
+        "best_sel_iou": 0.0,
+        "best_emitted_iou": 0.0,
+        "emitted_label": null
+      }
+    ]
+  },
+  {
+    "idx": 125,
+    "src": 126,
+    "raw": 301,
+    "selected": 32,
+    "emitted": 25,
+    "timing_ms": 189.7,
+    "targets": [
+      {
+        "id": "t125_heli",
+        "best_raw_iou": 0.367,
+        "best_sel_iou": 0.367,
+        "best_emitted_iou": 0.367,
+        "emitted_label": "small_tower 0.16"
+      },
+      {
+        "id": "t125_hangar",
+        "best_raw_iou": 0.012,
+        "best_sel_iou": 0.012,
+        "best_emitted_iou": 0.012,
+        "emitted_label": null
+      },
+      {
+        "id": "t125_planeA",
+        "best_raw_iou": 0.002,
+        "best_sel_iou": 0.002,
+        "best_emitted_iou": 0.002,
+        "emitted_label": null
+      },
+      {
+        "id": "t125_planeB",
+        "best_raw_iou": 0.002,
+        "best_sel_iou": 0.002,
+        "best_emitted_iou": 0.002,
+        "emitted_label": null
+      },
+      {
+        "id": "t125_planeC",
+        "best_raw_iou": 0.002,
+        "best_sel_iou": 0.002,
+        "best_emitted_iou": 0.002,
+        "emitted_label": null
+      }
+    ]
+  },
+  {
+    "idx": 185,
+    "src": 186,
+    "raw": 8,
+    "selected": 8,
+    "emitted": 5,
+    "timing_ms": 68.5,
+    "targets": []
+  },
+  {
+    "idx": 245,
+    "src": 246,
+    "raw": 119,
+    "selected": 32,
+    "emitted": 24,
+    "timing_ms": 137.0,
+    "targets": []
+  }
+]

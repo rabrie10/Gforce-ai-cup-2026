@@ -1,0 +1,116 @@
+{
+  "audit": {
+    "question": "What changed between matched Helsinki/local V2 (~0.431 mAP) and hosted Validation (0) badly enough to explain the collapse?",
+    "frozen_commit": "6fb764e5b9fb5f7eefcb832c72b35553165219e5",
+    "hosted_validation_uuid": "6a86911aebf64be79a3b6a6742de0686",
+    "hosted_score": 0,
+    "organizer_errors": [],
+    "ground_truth_available": false
+  },
+  "telemetry_integrity": {
+    "endpoint_calls": 249,
+    "accepted": 249,
+    "written": 249,
+    "dropped": 0,
+    "errors": 0,
+    "unique_hosted_frame_json": 248,
+    "missing_frame_indices": [1],
+    "missing_record_cause": {
+      "label": "UNRESOLVED",
+      "session_collision": "PLAUSIBLE",
+      "confirmed_transfer_artifact": false,
+      "interpolated": false
+    }
+  },
+  "strongest_divergence": {
+    "stage": "discovery",
+    "label": "CONFIRMED",
+    "hosted_proposals_per_frame_mean": 0.7540322580645161,
+    "helsinki_proposals_per_frame_mean": 8.0,
+    "hosted_over_helsinki": 0.09425403225806452,
+    "hosted_zero_proposal_frames": 121,
+    "hosted_observed_frames": 248,
+    "hosted_zero_proposal_fraction": 0.4879032258064516,
+    "proposal_score_median_hosted": 0.0195,
+    "proposal_score_median_helsinki": 0.5501,
+    "hosted_proposals_gte_0_5_fraction": 0.0,
+    "helsinki_proposals_gte_0_5_fraction": 0.51
+  },
+  "recognition": {
+    "label": "CONFIRMED divergence; SUPPORTED compounding mechanism",
+    "crops_per_frame": {"hosted": 0.7540322580645161, "helsinki": 8.0},
+    "observations_per_frame": {"hosted": 0.7137096774193549, "helsinki": 7.32},
+    "background_rejections": {"hosted": 10, "hosted_crops": 187, "helsinki": 17, "helsinki_crops": 200},
+    "observation_top_posterior_median": {"hosted": 0.2678, "helsinki": 0.6537},
+    "track_primary_posterior_median": {"hosted": 0.0978, "helsinki": 0.3499},
+    "track_posterior_gap_median": {"hosted": 0.0082, "helsinki": 0.2227},
+    "observable_observation_top_class_count": {"hosted": 9, "helsinki": 13}
+  },
+  "track_and_output": {
+    "label": "CONFIRMED divergence; SUPPORTED downstream mechanism",
+    "bank_tracks_per_frame_mean": {"hosted": 1.310483870967742, "helsinki": 9.8},
+    "ever_confirmed_track_fraction": {"hosted": 0.3898305084745763, "helsinki": 0.7241379310344828},
+    "track_lifecycle_span_median_frames": {"hosted": 3.0, "helsinki": 5.0},
+    "emitted_per_frame_mean": {"hosted": 3.903225806451613, "helsinki": 22.52},
+    "zero_output_frames": {"hosted": 78, "helsinki": 0},
+    "distinct_output_classes_per_frame_mean": {"hosted": 2.975806451612903, "helsinki": 8.68},
+    "secondary_guesses_per_frame_mean": {"hosted": 2.592741935483871, "helsinki": 12.76}
+  },
+  "gmc": {
+    "label": "CONFIRMED non-cause",
+    "accepted_after_initialization": {"hosted": "247/247", "helsinki": "24/24"},
+    "accepted_quality_mean": {"hosted": 0.992001619433199, "helsinki": 0.994645833333334},
+    "translation_magnitude_median_px": {"hosted": 54.41673317905371, "helsinki": 53.81060861949064},
+    "affine_matrix_magnitude": "NOT OBSERVABLE"
+  },
+  "camera": {
+    "label": "CONFIRMED non-divergence",
+    "actual_level_counts": {"hosted": {"0": 248}, "helsinki": {"0": 25}},
+    "requested_camera_moves": {"hosted": 0, "helsinki": 0},
+    "camera_feedback_records": {"hosted": 0, "helsinki": 0}
+  },
+  "image_characteristics": {
+    "label": "CONFIRMED domain difference; SUPPORTED upstream driver",
+    "sample_counts": {"hosted": 50, "helsinki": 25},
+    "common_analysis_size": [960, 540],
+    "brightness_mean": {"hosted": 98.1860337191358, "helsinki": 74.50693834876543},
+    "contrast_std_mean": {"hosted": 47.29767608496741, "helsinki": 59.803610124643704},
+    "gradient_mean": {"hosted": 98.20154861450196, "helsinki": 130.92350189208983},
+    "laplacian_variance_mean": {"hosted": 2171.8531044410817, "helsinki": 3659.185836280479},
+    "edge_density_mean": {"hosted": 0.2525297839506173, "helsinki": 0.27766983024691355},
+    "hidden_object_scale": "NOT OBSERVABLE"
+  },
+  "ranked_failure_taxonomy": [
+    {"rank": 1, "failure": "discovery activation collapse", "difference": "CONFIRMED", "zero_score_mechanism": "SUPPORTED"},
+    {"rank": 2, "failure": "recognition identity ambiguity", "difference": "CONFIRMED", "zero_score_mechanism": "SUPPORTED"},
+    {"rank": 3, "failure": "sparse short-lived tracks and output starvation", "difference": "CONFIRMED", "zero_score_mechanism": "SUPPORTED"},
+    {"rank": 4, "failure": "hosted visual-domain shift", "difference": "CONFIRMED", "as_upstream_driver": "SUPPORTED"},
+    {"rank": 5, "failure": "telemetry session/file collision for missing frame 1", "status": "PLAUSIBLE", "run_wide_explanation": false}
+  ],
+  "excluded_by_evidence": [
+    {"failure": "slow inference", "label": "CONFIRMED non-cause"},
+    {"failure": "malformed responses", "label": "CONFIRMED non-cause"},
+    {"failure": "widespread GMC rejection", "label": "CONFIRMED non-cause"},
+    {"failure": "camera level changed from local", "label": "CONFIRMED non-cause"}
+  ],
+  "recommended_next_experiment": {
+    "count": 1,
+    "type": "diagnostic shadow replay",
+    "instruction": "Replay the 50 captured hosted 960x540 images through the frozen V2 discovery and recognition stages, record model/config/runtime hashes, and compare proposal boxes/scores plus recognition posteriors exactly against hosted telemetry. Process discovery independently per image and feed recorded boxes to recognition to avoid stateful stride gaps.",
+    "information_gain": "Exact agreement isolates the measured collapse to input distribution; disagreement isolates environment, artifact, configuration, or preprocessing drift.",
+    "implemented_in_this_audit": false
+  },
+  "not_observable": [
+    "hosted proposal recall",
+    "hosted classification accuracy",
+    "hosted IoU",
+    "hosted hidden class-specific AP or failure",
+    "hosted hidden object scale",
+    "exact emitted class-frequency distribution",
+    "exact emitted confidence distribution",
+    "third-class posterior",
+    "full GMC affine matrix magnitude",
+    "the exact reason hidden mAP was numerically zero"
+  ],
+  "supporting_metrics_file": "computed_metrics.json"
+}

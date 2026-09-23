@@ -1,0 +1,6 @@
+{
+  "winner": "logreg",
+  "holdout_auc": 0.9957219251336898,
+  "threshold": 0.5124729877497537,
+  "oracle_hosted_accept_frac": 0.75
+}

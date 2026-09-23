@@ -1,0 +1,26 @@
+{
+  "aggregate_protected_sha256": "aed49b1bac7a69700d63df247590801158aceb1aeee64469686409846b74eba9",
+  "key_inputs": {
+    "drone-flyby/models/drone_yolo11n_l0.pt": {
+      "bytes": 5494554,
+      "sha256": "4c44e404e03673e8aa15fc85baf90f2d09b67d90c1fd94c9b6c9a4c1f35204ce"
+    },
+    "drone-flyby/training/artifacts/evaluation_results.json": {
+      "bytes": 93421,
+      "sha256": "6ee3fb0a1da500d7e9c4eab466b53b1cd22b80e88ac4418935645b27f9bf7b2d"
+    },
+    "drone-flyby/training/artifacts/training_metadata.json": {
+      "bytes": 1859,
+      "sha256": "d9ee2846f1e2137d11318734b8f5ec597452a87ce1c6a1e6465a0ba71979783d"
+    },
+    "drone-flyby/training/artifacts/training_results.csv": {
+      "bytes": 7111,
+      "sha256": "414c36bd5b3bf6fbb3e25c5a11ffff579127bb0cc6b3d53a18ff51b74767c234"
+    },
+    "drone-flyby/training/artifacts/validation_results.json": {
+      "bytes": 2377,
+      "sha256": "a5648020711a15e729ad7048f3627ba89d0b8cd7f9c443d1b353797b189a6e04"
+    }
+  },
+  "protected_file_count": 199
+}

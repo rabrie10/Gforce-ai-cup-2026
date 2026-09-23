@@ -1,0 +1,30 @@
+{
+  "discovery_ms": 8.7,
+  "discovery_raw": 122,
+  "discovery_selected": 32,
+  "encoder": {
+    "32": {
+      "ms": 55.8,
+      "ms_per_crop": 1.74,
+      "vram": 1208
+    },
+    "64": {
+      "ms": 122.4,
+      "ms_per_crop": 1.91,
+      "vram": 1720
+    },
+    "128": {
+      "ms": 264.9,
+      "ms_per_crop": 2.07,
+      "vram": 2744
+    },
+    "256": {
+      "ms": 506.8,
+      "ms_per_crop": 1.98,
+      "vram": 5816
+    }
+  },
+  "classify32_ms": 130.7,
+  "integrated_disc+cls32_ms": 139.4,
+  "vram_peak_MiB": 6350
+}

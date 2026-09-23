@@ -1,0 +1,75 @@
+{
+  "OBB full": {
+    "hits": 0,
+    "per_target": {
+      "t60_heli": 0.0,
+      "t60_plane": 0.114,
+      "t60_dark": 0.0,
+      "t125_heli": 0.373,
+      "t125_hangar": 0.0,
+      "t125_planeA": 0.0,
+      "t125_planeB": 0.0,
+      "t125_planeC": 0.0
+    },
+    "n_boxes": 301,
+    "ms": 37.0
+  },
+  "OBB tiled3x2": {
+    "hits": 0,
+    "per_target": {
+      "t60_heli": 0.0,
+      "t60_plane": 0.114,
+      "t60_dark": 0.0,
+      "t125_heli": 0.389,
+      "t125_hangar": 0.006,
+      "t125_planeA": 0.0,
+      "t125_planeB": 0.0,
+      "t125_planeC": 0.0
+    },
+    "n_boxes": 1483,
+    "ms": 334.0
+  },
+  "WORLD full": {
+    "hits": 0,
+    "per_target": {
+      "t60_heli": 0.0,
+      "t60_plane": 0.0,
+      "t60_dark": 0.0,
+      "t125_heli": 0.007,
+      "t125_hangar": 0.016,
+      "t125_planeA": 0.003,
+      "t125_planeB": 0.003,
+      "t125_planeC": 0.003
+    },
+    "n_boxes": 8,
+    "ms": 30.0
+  },
+  "WORLD tiled3x2": {
+    "hits": 0,
+    "per_target": {
+      "t60_heli": 0.309,
+      "t60_plane": 0.0,
+      "t60_dark": 0.0,
+      "t125_heli": 0.009,
+      "t125_hangar": 0.084,
+      "t125_planeA": 0.014,
+      "t125_planeB": 0.015,
+      "t125_planeC": 0.015
+    },
+    "n_boxes": 26,
+    "ms": 213.0
+  },
+  "UNION_tiled": {
+    "hits": 0,
+    "per_target": {
+      "t60_heli": 0.309,
+      "t60_plane": 0.114,
+      "t60_dark": 0.0,
+      "t125_heli": 0.389,
+      "t125_hangar": 0.084,
+      "t125_planeA": 0.014,
+      "t125_planeB": 0.015,
+      "t125_planeC": 0.015
+    }
+  }
+}
