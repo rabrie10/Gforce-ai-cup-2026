@@ -1,5 +1,7 @@
 # Nordic AI Cup 2026
 
+> **This fork contains Robel's submissions for the Nordic AI Cup 2026.** See each use case's folder for the approach and results (survival-simulator's [README](survival-simulator/README.md#our-solution) has the write-up).
+
 Welcome to the **Nordic AI Cup**, hosted by [Ambolt AI](https://ambolt.io/). Previously held as the Danish national competition, the event now spans the whole of the Nordics, with a partner organization in each participating country.  
 
 Visit the [Nordic AI Cup Website](https://nordicaicup.com) 
