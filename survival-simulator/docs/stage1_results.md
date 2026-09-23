@@ -1,3 +1,18 @@
+> **Superseded, kept for history.** The "RL iter400 (~70%) roughly equals
+> the heuristic (70%)" conclusion below was measured *before* a bug fix:
+> the environment was charging an agent's 100-energy spawn cost even when
+> the curriculum blocked the spawn outright (reproduction is disabled on
+> stages 1-3). After removing that blocked-spawn energy charge, the
+> heuristic's actual stage-1 survival is 99.5-100%, not 70% -- the RL
+> policy here does **not** match heuristic performance, it falls well
+> short of it. The "90% goal is unrealistic / the oracle is a ceiling"
+> conclusion below is also wrong for the same reason: with the bug fixed,
+> the heuristic itself clears the original 90% goal. See the top-level
+> [README](../README.md#our-solution) for the final approach and results
+> actually used for submission.
+
+---
+
 # Stage 1 (foraging) results, 2026-09-19
 
 Metric: survive = >=1 of 3 agents alive at the 300s cap (curriculum.py stage-1 goal). Original goal: 90% over a 50-episode window.
